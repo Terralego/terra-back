@@ -1,0 +1,27 @@
+ version: '2'
+ services:
+   db:
+     image: mdillon/postgis:10-alpine
+     env_file:
+       - docker.env
+     volumes:
+       - ./volumes/postgresql:/var/lib/postgresql/data
+    #  ports:
+    #   - "5432:5432"
+   django:
+     build: .
+     tty: true
+     user: "1001"
+     volumes:
+       - ./src:/code/src
+       - ./private:/code/private
+     ports:
+       - "8000:8000"
+     env_file:
+       - docker.env
+     environment:
+       - DJANGO_SETTINGS_MODULE=project.settings.dev
+     depends_on:
+       - db
+     working_dir: /code/src
+     command: /code/venv/bin/python3.6 ./manage.py runserver 0.0.0.0:8000

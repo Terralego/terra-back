@@ -1,0 +1,16 @@
+apt-utils
+software-properties-common
+sudo
+python3.6
+python3.6-dev
+python3.6-venv
+less
+nano
+wget
+curl
+build-essential
+ca-certificates
+gettext
+binutils
+libproj-dev
+gdal-bin
