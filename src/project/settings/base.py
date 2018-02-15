@@ -42,7 +42,8 @@ INSTALLED_APPS = (
     'django.contrib.gis',
     'rest_framework',
     'rest_framework_gis',
-    'terra'
+    'drf_yasg',
+    'terra',
 )
 
 MIDDLEWARE = (
