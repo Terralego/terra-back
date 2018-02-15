@@ -4,6 +4,6 @@ from .views import LayerViewSet, FeatureViewSet
 
 
 router = routers.SimpleRouter()
-router.register(r'layers', LayerViewSet)
-router.register(r'features', FeatureViewSet)
+router.register(r'layer', LayerViewSet)
+router.register(r'feature', FeatureViewSet)
 urlpatterns = router.urls
