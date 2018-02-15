@@ -8,7 +8,7 @@ ADD apt.txt /code/apt.txt
 RUN apt-get update
 RUN apt-get install -y $(grep -vE "^\s*#" /code/apt.txt  | tr "\n" " ") && apt-get clean all && apt-get autoclean
 RUN apt-get upgrade -y
-RUN useradd -ms /bin/bash django --uid 1001
+RUN useradd -ms /bin/bash django --uid 1000
 WORKDIR /code
 ADD requirements.txt /code/requirements.txt
 ADD src /code/src

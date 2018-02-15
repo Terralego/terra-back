@@ -11,7 +11,7 @@
    django:
      build: .
      tty: true
-     user: "1001"
+     user: "1000"
      volumes:
        - ./src:/code/src
        - ./private:/code/private
