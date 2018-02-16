@@ -4,7 +4,7 @@ from rest_framework import routers, permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-from .views import LayerViewSet, FeatureViewSet, FeatureRelationViewSet
+from .views import LayerViewSet, FeatureViewSet, LayerRelationViewSet, FeatureRelationViewSet
 
 
 schema_view = get_schema_view(
@@ -25,5 +25,6 @@ urlpatterns = [
 router = routers.SimpleRouter()
 router.register(r'layer', LayerViewSet)
 router.register(r'layer/(?P<layer_pk>\d+)/feature', FeatureViewSet)
-router.register(r'feature_relation', FeatureRelationViewSet)
+router.register(r'layer_relation', LayerRelationViewSet)
+router.register(r'layer_relation/(?P<layerrelation_pk>\d+)/feature_relation', FeatureRelationViewSet)
 urlpatterns += router.urls
