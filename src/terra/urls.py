@@ -24,6 +24,6 @@ urlpatterns = [
 
 router = routers.SimpleRouter()
 router.register(r'layer', LayerViewSet)
-router.register(r'feature', FeatureViewSet)
+router.register(r'layer/(?P<layer_pk>\d+)/feature', FeatureViewSet)
 router.register(r'feature_relation', FeatureRelationViewSet)
 urlpatterns += router.urls
