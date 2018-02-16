@@ -1,11 +1,11 @@
-version: '2'
+version: '3'
 services:
   db:
     image: mdillon/postgis:10-alpine
     env_file:
       - docker.env
     volumes:
-      - ./volumes/postgresql:/var/lib/postgresql/data
+      - postgresql:/var/lib/postgresql/data
   #  ports:
   #   - "5432:5432"
   django:
@@ -25,3 +25,5 @@ services:
       - db
     working_dir: /code/src
     command: /code/venv/bin/python3.6 ./manage.py runserver 0.0.0.0:8000
+volumes:
+  postgresql:
