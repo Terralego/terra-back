@@ -1,51 +1,11 @@
 # Python
-*pyc
-__pycache__
-/develop_eggs
-/cache
-/venv*
-\.venv*
+*.pyc
 
-# Deployment
-/corpus-django
-makina-states*-deploy.log
-settings_local.py
-salt*password*py
-kgs.cfg
-makina-states.flask-deploy.log
-.buildout/
-.installed.cfg
-.mr.developer.cfg
-/bin/
-/eggs/
-/lib/
-/dist/
-salt.cfg
-salt_config.py
-*.egg-info
-*.mo
-salt*check.py
+# Django local settings
+/src/project/settings/local.py
 
-# Django settings override
-**/settings/local*.py
-
-# BDD
-*.sqlite3
-
-# Frontend
-/node_modules
-
-# Tests, docs, etc
-.coverage
-.tox
-docs/_build/
-
-# Files
-media/*
-!media/.empty
-static/*
-!static/.empty
+# Docker local settings
+docker.env
 
 # IDE settings
-.idea
-docker.env
+/.vscode
