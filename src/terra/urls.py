@@ -13,7 +13,7 @@ schema_view = get_schema_view(
       default_version='v1',
       description="The futur of Makina Corpus",
    ),
-   validators=['flex', 'ssv'],
+   # validators=['flex', 'ssv'],
    public=True,
    permission_classes=(permissions.AllowAny, ),
 )
