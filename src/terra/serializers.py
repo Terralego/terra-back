@@ -6,7 +6,7 @@ from .models import Layer, Feature, FeatureRelation
 class LayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Layer
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'schema')
 
 
 class FeatureSerializer(serializers.ModelSerializer):
