@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from .models import Layer, Feature, FeatureRelation
-from .serializers import LayerSerializer, FeatureSerializer, FeatureRelationSerializer
+from .models import Layer, Feature, LayerRelation, FeatureRelation
+from .serializers import LayerSerializer, FeatureSerializer, LayerRelationSerializer, FeatureRelationSerializer
 
 
 class LayerViewSet(viewsets.ModelViewSet):
@@ -12,6 +12,11 @@ class LayerViewSet(viewsets.ModelViewSet):
 class FeatureViewSet(viewsets.ModelViewSet):
     queryset = Feature.objects.all()
     serializer_class = FeatureSerializer
+
+
+class LayerRelationViewSet(viewsets.ModelViewSet):
+    queryset = LayerRelation.objects.all()
+    serializer_class = LayerRelationSerializer
 
 
 class FeatureRelationViewSet(viewsets.ModelViewSet):

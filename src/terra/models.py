@@ -13,6 +13,12 @@ class Feature(models.Model):
     layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
 
 
+class LayerRelation(models.Model):
+    origin = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='relations_as_origin')
+    destination = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='relations_as_destination')
+    schema = JSONField(default=dict, blank=True)
+
+
 class FeatureRelation(models.Model):
     origin = models.ForeignKey(Feature, on_delete=models.PROTECT, related_name='relations_as_origin')
     destination = models.ForeignKey(Feature, on_delete=models.PROTECT, related_name='relations_as_destination')
