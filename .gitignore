@@ -9,3 +9,6 @@ docker.env
 
 # IDE settings
 /.vscode
+
+# Virtualenv
+/venv/
