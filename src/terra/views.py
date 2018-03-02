@@ -12,6 +12,7 @@ class LayerViewSet(viewsets.ModelViewSet):
 class FeatureViewSet(viewsets.ModelViewSet):
     queryset = Feature.objects.all()
     serializer_class = FeatureSerializer
+    swagger_schema = None  # FIXME: Temporary disable schema generation
 
 
 class LayerRelationViewSet(viewsets.ModelViewSet):
@@ -22,3 +23,4 @@ class LayerRelationViewSet(viewsets.ModelViewSet):
 class FeatureRelationViewSet(viewsets.ModelViewSet):
     queryset = FeatureRelation.objects.all()
     serializer_class = FeatureRelationSerializer
+    swagger_schema = None  # FIXME: Temporary disable schema generation
