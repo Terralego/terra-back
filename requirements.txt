@@ -1,7 +1,6 @@
 psycopg2-binary            # You MUST use PostgreSQL ;-)
 Django>=2.0,<2.1.0  # NOT LTS
 djangorestframework>=3.7,<3.8
-djangorestframework-jsonapi>=2.4,<2.5
 djangorestframework-gis==0.12
 drf-yasg>=1.4,<1.5
 
