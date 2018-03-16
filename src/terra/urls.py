@@ -3,6 +3,7 @@ from django.urls import path
 from rest_framework import routers, permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from rest_framework_jwt import views as auth_views
 
 from .views import LayerViewSet, FeatureViewSet, LayerRelationViewSet, FeatureRelationViewSet
 
@@ -17,6 +18,9 @@ schema_view = get_schema_view(
    permission_classes=(permissions.AllowAny, ),
 )
 urlpatterns = [
+    path('auth/obtain-token/', auth_views.obtain_jwt_token, name='token-obtain'),
+    path('auth/verify-token/', auth_views.verify_jwt_token, name='token-verify'),
+    path('auth/refresh-token/', auth_views.refresh_jwt_token, name='token-refresh'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=None), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=None), name='schema-redoc'),
 ]
