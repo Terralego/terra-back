@@ -23,7 +23,7 @@ PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
 
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
+# See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -97,10 +97,9 @@ REST_FRAMEWORK = {
     ),
 }
 
-"""
-JWT configuration
-http://getblimp.github.io/django-rest-framework-jwt/
-"""
+
+# JWT configuration
+# http://getblimp.github.io/django-rest-framework-jwt/
 JWT_AUTH = {
     'JWT_ENCODE_HANDLER': 'rest_framework_jwt.utils.jwt_encode_handler',
     'JWT_DECODE_HANDLER': 'rest_framework_jwt.utils.jwt_decode_handler',
@@ -127,7 +126,7 @@ JWT_AUTH = {
 WSGI_APPLICATION = PROJECT_NAME + '.wsgi.application'
 
 # Internationalization
-# https://docs.djangoproject.com/en/1.6/topics/i18n/
+# https://docs.djangoproject.com/en/2.0/topics/i18n/
 LOCALE_PATHS = (
     os.path.join(PROJECT_DIR, 'locales'),
 )
