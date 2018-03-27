@@ -5,6 +5,7 @@ from rest_framework import routers, permissions
 from rest_framework_jwt import views as auth_views
 
 from .views import LayerViewSet, FeatureViewSet, LayerRelationViewSet, FeatureRelationViewSet
+from terrarequests.views import RequestViewSet
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -32,5 +33,6 @@ router.register(r'layer', LayerViewSet)
 router.register(r'layer/(?P<layer_pk>\d+)/feature', FeatureViewSet)
 router.register(r'layer_relation', LayerRelationViewSet)
 router.register(r'layer_relation/(?P<layerrelation_pk>\d+)/feature_relation', FeatureRelationViewSet)
+router.register(r'request', RequestViewSet, base_name='request')
 
 urlpatterns += router.urls
