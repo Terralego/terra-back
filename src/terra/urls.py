@@ -1,11 +1,10 @@
-from django.urls import path
+from django.urls import path, include
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import routers, permissions
 from rest_framework_jwt import views as auth_views
 
 from .views import LayerViewSet, FeatureViewSet, LayerRelationViewSet, FeatureRelationViewSet
-from terrarequests.views import OrganizationViewSet, RequestViewSet
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -25,6 +24,7 @@ urlpatterns = [
     # schemas
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=None), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=None), name='schema-redoc'),
+    path('', include('terrarequests.urls'))
 ]
 
 router = routers.SimpleRouter()
@@ -33,7 +33,5 @@ router.register(r'layer', LayerViewSet)
 router.register(r'layer/(?P<layer_pk>\d+)/feature', FeatureViewSet)
 router.register(r'layer_relation', LayerRelationViewSet)
 router.register(r'layer_relation/(?P<layerrelation_pk>\d+)/feature_relation', FeatureRelationViewSet)
-router.register(r'request', RequestViewSet, base_name='request')
-router.register(r'organization', OrganizationViewSet, base_name='organization')
 
 urlpatterns += router.urls
