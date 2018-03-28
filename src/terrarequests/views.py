@@ -7,9 +7,8 @@ from rest_framework import viewsets, permissions
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
-from .models import Request
 from .permissions import IsOwnerOrStaff
-from .serializers import RequestSerializer
+from .serializers import RequestSerializer, OrganizationSerializer
 
 
 class RequestViewSet(viewsets.ModelViewSet):
@@ -25,7 +24,7 @@ class RequestViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'], url_path='schema')
     def schema(self, request):
         if settings.REQUEST_SCHEMA:
-            return Response(json.dumps(settings,REQUEST_SCHEMA))
+            return Response(json.dumps(settings.REQUEST_SCHEMA))
         else:
             return HttpResponseServerError()
 
@@ -34,3 +33,14 @@ class RequestViewSet(viewsets.ModelViewSet):
         feature = self.get_object()
         comments = feature.comments.order_by('-updated_at')
         return [comment for comment in comments]
+
+
+class OrganizationViewSet(viewsets.ModelViewSet):
+    serializer_class = OrganizationSerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrStaff, ]
+
+    def get_queryset(self):
+        return self.request.user.organizations.all()
+
+    def perform_create(self, serializer):
+        serializer.save(owner=[self.request.user, ])
