@@ -25,9 +25,7 @@ class Request(BaseUpdatableModel):
     feature = models.ForeignKey(Feature,
                                 on_delete=models.PROTECT,
                                 related_name='requests')
-    organization = models.ForeignKey(Organization,
-                                     on_delete=models.PROTECT,
-                                     related_name='requests')
+    organization = models.ManyToManyField(Organization, related_name='requests')
     properties = JSONField(default=dict, blank=True)
 
 
