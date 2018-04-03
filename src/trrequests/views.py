@@ -9,17 +9,17 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
 from .permissions import IsOwnerOrStaff
-from .serializers import RequestSerializer, OrganizationSerializer, \
+from .serializers import UserRequestSerializer, OrganizationSerializer, \
     CommentSerializer
-from .models import Request
+from .models import UserRequest
 
 
 class RequestViewSet(viewsets.ModelViewSet):
-    serializer_class = RequestSerializer
+    serializer_class = UserRequestSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrStaff, ]
 
     def get_queryset(self):
-        return self.request.user.requests.all()
+        return self.request.user.userrequests.all()
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -37,13 +37,13 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrStaff, ]
 
     def get_queryset(self, *args, **kwargs):
-        request = get_object_or_404(Request, pk=self.kwargs.get('request_pk'))
+        request = get_object_or_404(UserRequest, pk=self.kwargs.get('request_pk'))
         return request.comments.all()
 
     def perform_create(self, serializer):
         auto_datas = {
             'owner': self.request.user,
-            'request': get_object_or_404(Request,
+            'userrequest': get_object_or_404(UserRequest,
                                          pk=self.kwargs.get('request_pk'))
         }
         serializer.save(**auto_datas)

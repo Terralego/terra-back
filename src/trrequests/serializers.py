@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from .models import Request, Organization, Comment
+from .models import UserRequest, Organization, Comment
 
 
-class RequestSerializer(serializers.ModelSerializer):
+class UserRequestSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -12,7 +12,7 @@ class RequestSerializer(serializers.ModelSerializer):
                             Organization.objects.filter(owner=request_user))
 
     class Meta:
-        model = Request
+        model = UserRequest
         fields = '__all__'
         read_only_fields = ('owner', )
 
@@ -30,4 +30,4 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
-        read_only_fields = ('owner', 'request' )
+        read_only_fields = ('owner', 'userrequest' )

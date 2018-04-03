@@ -18,21 +18,21 @@ class Organization(models.Model):
     properties = JSONField(default=dict, blank=True)
 
 
-class Request(BaseUpdatableModel):
+class UserRequest(BaseUpdatableModel):
     owner = models.ForeignKey(User,
                               on_delete=models.PROTECT,
-                              related_name='requests')
+                              related_name='userrequests')
     feature = models.ForeignKey(Feature,
                                 on_delete=models.PROTECT,
-                                related_name='requests')
-    organization = models.ManyToManyField(Organization, related_name='requests')
+                                related_name='userrequests')
+    organization = models.ManyToManyField(Organization, related_name='userrequests')
     properties = JSONField(default=dict, blank=True)
 
 
 class Comment(BaseUpdatableModel):
     owner = models.ForeignKey(User,
                               on_delete=models.PROTECT)
-    request = models.ForeignKey(Request,
+    userrequest = models.ForeignKey(UserRequest,
                                 on_delete=models.PROTECT,
                                 related_name="comments")
     feature = models.ForeignKey(Feature,
