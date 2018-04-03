@@ -7,14 +7,14 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('terrarequests', '0001_initial'),
+        ('trrequests', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='request',
             name='organization',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.PROTECT, related_name='requests', to='terrarequests.Organization'),
+            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.PROTECT, related_name='requests', to='trrequests.Organization'),
             preserve_default=False,
         ),
     ]

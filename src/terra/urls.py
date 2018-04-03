@@ -24,7 +24,7 @@ urlpatterns = [
     # schemas
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=None), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=None), name='schema-redoc'),
-    path('', include('terrarequests.urls'))
+    path('', include('trrequests.urls'))
 ]
 
 router = routers.SimpleRouter()
