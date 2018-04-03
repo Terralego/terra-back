@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Request, Organization
+from .models import Request, Organization, Comment
 
 
 class RequestSerializer(serializers.ModelSerializer):
@@ -23,3 +23,11 @@ class OrganizationSerializer(serializers.ModelSerializer):
         model = Organization
         fields = '__all__'
         read_only_fields = ('owner', )
+
+
+class CommentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Comment
+        fields = '__all__'
+        read_only_fields = ('owner', 'request' )

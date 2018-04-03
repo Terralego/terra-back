@@ -2,13 +2,16 @@ import json
 
 from django.conf import settings
 from django.http.response import HttpResponseServerError
+from django.shortcuts import get_object_or_404
 
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
 from .permissions import IsOwnerOrStaff
-from .serializers import RequestSerializer, OrganizationSerializer
+from .serializers import RequestSerializer, OrganizationSerializer, \
+    CommentSerializer
+from .models import Request
 
 
 class RequestViewSet(viewsets.ModelViewSet):
@@ -28,11 +31,23 @@ class RequestViewSet(viewsets.ModelViewSet):
         else:
             return HttpResponseServerError()
 
-    @detail_route(url_path='comments')
-    def comments(self, request, pk=None):
-        feature = self.get_object()
-        comments = feature.comments.order_by('-updated_at')
-        return [comment for comment in comments]
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrStaff, ]
+
+    def get_queryset(self, *args, **kwargs):
+        request = get_object_or_404(Request, pk=self.kwargs.get('request_pk'))
+        return request.comments.all()
+
+    def perform_create(self, serializer):
+        auto_datas = {
+            'owner': self.request.user,
+            'request': get_object_or_404(Request,
+                                         pk=self.kwargs.get('request_pk'))
+        }
+        serializer.save(**auto_datas)
+
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
