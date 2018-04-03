@@ -13,11 +13,13 @@ class RequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Request
-        exclude = ('owner', )
+        fields = '__all__'
+        read_only_fields = ('owner', )
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Organization
-        exclude = ('owner', )
+        fields = '__all__'
+        read_only_fields = ('owner', )
