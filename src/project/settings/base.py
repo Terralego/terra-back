@@ -45,6 +45,7 @@ INSTALLED_APPS = (
     'rest_framework_gis',
     'drf_yasg',
     'terra',
+    'trrequests',
 )
 
 MIDDLEWARE = (

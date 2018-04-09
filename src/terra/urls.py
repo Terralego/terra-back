@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import routers, permissions
@@ -24,6 +24,7 @@ urlpatterns = [
     # schemas
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=None), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=None), name='schema-redoc'),
+    path('', include('trrequests.urls'))
 ]
 
 router = routers.SimpleRouter()
