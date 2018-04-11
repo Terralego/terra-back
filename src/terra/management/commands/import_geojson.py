@@ -52,4 +52,5 @@ class Command(BaseCommand):
         layer = Layer.objects.create(name=layer_name, schema=schema)
 
         for file_in in geojson_files:
-            layer.import_geojson(file_in)
+            geojson = file_in.read()
+            layer.from_geojson(geojson)

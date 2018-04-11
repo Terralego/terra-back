@@ -9,8 +9,13 @@ class Layer(models.Model):
     name = models.CharField(max_length=256)
     schema = JSONField(default=dict, blank=True)
 
-    def import_geojson(self, geojson_file):
-        geojson = json.loads(geojson_file.read())
+    def from_geojson(self, geojson_data):
+        """
+        Import geojson raw data in a layer
+        Args:
+            geojson_data(str): must be raw text json data
+        """
+        geojson = json.loads(geojson_data)
         for feature in geojson.get('features', []):
             Feature.objects.create(
                 layer=self,
