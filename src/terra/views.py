@@ -1,3 +1,5 @@
+from rest_framework.decorators import detail_route
+from rest_framework.response import Response
 from rest_framework import viewsets
 
 from .models import Layer, Feature, LayerRelation, FeatureRelation
@@ -8,6 +10,10 @@ class LayerViewSet(viewsets.ModelViewSet):
     queryset = Layer.objects.all()
     serializer_class = LayerSerializer
 
+    @detail_route(methods=['get'], url_path='geojson')
+    def to_geojson(self, request, pk=None):
+        layer = self.get_object()
+        return Response(layer.to_geojson())
 
 class FeatureViewSet(viewsets.ModelViewSet):
     queryset = Feature.objects.all()

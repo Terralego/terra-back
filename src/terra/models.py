@@ -4,6 +4,8 @@ from django.contrib.postgres.fields import JSONField
 from django.contrib.gis.db import models
 from django.contrib.gis.geos.geometry import GEOSGeometry
 
+from django.core.serializers import serialize
+
 
 class Layer(models.Model):
     name = models.CharField(max_length=256)
@@ -23,11 +25,18 @@ class Layer(models.Model):
                 geom=GEOSGeometry(json.dumps(feature.get('geometry')))
             )
 
+    def to_geojson(self):
+        return json.loads(serialize('geojson',
+                         self.features.all(),
+                         fields=('properties',),
+                         geometry_field='geom',
+                         properties_field='properties'))
+
 
 class Feature(models.Model):
     geom = models.GeometryField()
     properties = JSONField()
-    layer = models.ForeignKey(Layer, on_delete=models.PROTECT)
+    layer = models.ForeignKey(Layer, on_delete=models.PROTECT, related_name='features')
 
 
 class LayerRelation(models.Model):
