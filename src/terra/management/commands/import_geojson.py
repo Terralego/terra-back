@@ -19,7 +19,8 @@ class Command(BaseCommand):
                             type=argparse.FileType('r'),
                             action="store",
                             required=True,
-                            help='File that description GeoJSON properties')
+                            help=("JSON schema file that describe "
+                                  "GeoJSON properties"))
         parser.add_argument('-g', '--geojson',
                             nargs='+',
                             type=argparse.FileType('r'),
