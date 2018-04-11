@@ -1,4 +1,5 @@
 import argparse
+import uuid
 
 from django.db import transaction
 from django.core.management.base import BaseCommand
@@ -12,7 +13,6 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('-l', '--layer',
                             action="store",
-                            required=True,
                             help=("Name of created layer "
                                   "containing GeoJSON datas"))
         parser.add_argument('-s', '--schema',
@@ -34,8 +34,9 @@ class Command(BaseCommand):
     @transaction.atomic()
     def handle(self, *args, **options):
 
+        layer_name = options.get('layer') if \
+            options.get('layer', None) else uuid.uuid4()
         schema = options.get('schema').read()
-        layer_name = options.get('layer')
         geojson_files = options.get('geojson')
         dryrun = options.get('dry_run')
 
