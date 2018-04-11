@@ -50,7 +50,6 @@ class Command(BaseCommand):
 
     def import_datas(self, layer_name, schema, geojson_files):
         layer = Layer.objects.create(name=layer_name, schema=schema)
-        print(layer)
 
         for file in geojson_files:
             layer.import_geojson(file)
