@@ -1,7 +1,8 @@
-from django.db import models
+from django.conf import settings
 from django.contrib.postgres.fields import JSONField
+from django.db import models
 
-from terra.models import Feature, TerraUser
+from terra.models import Feature
 
 
 class BaseUpdatableModel(models.Model):
@@ -13,12 +14,12 @@ class BaseUpdatableModel(models.Model):
 
 
 class Organization(models.Model):
-    owner = models.ManyToManyField(TerraUser, related_name='organizations')
+    owner = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='organizations')
     properties = JSONField(default=dict, blank=True)
 
 
 class UserRequest(BaseUpdatableModel):
-    owner = models.ForeignKey(TerraUser,
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.PROTECT,
                               related_name='userrequests')
     feature = models.ForeignKey(Feature,
@@ -29,7 +30,7 @@ class UserRequest(BaseUpdatableModel):
 
 
 class Comment(BaseUpdatableModel):
-    owner = models.ForeignKey(TerraUser,
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.PROTECT)
     userrequest = models.ForeignKey(UserRequest,
                                 on_delete=models.PROTECT,
