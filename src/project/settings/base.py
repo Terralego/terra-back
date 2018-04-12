@@ -159,3 +159,5 @@ MEDIA_ROOT = os.path.join(PUBLIC_DIR, 'media')
 
 # Just to be easily override by children conf files.
 LOGGING = copy.deepcopy(DEFAULT_LOGGING)
+
+AUTH_USER_MODEL = 'terra.TerraUser'
