@@ -8,6 +8,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos.geometry import GEOSGeometry
 
 from django.core.serializers import serialize
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .managers import TerraUserManager
@@ -79,6 +80,6 @@ class TerraUser(AbstractBaseUser, PermissionsMixin):
             'Unselect this instead of deleting accounts.'
         ),
     )
-
+    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
 
     objects = TerraUserManager()
