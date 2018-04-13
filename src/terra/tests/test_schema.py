@@ -2,15 +2,20 @@ import json
 
 from django.test import TestCase
 
-from rest_framework.test import APIClient
-from rest_framework_json_api.utils import format_resource_type
+from rest_framework.test import APIClient, force_authenticate
 
-from .models import Layer, Feature
+from terra.models import Layer, Feature, TerraUser
 
 
 class SchemaValidationTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.user = TerraUser.objects.create_user(
+            email='foo@bar.com',
+            password='123456'
+        )
+        self.client.force_authenticate(user=self.user)
+
         self.layer = Layer.objects.create(
             name="tree",
             schema={
@@ -25,15 +30,13 @@ class SchemaValidationTestCase(TestCase):
     def test_feature_with_valid_properties_is_posted(self):
         """Feature with valid properties is successfully POSTed"""
         response = self.client.post('/api/layer/{}/feature/'.format(self.layer.id),
-                                    json.dumps({"data": {
-                                        "attributes": {
+                                    {
                                             "geom": "POINT(0 0)",
                                             "layer": self.layer.id,
                                             "name": "valid tree",
                                             "age": 10
-                                        },
-                                        "type": format_resource_type('Feature')}}),
-                                    content_type='application/vnd.api+json'
+                                    },
+                                    format='json',
                                     )
 
         features = Feature.objects.all()
@@ -45,14 +48,12 @@ class SchemaValidationTestCase(TestCase):
     def test_feature_with_missing_property_type_is_not_posted(self):
         """Feature with missing property type is not successfully POSTed"""
         response = self.client.post('/api/layer/{}/feature/'.format(self.layer.id),
-                                    json.dumps({"data": {
-                                        "attributes": {
-                                            "geom": "POINT(0 0)",
-                                            "layer": self.layer.id,
-                                            "name": "invalid tree"
-                                        },
-                                        "type": format_resource_type('Feature')}}),
-                                    content_type='application/vnd.api+json'
+                                    {
+                                        "geom": "POINT(0 0)",
+                                        "layer": self.layer.id,
+                                        "name": "invalid tree"
+                                    },
+                                    format='json'
                                     )
 
         self.assertEqual(response.status_code, 400)
