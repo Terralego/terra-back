@@ -124,6 +124,10 @@ JWT_AUTH = {
     'JWT_AUTH_COOKIE': None,
 }
 
+SERIALIZATION_MODULES = {
+    'geojson': 'terra.serializers.geojson',
+}
+
 WSGI_APPLICATION = PROJECT_NAME + '.wsgi.application'
 
 # Internationalization
