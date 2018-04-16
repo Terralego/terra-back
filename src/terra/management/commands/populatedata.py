@@ -4,8 +4,10 @@ from django.apps import apps
 from django.db import transaction
 from django.core.management.base import BaseCommand
 from django.utils.functional import cached_property
+from django.utils.module_loading import import_string
 
 logger = logging.getLogger(__name__)
+
 
 class Command(BaseCommand):
     help = "Populate database from all installed app's initialization modules"
@@ -15,55 +17,55 @@ class Command(BaseCommand):
     POPULATE_TEST_FN_NAME = 'load_test_data'
 
     def add_arguments(self, parser):
-        parser.add_argument('-d','--dry-run',
+        parser.add_argument('-d', '--dry-run',
                             action="store_true",
                             help='Dry-run mode')
-        parser.add_argument('-t','--test-data',
+        parser.add_argument('-t', '--test-data',
                             action="store_true",
                             help='Load test data')
         parser.add_argument('-l', '--list',
                             action="store_true",
                             help='List available modules')
-        parser.add_argument('-m','--modules',
+        parser.add_argument('-m', '--modules',
                             action="store",
                             nargs="?",
                             help="Load data for this modules")
 
     def handle(self, *args, **options):
+        self.test_mode = True if options.get('test_data') else False
+
         if options.get('list', False):
             self.stdout.write('Applications with populate modules:')
             for app_name in self.available_modules.keys():
                 self.stdout.write('  - {}'.format(app_name))
             exit(0)
 
-        load_fn = self.get_modules_fn(options.get('test_data'))
-
         sid = transaction.savepoint()
 
-        for app_name, load_data_fn in load_fn.items():
+        for app_name, load_data_fn in self.available_modules.items():
+            print(load_data_fn)
             with transaction.atomic():
                 self.stdout.write('Loading data for {}'.format(app_name))
                 load_data_fn()
-            
+
         if options.get('dry_run'):
             transaction.savepoint_rollback(sid)
-
-
-    def get_modules_fn(self, test=False):
-        fn_name = self.POPULATE_TEST_FN_NAME if test else self.POPULATE_FN_NAME
-        return { app_name: getattr(module, fn_name) for app_name, module in self.available_modules.items() if hasattr(module, fn_name) }
 
     @cached_property
     def available_modules(self):
         available_modules = {}
+
+        fn_name = self.POPULATE_TEST_FN_NAME \
+            if self.test_mode else self.POPULATE_FN_NAME
+
         for app_name, app_config in apps.app_configs.items():
             try:
-                """ Modules must be loaded else they are not present in modules attributes """
-                __import__("{}.{}".format(app_config.module.__package__, self.POPULATE_MODULE_NAME))
-            except ModuleNotFoundError:
-                logger.debug('Application {} has no populate module'.format(app_name))
-
-            if hasattr(app_config.module, self.POPULATE_MODULE_NAME):
-                available_modules[app_name] = getattr(app_config.module, self.POPULATE_MODULE_NAME)
+                available_modules[app_name] = import_string("{}.{}.{}".format(
+                    app_config.module.__package__,
+                    self.POPULATE_MODULE_NAME,
+                    fn_name))
+            except ImportError:
+                logger.debug('Application {} has no'
+                             ' populate module'.format(app_name))
 
         return available_modules
