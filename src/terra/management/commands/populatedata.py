@@ -11,16 +11,16 @@ class Command(BaseCommand):
     help = "Populate database from all installed app's initialization modules"
 
     POPULATE_MODULE_NAME = 'populate'
-    POPULATE_FN_NAME = 'load_datas'
-    POPULATE_TEST_FN_NAME = 'load_test_datas'
+    POPULATE_FN_NAME = 'load_data'
+    POPULATE_TEST_FN_NAME = 'load_test_data'
 
     def add_arguments(self, parser):
         parser.add_argument('-d','--dry-run',
                             action="store_true",
                             help='Dry-run mode')
-        parser.add_argument('-t','--test-datas',
+        parser.add_argument('-t','--test-data',
                             action="store_true",
-                            help='Load test datas')
+                            help='Load test data')
         parser.add_argument('-l', '--list',
                             action="store_true",
                             help='List available modules')
@@ -36,7 +36,7 @@ class Command(BaseCommand):
                 self.stdout.write('  - {}'.format(app_name))
             exit(0)
 
-        load_fn = self.get_modules_fn(options.get('test_datas'))
+        load_fn = self.get_modules_fn(options.get('test_data'))
 
         sid = transaction.savepoint()
 
@@ -58,7 +58,7 @@ class Command(BaseCommand):
         available_modules = {}
         for app_name, app_config in apps.app_configs.items():
             try:
-                """ Modules must be loaded else they are not present un modules attributes """
+                """ Modules must be loaded else they are not present in modules attributes """
                 __import__("{}.{}".format(app_config.module.__package__, self.POPULATE_MODULE_NAME))
             except ModuleNotFoundError:
                 logger.debug('Application {} has no populate module'.format(app_name))
