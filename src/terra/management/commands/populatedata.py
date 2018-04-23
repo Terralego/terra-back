@@ -43,7 +43,6 @@ class Command(BaseCommand):
         sid = transaction.savepoint()
 
         for app_name, load_data_fn in self.available_modules.items():
-            print(load_data_fn)
             with transaction.atomic():
                 self.stdout.write('Loading data for {}'.format(app_name))
                 load_data_fn()
