@@ -1,8 +1,9 @@
+import argparse
 import csv
-import os
+import sys
 
 from django.contrib.gis.geos.point import Point
-from django.core.management import BaseCommand, CommandError
+from django.core.management import BaseCommand
 from django.db import transaction
 from django.utils.translation import ugettext as _
 
@@ -30,6 +31,8 @@ class Command(BaseCommand):
         parser.add_argument(
             '--source',
             dest='path',
+            type=argparse.FileType('r'),
+            default=sys.stdin,
             required=True,
             help=_('Specify source file path'),
         )
@@ -42,12 +45,10 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        if not options['path'] or not os.access(options['path'], os.R_OK):
-            raise CommandError(_('Readable file path is required'))
         company_layer = Layer.objects.get_or_create(name='company')[0]
         if options['bulk']:
             Feature.objects.filter(layer=company_layer).delete()
-        with open(options['path'], encoding="latin-1") as csvfile:
+        with open(options['path'].name, encoding="latin-1") as csvfile:
             reader = csv.DictReader(csvfile, delimiter=';', quotechar='"')
             if options['init']:
                 entries = []
