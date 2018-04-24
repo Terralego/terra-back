@@ -62,7 +62,7 @@ class Command(BaseCommand):
                         with transaction.atomic():
                             Feature.objects.bulk_create(entries)
                         entries.clear()
-                if len(entries) > 0:
+                if entries:
                     with transaction.atomic():
                         Feature.objects.bulk_create(entries)
                     entries.clear()
