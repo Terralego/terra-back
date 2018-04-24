@@ -19,13 +19,13 @@ class ImportCompaniesTestCase(TestCase):
 
     def test_simple_import(self):
         company_layer = Layer.objects.get_or_create(name='company')[0]
-        initial = Feature.objects.filter(layer=company_layer).count()
+        initial = company_layer.features.all().count()
         self.call_command_with_tempfile(
             csv_rows=[['SIREN', 'NIC', 'L1_NORMALISEE', 'L2_NORMALISEE', 'L3_NORMALISEE'],
                       ['437582422', '00097', '52 RUE JACQUES BABINET', '31100 TOULOUSE', 'France']]
         )
         expected = initial + 1
-        self.assertEqual(Feature.objects.filter(layer=company_layer).count(), expected)
+        self.assertEqual(company_layer.features.all().count(), expected)
         feature = Feature.objects.get(layer=company_layer, properties__SIREN='437582422', properties__NIC='00097')
         self.assertEqual(feature.properties.get('L1_NORMALISEE', ''), '52 RUE JACQUES BABINET')
 
@@ -33,7 +33,7 @@ class ImportCompaniesTestCase(TestCase):
         company_layer = Layer.objects.get_or_create(name='company')[0]
         for i in range(2):
             Feature.objects.create(geom=Point(), properties={'SIREN': '', 'NIC': ''}, layer=company_layer)
-        self.assertEqual(Feature.objects.filter(layer=company_layer).count(), 2)
+        self.assertEqual(company_layer.features.all().count(), 2)
         self.call_command_with_tempfile(
             csv_rows=[['SIREN', 'NIC', 'L1_NORMALISEE', 'L2_NORMALISEE', 'L3_NORMALISEE'],
                       ['437582422', '00097', '52 RUE JACQUES BABINET', '31100 TOULOUSE', 'France'],
@@ -47,7 +47,7 @@ class ImportCompaniesTestCase(TestCase):
                 '--bulk'
             ]
         )
-        self.assertEqual(Feature.objects.filter(layer=company_layer).count(), 5)
+        self.assertEqual(company_layer.features.all().count(), 5)
         feature = Feature.objects.get(layer=company_layer, properties__SIREN='437582422', properties__NIC='00097')
         self.assertEqual(feature.properties.get('L1_NORMALISEE', ''), '52 RUE JACQUES BABINET')
 
@@ -64,13 +64,13 @@ class ImportCompaniesTestCase(TestCase):
             },
             layer=company_layer
         )
-        initial = Feature.objects.filter(layer=company_layer).count()
+        initial = company_layer.features.all().count()
         self.call_command_with_tempfile(
             csv_rows=[['SIREN', 'NIC', 'L1_NORMALISEE', 'L2_NORMALISEE', 'L3_NORMALISEE'],
                       ['437582422', '00097', '52 RUE JACQUES BABINET', '31100 TOULOUSE', 'France'],
                       ['518521414', '00038', '11 RUE DU MARCHIX', '44000 NANTES', 'France']]
         )
         expected = initial + 1
-        self.assertEqual(Feature.objects.filter(layer=company_layer).count(), expected)
+        self.assertEqual(company_layer.features.all().count(), expected)
         feature = Feature.objects.get(layer=company_layer, properties__SIREN='437582422', properties__NIC='00097')
         self.assertEqual(feature.properties.get('L1_NORMALISEE', ''), '52 RUE JACQUES BABINET')

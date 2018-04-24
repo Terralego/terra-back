@@ -19,7 +19,7 @@ class ImportCompaniesTestCase(TestCase):
 
     def test_simple_import(self):
         insee_layer = Layer.objects.get_or_create(name='insee')[0]
-        initial = Feature.objects.filter(layer=insee_layer).count()
+        initial = insee_layer.features.all().count()
         self.call_command_with_tempfile(
             csv_rows=[
                 ['CODGEO', 'Nb Pharmacies et parfumerie', 'Dynamique Entrepreneuriale', 'Nb Résidences Principales',
@@ -29,7 +29,7 @@ class ImportCompaniesTestCase(TestCase):
                 [1001, 0, 57, 248, 196, 289, 32, 9, 728, 694, 714, 909, 499, 51, 1]]
         )
         expected = initial + 1
-        self.assertEqual(Feature.objects.filter(layer=insee_layer).count(), expected)
+        self.assertEqual(insee_layer.features.all().count(), expected)
         feature = Feature.objects.get(layer=insee_layer, properties__CODGEO='1001')
         self.assertEqual(feature.properties.get('Dynamique Entrepreneuriale'), '57')
 
@@ -37,7 +37,7 @@ class ImportCompaniesTestCase(TestCase):
         insee_layer = Layer.objects.get_or_create(name='insee')[0]
         for i in range(2):
             Feature.objects.create(geom=Point(), properties={'SIREN': '', 'NIC': ''}, layer=insee_layer)
-        self.assertEqual(Feature.objects.filter(layer=insee_layer).count(), 2)
+        self.assertEqual(insee_layer.features.all().count(), 2)
         self.call_command_with_tempfile(
             csv_rows=[
                 ['CODGEO', 'Nb Pharmacies et parfumerie', 'Dynamique Entrepreneuriale', 'Nb Résidences Principales',
@@ -55,7 +55,7 @@ class ImportCompaniesTestCase(TestCase):
                 '--bulk'
             ]
         )
-        self.assertEqual(Feature.objects.filter(layer=insee_layer).count(), 5)
+        self.assertEqual(insee_layer.features.all().count(), 5)
         feature = Feature.objects.get(layer=insee_layer, properties__CODGEO='1001')
         self.assertEqual(feature.properties.get('Dynamique Entrepreneuriale'), '57')
 
@@ -69,7 +69,7 @@ class ImportCompaniesTestCase(TestCase):
             },
             layer=insee_layer
         )
-        initial = Feature.objects.filter(layer=insee_layer).count()
+        initial = insee_layer.features.all().count()
         self.call_command_with_tempfile(
             csv_rows=[
                 ['CODGEO', 'Nb Pharmacies et parfumerie', 'Dynamique Entrepreneuriale', 'Nb Résidences Principales',
@@ -80,6 +80,6 @@ class ImportCompaniesTestCase(TestCase):
                 [1002, 0, 45, 67, 61, 142, 71, 4, 168, 162, 164, 202, 124, 5, 1]]
         )
         expected = initial + 1
-        self.assertEqual(Feature.objects.filter(layer=insee_layer).count(), expected)
+        self.assertEqual(insee_layer.features.all().count(), expected)
         feature = Feature.objects.get(layer=insee_layer, properties__CODGEO='1001')
         self.assertEqual(feature.properties.get('Dynamique Entrepreneuriale'), '57')
