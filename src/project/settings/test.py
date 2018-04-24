@@ -5,6 +5,7 @@ from django.utils import six
 
 from .base import *  # noqa
 
+REST_FRAMEWORK['TEST_REQUEST_DEFAULT_FORMAT'] = 'json'
 
 SECRET_KEY = 'spam-spam-spam-spam'
 

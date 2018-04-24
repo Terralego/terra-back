@@ -1,10 +1,17 @@
 import json
+import uuid
+
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 from django.contrib.postgres.fields import JSONField
 from django.contrib.gis.db import models
 from django.contrib.gis.geos.geometry import GEOSGeometry
 
 from django.core.serializers import serialize
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
+from .managers import TerraUserManager
 
 
 class Layer(models.Model):
@@ -49,3 +56,30 @@ class FeatureRelation(models.Model):
     origin = models.ForeignKey(Feature, on_delete=models.PROTECT, related_name='relations_as_origin')
     destination = models.ForeignKey(Feature, on_delete=models.PROTECT, related_name='relations_as_destination')
     properties = JSONField(default=dict, blank=True)
+
+
+class TerraUser(AbstractBaseUser, PermissionsMixin):
+    USERNAME_FIELD = 'email'
+    EMAIL_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    first_name = models.CharField(_('first name'), max_length=100, blank=True)
+    last_name = models.CharField(_('last name'), max_length=150, blank=True)
+    uuid = models.UUIDField(_('unique identifier'), default=uuid.uuid4, editable=False, unique=True)
+    email = models.EmailField(_('email address'), blank=True, unique=True)
+    is_staff = models.BooleanField(
+        _('staff status'),
+        default=False,
+        help_text=_('Designates whether the user can log into this admin site.'),
+    )
+    is_active = models.BooleanField(
+        _('active'),
+        default=True,
+        help_text=_(
+            'Designates whether this user should be treated as active. '
+            'Unselect this instead of deleting accounts.'
+        ),
+    )
+    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+
+    objects = TerraUserManager()
