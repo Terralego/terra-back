@@ -1,5 +1,4 @@
 import csv
-import os
 import tempfile
 
 from django.contrib.gis.geos import Point
@@ -11,15 +10,12 @@ from terra.models import Layer, Feature
 
 class ImportCompaniesTestCase(TestCase):
     def call_command_with_tempfile(self, csv_rows, args=[], opts={}):
-        tf = tempfile.NamedTemporaryFile(mode='w', delete=False, dir='.', suffix='.csv')
-        try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, dir='.', suffix='.csv') as tf:
             with open(tf.name, 'w') as f:
                 writer = csv.writer(f, delimiter=';')
                 writer.writerows(csv_rows)
             args += ['--source=%s' % f.name]
             call_command('import_companies', *args, **opts)
-        finally:
-            os.remove(tf.name)
 
     def test_simple_import(self):
         company_layer = Layer.objects.get_or_create(name='company')[0]
