@@ -14,7 +14,7 @@ class ImportCompaniesTestCase(TestCase):
             with open(tf.name, 'w') as f:
                 writer = csv.writer(f, delimiter=';')
                 writer.writerows(csv_rows)
-            args += ['--source={}'.format(f.name)]
+            args += [f'--source={f.name}']
             call_command('import_insee', *args, **opts)
 
     def test_simple_import(self):
