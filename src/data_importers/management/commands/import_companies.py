@@ -48,7 +48,7 @@ class Command(BaseCommand):
         company_layer = Layer.objects.get_or_create(name='company')[0]
         if options['bulk']:
             Feature.objects.filter(layer=company_layer).delete()
-        with open(options['path'].name, encoding="latin-1") as csvfile:
+        with open(options['path'].name, encoding="iso8859-15") as csvfile:
             reader = csv.DictReader(csvfile, delimiter=';', quotechar='"')
             if options['init']:
                 entries = []
