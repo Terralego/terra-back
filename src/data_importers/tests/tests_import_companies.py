@@ -22,12 +22,10 @@ class ImportCompaniesTestCase(TestCase):
         initial = company_layer.features.all().count()
         self.call_command_with_tempfile(
             csv_rows=[['SIREN', 'NIC', 'L1_NORMALISEE', 'L2_NORMALISEE', 'L3_NORMALISEE'],
-                      ['437582422', '00097', '52 RUE JACQUES BABINET', '31100 TOULOUSE', 'France']]
+                      ['822869632', '00023', '52 RUE JACQUES BABINET', '31100 TOULOUSE', 'France']]
         )
         expected = initial + 1
         self.assertEqual(company_layer.features.all().count(), expected)
-        feature = Feature.objects.get(layer=company_layer, properties__SIREN='437582422', properties__NIC='00097')
-        self.assertEqual(feature.properties.get('L1_NORMALISEE', ''), '52 RUE JACQUES BABINET')
 
     def test_init_options(self):
         company_layer = Layer.objects.get_or_create(name='company')[0]
@@ -36,20 +34,19 @@ class ImportCompaniesTestCase(TestCase):
         self.assertEqual(company_layer.features.all().count(), 2)
         self.call_command_with_tempfile(
             csv_rows=[['SIREN', 'NIC', 'L1_NORMALISEE', 'L2_NORMALISEE', 'L3_NORMALISEE'],
-                      ['437582422', '00097', '52 RUE JACQUES BABINET', '31100 TOULOUSE', 'France'],
                       ['518521414', '00038', '11 RUE DU MARCHIX', '44000 NANTES', 'France'],
                       ['518521414', '00053', '52 RUE JACQUES BABINET', '31100 TOULOUSE', 'France'],
                       ['813792686', '00012', 'BOIS DE TULLE', '32700 LECTOURE', 'France'],
                       ['822869632', '00023', '52 RUE JACQUES BABINET', '31100 TOULOUSE', 'France']],
             args=[
                 '--init',
-                '--creations-per-transaction=2',
+                '--creations-per-transaction=3',
                 '--bulk'
             ]
         )
-        self.assertEqual(company_layer.features.all().count(), 5)
-        feature = Feature.objects.get(layer=company_layer, properties__SIREN='437582422', properties__NIC='00097')
-        self.assertEqual(feature.properties.get('L1_NORMALISEE', ''), '52 RUE JACQUES BABINET')
+        self.assertEqual(company_layer.features.all().count(), 4)
+        feature = Feature.objects.get(layer=company_layer, properties__SIREN='813792686', properties__NIC='00012')
+        self.assertEqual(feature.properties.get('L1_NORMALISEE', ''), 'BOIS DE TULLE')
 
     def test_import_with_creations_and_updates(self):
         company_layer = Layer.objects.get_or_create(name='company')[0]
