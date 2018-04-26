@@ -8,9 +8,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 import os
-import logging
-
-logger = logging.getLogger(__name__)
 
 CUSTOM_APPS = (
     'core',
@@ -28,6 +25,6 @@ for app in CUSTOM_APPS:
                 globals()[setting] = getattr(app_settings, setting)
 
     except ImportError as e:
-        logger.debug(f"{app} has no custom settings")
+        pass
 
 INSTALLED_APPS += CUSTOM_APPS
