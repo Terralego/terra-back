@@ -9,8 +9,12 @@ from terra.models import Layer, Feature
 
 
 class ImportCompaniesTestCase(TestCase):
-    def call_command_with_tempfile(self, csv_rows, args=[], opts={}):
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, dir='.', suffix='.csv') as tf:
+    def call_command_with_tempfile(self, csv_rows, args=None, opts=None):
+        if args is None:
+            args = []
+        if opts is None:
+            opts = {}
+        with tempfile.NamedTemporaryFile(mode='w', delete=True, dir='.', suffix='.csv') as tf:
             with open(tf.name, 'w') as f:
                 writer = csv.writer(f, delimiter=';')
                 writer.writerows(csv_rows)
