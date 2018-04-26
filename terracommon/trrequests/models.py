@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 
-from terra.models import Feature
+from terracommon.terra.models import Feature
 
 
 class BaseUpdatableModel(models.Model):

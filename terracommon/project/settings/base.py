@@ -11,9 +11,9 @@ import os
 from importlib import import_module
 
 CUSTOM_APPS = (
-    'core',
-    'terra',
-    'trrequests',
+    'terracommon.core',
+    'terracommon.terra',
+    'terracommon.trrequests',
 )
 
 for app in CUSTOM_APPS:

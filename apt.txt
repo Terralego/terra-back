@@ -14,3 +14,4 @@ gettext
 binutils
 libproj-dev
 gdal-bin
+postgresql-server-dev-9.6

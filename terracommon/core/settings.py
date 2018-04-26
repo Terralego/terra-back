@@ -8,8 +8,8 @@ from django.utils.log import DEFAULT_LOGGING
 PROJECT_DIR = os.path.abspath(os.environ.get('PROJECT_DIR'))
 SRC_DIR = os.path.dirname(PROJECT_DIR)
 BASE_DIR = os.path.dirname(SRC_DIR)
-PROJECT_NAME = os.path.basename(PROJECT_DIR)
 PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
+PROJECT_NAME = os.environ.get('PROJECT_PACKAGE')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
@@ -109,7 +109,7 @@ JWT_AUTH = {
 }
 
 SERIALIZATION_MODULES = {
-    'geojson': 'terra.serializers.geojson',
+    'geojson': 'terracommon.terra.serializers.geojson',
 }
 
 WSGI_APPLICATION = PROJECT_NAME + '.wsgi.application'
