@@ -8,6 +8,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 import os
+from importlib import import_module
 
 CUSTOM_APPS = (
     'core',
@@ -17,8 +18,7 @@ CUSTOM_APPS = (
 
 for app in CUSTOM_APPS:
     try:
-        app_module = __import__(app, globals(), locals(), ["settings"])
-        app_settings = getattr(app_module, "settings", None)
+        app_settings = import_module(f"{app}.settings", ["settings"])
 
         for setting in dir(app_settings):
             if setting == setting.upper():
