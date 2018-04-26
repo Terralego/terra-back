@@ -13,17 +13,17 @@ services:
     tty: true
     user: "1000"
     volumes:
-      - ./src:/code/src
+      - ./terracommon:/code/terracommon
       - ./private:/code/private
     ports:
-      - "8000:8000"
+      - "8880:8000"
     env_file:
       - docker.env
     environment:
       - DJANGO_SETTINGS_MODULE=project.settings.dev
     depends_on:
       - db
-    working_dir: /code/src
+    working_dir: /code/terracommon/
     command: /code/venv/bin/python3.6 ./manage.py runserver 0.0.0.0:8000
 volumes:
   postgresql:
