@@ -1,0 +1,12 @@
+[run]
+omit = */tests/*
+        */migrations/*
+        */apps.py
+        project/
+        manage.py
+source = .
+
+[report]
+exclude_lines = 
+        raise NotImplementedError
+
