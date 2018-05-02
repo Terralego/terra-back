@@ -11,6 +11,7 @@ RUN apt-get upgrade -y
 RUN useradd -ms /bin/bash django --uid 1000
 WORKDIR /code
 ADD requirements.txt /code/requirements.txt
+ADD manage.py /code/manage.py
 ADD src /code/src
 ADD private /code/private
 RUN chown django:django -R /code

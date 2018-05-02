@@ -8,7 +8,7 @@ from django.contrib import admin
 
 
 urlpatterns = [
-    path('api/', include('terra.urls')),
+    path('api/', include('terracommon.terra.urls')),
     path('admin/', admin.site.urls),
 ]
 
