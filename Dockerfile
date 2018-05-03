@@ -12,7 +12,7 @@ RUN useradd -ms /bin/bash django --uid 1000
 WORKDIR /code
 ADD requirements.txt /code/requirements.txt
 ADD manage.py /code/manage.py
-ADD src /code/src
+ADD terracommon /code/terracommon
 ADD private /code/private
 RUN chown django:django -R /code
 USER django
