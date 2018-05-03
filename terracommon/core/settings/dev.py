@@ -4,9 +4,6 @@ import os
 
 from django.utils import six
 
-from .base import *  # noqa
-
-
 SECRET_KEY = 'dev-dev-dev-dev-dev-dev-dev'
 
 ALLOWED_HOSTS = []
