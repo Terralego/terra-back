@@ -4,6 +4,8 @@ import os
 
 from django.utils import six
 
+from . import *
+
 SECRET_KEY = 'dev-dev-dev-dev-dev-dev-dev'
 
 ALLOWED_HOSTS = []
@@ -45,10 +47,3 @@ for logger in six.itervalues(LOGGING['loggers']):  # noqa
     logger['handlers'] = ['console']
 # Log every level.
 LOGGING['handlers']['console']['level'] = logging.NOTSET  # noqa
-
-
-try:
-    from .local import *  # noqa
-except ImportError:
-    pass
-
