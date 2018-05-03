@@ -13,7 +13,9 @@ WORKDIR /code
 ADD requirements.txt /code/requirements.txt
 ADD manage.py /code/manage.py
 ADD tox.ini /code/tox.ini
+ADD .coveragerc /code/.coveragerc
 ADD setup.py /code/setup.py
+
 ADD README.md /code/README.md
 ADD terracommon /code/terracommon
 ADD private /code/private
