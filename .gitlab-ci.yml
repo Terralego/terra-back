@@ -21,9 +21,6 @@ tests:
   services:
     - mdillon/postgis:10-alpine
   script:
-#    - cp docker-ci.env docker.env
-#    - docker-compose -e POSTGRES_HOST=$MDILLON__POSTGIS_PORT_5432_TCP_ADDR /code/venv/bin/tox -c /code/tox.ini
-#    - docker exec -e POSTGRES_HOST=$MDILLON__POSTGIS_PORT_5432_TCP_ADDR --env-file docker-ci.env /code/venv/bin/tox -c /code/tox.ini
      - docker run --rm -e POSTGRES_HOST=$MDILLON__POSTGIS_PORT_5432_TCP_ADDR --env-file docker-ci.env terrabacktests /code/venv/bin/tox -c /code/tox.ini
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
 
