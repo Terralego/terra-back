@@ -2,7 +2,9 @@ image: docker:stable
 
 stages:
   - build
+  - run-docker
   - tests
+  - stop-docker
 
 variables:
   DOCKER_DRIVER: overlay2
@@ -13,14 +15,19 @@ variables:
 build:
   stage: build
   script:
-    - docker build -t terrabacktests .
+    - docker build -t $CI_COMMIT_SHA .
+
+run-docker:
+  stage: run-docker
+  script:
+    - docker run -t -d --env-file docker-ci.env --name=$CI_COMMIT_SHA $CI_COMMIT_SHA
 
 tests:
   stage: tests
   services:
     - mdillon/postgis:10-alpine
   script:
-     - docker run --rm -e POSTGRES_HOST=$MDILLON__POSTGIS_PORT_5432_TCP_ADDR --env-file docker-ci.env terrabacktests /code/venv/bin/tox -c /code/tox.ini -e tests,coverage
+     - docker exec -e POSTGRES_HOST=$MDILLON__POSTGIS_PORT_5432_TCP_ADDR $CI_COMMIT_SHA /code/venv/bin/tox -c /code/tox.ini -e tests,coverage
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
 
 linting:
@@ -28,5 +35,11 @@ linting:
   services:
     - mdillon/postgis:10-alpine
   script:
-     - docker run --rm -e POSTGRES_HOST=$MDILLON__POSTGIS_PORT_5432_TCP_ADDR --env-file docker-ci.env terrabacktests /code/venv/bin/tox -c /code/tox.ini -e linting
-  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+     - docker exec -e POSTGRES_HOST=$MDILLON__POSTGIS_PORT_5432_TCP_ADDR $CI_COMMIT_SHA /code/venv/bin/tox -c /code/tox.ini -e linting
+
+stop-docker:
+  stage: stop-docker
+  when: always
+  script:
+    - docker rm -f $CI_COMMIT_SHA
+    - docker rmi -f $CI_COMMIT_SHA
