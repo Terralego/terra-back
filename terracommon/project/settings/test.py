@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import tempfile
 import os
+import tempfile
 
 from django.utils import six
 

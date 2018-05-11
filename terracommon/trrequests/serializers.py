@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import UserRequest, Organization, Comment
+from .models import Comment, Organization, UserRequest
 
 
 class UserRequestSerializer(serializers.ModelSerializer):

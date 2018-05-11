@@ -7,6 +7,7 @@ https://docs.djangoproject.com/en/2.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
+import os
 from importlib import import_module
 
 CUSTOM_APPS = (
@@ -26,6 +27,5 @@ for app in CUSTOM_APPS:
     except ImportError as e:
         pass
 
-import os
 
 INSTALLED_APPS += CUSTOM_APPS
