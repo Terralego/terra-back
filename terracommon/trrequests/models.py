@@ -14,7 +14,8 @@ class BaseUpdatableModel(models.Model):
 
 
 class Organization(models.Model):
-    owner = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='organizations')
+    owner = models.ManyToManyField(settings.AUTH_USER_MODEL,
+                                   related_name='organizations')
     properties = JSONField(default=dict, blank=True)
 
 
@@ -25,7 +26,8 @@ class UserRequest(BaseUpdatableModel):
     feature = models.ForeignKey(Feature,
                                 on_delete=models.PROTECT,
                                 related_name='userrequests')
-    organization = models.ManyToManyField(Organization, related_name='userrequests')
+    organization = models.ManyToManyField(Organization,
+                                          related_name='userrequests')
     properties = JSONField(default=dict, blank=True)
 
 

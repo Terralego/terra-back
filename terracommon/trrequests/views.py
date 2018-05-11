@@ -37,7 +37,8 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrStaff, ]
 
     def get_queryset(self, *args, **kwargs):
-        request = get_object_or_404(UserRequest, pk=self.kwargs.get('request_pk'))
+        request = get_object_or_404(UserRequest,
+                                    pk=self.kwargs.get('request_pk'))
         return request.comments.all()
 
     def perform_create(self, serializer):
