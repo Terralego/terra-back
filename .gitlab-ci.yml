@@ -3,7 +3,6 @@ image: docker:stable
 stages:
   - build
   - tests
-  - cleanup
 
 variables:
   DOCKER_DRIVER: overlay2
@@ -21,6 +20,13 @@ tests:
   services:
     - mdillon/postgis:10-alpine
   script:
-     - docker run --rm -e POSTGRES_HOST=$MDILLON__POSTGIS_PORT_5432_TCP_ADDR --env-file docker-ci.env terrabacktests /code/venv/bin/tox -c /code/tox.ini
+     - docker run --rm -e POSTGRES_HOST=$MDILLON__POSTGIS_PORT_5432_TCP_ADDR --env-file docker-ci.env terrabacktests /code/venv/bin/tox -c /code/tox.ini -e tests,coverage
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
 
+linting:
+  stage: tests
+  services:
+    - mdillon/postgis:10-alpine
+  script:
+     - docker run --rm -e POSTGRES_HOST=$MDILLON__POSTGIS_PORT_5432_TCP_ADDR --env-file docker-ci.env terrabacktests /code/venv/bin/tox -c /code/tox.ini -e linting
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
