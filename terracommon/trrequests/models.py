@@ -33,8 +33,8 @@ class Comment(BaseUpdatableModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.PROTECT)
     userrequest = models.ForeignKey(UserRequest,
-                                on_delete=models.PROTECT,
-                                related_name="comments")
+                                    on_delete=models.PROTECT,
+                                    related_name="comments")
     feature = models.ForeignKey(Feature,
                                 null=True,
                                 on_delete=models.PROTECT)

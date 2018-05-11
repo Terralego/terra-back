@@ -5,7 +5,7 @@ from django.http.response import HttpResponseServerError
 from django.shortcuts import get_object_or_404
 
 from rest_framework import viewsets, permissions
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
 from .permissions import IsOwnerOrStaff
@@ -44,10 +44,9 @@ class CommentViewSet(viewsets.ModelViewSet):
         auto_datas = {
             'owner': self.request.user,
             'userrequest': get_object_or_404(UserRequest,
-                                         pk=self.kwargs.get('request_pk'))
+                                             pk=self.kwargs.get('request_pk'))
         }
         serializer.save(**auto_datas)
-
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
