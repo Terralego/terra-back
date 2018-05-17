@@ -34,5 +34,6 @@ setup(
                       'djangorestframework-gis==0.12',
                       'djangorestframework-jwt>=1.11,<1.12',
                       'drf-yasg>=1.5,<1.6',
+                      'mercantile>=1.0,<1.1',
     ],
 )
