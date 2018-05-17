@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 
-from terracommon.terra.models import Feature
+from terracommon.terra.models import Feature, Layer
 
 
 class BaseUpdatableModel(models.Model):
@@ -22,9 +22,9 @@ class UserRequest(BaseUpdatableModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.PROTECT,
                               related_name='userrequests')
-    feature = models.ForeignKey(Feature,
-                                on_delete=models.PROTECT,
-                                related_name='userrequests')
+    layer = models.ForeignKey(Layer,
+                              on_delete=models.PROTECT,
+                              related_name='userrequests')
     organization = models.ManyToManyField(Organization, related_name='userrequests')
     state = models.IntegerField()
     properties = JSONField(default=dict, blank=True)
