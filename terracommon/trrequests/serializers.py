@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import UserRequest, Organization, Comment
+from .models import Comment, Organization, UserRequest
 
 
 class UserRequestSerializer(serializers.ModelSerializer):
@@ -30,4 +30,4 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
-        read_only_fields = ('owner', 'userrequest' )
+        read_only_fields = ('owner', 'userrequest',)

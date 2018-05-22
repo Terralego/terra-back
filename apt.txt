@@ -1,3 +1,4 @@
+git
 apt-utils
 software-properties-common
 sudo

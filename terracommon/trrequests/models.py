@@ -14,7 +14,8 @@ class BaseUpdatableModel(models.Model):
 
 
 class Organization(models.Model):
-    owner = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='organizations')
+    owner = models.ManyToManyField(settings.AUTH_USER_MODEL,
+                                   related_name='organizations')
     properties = JSONField(default=dict, blank=True)
 
 
@@ -25,7 +26,8 @@ class UserRequest(BaseUpdatableModel):
     feature = models.ForeignKey(Feature,
                                 on_delete=models.PROTECT,
                                 related_name='userrequests')
-    organization = models.ManyToManyField(Organization, related_name='userrequests')
+    organization = models.ManyToManyField(Organization,
+                                          related_name='userrequests')
     state = models.IntegerField()
     properties = JSONField(default=dict, blank=True)
 
@@ -34,8 +36,8 @@ class Comment(BaseUpdatableModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.PROTECT)
     userrequest = models.ForeignKey(UserRequest,
-                                on_delete=models.PROTECT,
-                                related_name="comments")
+                                    on_delete=models.PROTECT,
+                                    related_name="comments")
     feature = models.ForeignKey(Feature,
                                 null=True,
                                 on_delete=models.PROTECT)

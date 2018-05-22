@@ -27,4 +27,5 @@ for app in CUSTOM_APPS:
     except ImportError as e:
         pass
 
+
 INSTALLED_APPS += CUSTOM_APPS
