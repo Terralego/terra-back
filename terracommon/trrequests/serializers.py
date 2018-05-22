@@ -6,8 +6,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from terracommon.terra.models import Layer
-from terracommon.terra.serializers import LayerSerializer
-from .models import UserRequest, Organization, Comment
+from .models import Comment, Organization, UserRequest
 
 
 class UserRequestSerializer(serializers.ModelSerializer):
@@ -55,4 +54,4 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
-        read_only_fields = ('owner', 'userrequest' )
+        read_only_fields = ('owner', 'userrequest',)

@@ -10,8 +10,14 @@ RUN apt-get install -y $(grep -vE "^\s*#" /code/apt.txt  | tr "\n" " ") && apt-g
 RUN apt-get upgrade -y
 RUN useradd -ms /bin/bash django --uid 1000
 WORKDIR /code
+
 ADD requirements.txt /code/requirements.txt
 ADD manage.py /code/manage.py
+ADD tox.ini /code/tox.ini
+ADD .coveragerc /code/.coveragerc
+ADD setup.py /code/setup.py
+ADD README.md /code/README.md
+
 ADD terracommon /code/terracommon
 ADD private /code/private
 RUN chown django:django -R /code

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import tempfile
 
 from django.utils import six
@@ -23,6 +24,16 @@ PASSWORD_HASHERS = (
 for logger in six.itervalues(LOGGING['loggers']):  # noqa
     logger['handlers'] = ['console']
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': os.environ.get('POSTGRES_DB'),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'HOST': os.environ.get('POSTGRES_HOST') or 'db',
+        'PORT': '',
+    }
+}
 
 try:
     from .local import *  # noqa
