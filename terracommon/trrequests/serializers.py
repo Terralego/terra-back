@@ -1,9 +1,11 @@
 from rest_framework import serializers
 
+from terracommon.terra.serializers import TerraUserSerializer
 from .models import Comment, Organization, UserRequest
 
 
 class UserRequestSerializer(serializers.ModelSerializer):
+    owner = TerraUserSerializer(read_only=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -26,6 +28,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    owner = TerraUserSerializer(read_only=True)
 
     class Meta:
         model = Comment
