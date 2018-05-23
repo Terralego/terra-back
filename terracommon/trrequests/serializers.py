@@ -5,14 +5,15 @@ from django.db import transaction
 from rest_framework import serializers
 
 from terracommon.terra.models import Layer
-from terracommon.terra.serializers import LayerSerializer, TerraUserSerializer
+from terracommon.terra.serializers import (LayerWithFeaturesSerializer,
+                                           TerraUserSerializer)
 
 from .models import Comment, Organization, UserRequest
 
 
 class UserRequestSerializer(serializers.ModelSerializer):
     owner = TerraUserSerializer(read_only=True)
-    layer = LayerSerializer(read_only=True)
+    layer = LayerWithFeaturesSerializer(read_only=True)
     geojson = serializers.JSONField(write_only=True, required=True)
 
     def __init__(self, *args, **kwargs):
