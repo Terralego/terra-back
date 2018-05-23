@@ -5,7 +5,8 @@ from django.db import transaction
 from rest_framework import serializers
 
 from terracommon.terra.models import Layer
-from terracommon.terra.serializers import LayerWithFeaturesSerializer, TerraUserSerializer
+from terracommon.terra.serializers import (LayerWithFeaturesSerializer,
+                                           TerraUserSerializer)
 
 from .models import Comment, Organization, UserRequest
 
