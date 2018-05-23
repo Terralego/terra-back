@@ -28,7 +28,11 @@ class UserRequestSerializer(serializers.ModelSerializer):
                     schema={},
                 )
 
-            layer.from_geojson(json.dumps(validated_data.pop('geojson')))
+            layer.from_geojson(
+                json.dumps(validated_data.pop('geojson')),
+                '01-01',
+                '12-01'
+                )
             validated_data.update({
                 'layer': layer,
             })
