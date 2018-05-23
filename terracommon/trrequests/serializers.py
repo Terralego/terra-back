@@ -2,15 +2,17 @@ import json
 import uuid
 
 from django.db import transaction
-
 from rest_framework import serializers
 
 from terracommon.terra.models import Layer
+
 from .models import Comment, Organization, UserRequest
 
 
 class UserRequestSerializer(serializers.ModelSerializer):
-    layer = serializers.ModelField(model_field=UserRequest._meta.get_field('layer'), read_only=True)
+    layer = serializers.ModelField(
+        model_field=UserRequest._meta.get_field('layer'),
+        read_only=True)
     geojson = serializers.JSONField(write_only=True, required=True)
 
     def __init__(self, *args, **kwargs):
@@ -20,8 +22,6 @@ class UserRequestSerializer(serializers.ModelSerializer):
                             Organization.objects.filter(owner=request_user))
 
     def create(self, validated_data):
-        ModelClass = self.Meta.model
-
         with transaction.atomic():
             layer = Layer.objects.create(
                     name=uuid.uuid4(),
