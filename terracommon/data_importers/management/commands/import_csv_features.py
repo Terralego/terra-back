@@ -54,6 +54,14 @@ class Command(BaseCommand):
             default=1000,
             help=_('Number of operations per transaction')
         )
+        parser.add_argument('--fast',
+                            action='store_true',
+                            default=False,
+                            help="If present and it's not an initial import"
+                                  " will speed up features creation. But no"
+                                  " rollback is possible. If something broke"
+                                  " up during import, the import will stop "
+                                  " with half data in database.")
 
     def handle(self, *args, **options):
         layer_name = options.get('csv_type')
@@ -71,4 +79,5 @@ class Command(BaseCommand):
             self.pk_properties.get(layer_name, []),
             options.get('init'),
             options.get('creations_per_transaction'),
+            options.get('fast')
             )
