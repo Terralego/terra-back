@@ -3,10 +3,9 @@ import csv
 import sys
 
 from django.core.management import BaseCommand
-from django.db import transaction
 from django.utils.translation import ugettext as _
 
-from terracommon.terra.models import Layer, Feature
+from terracommon.terra.models import Layer
 
 
 class Command(BaseCommand):
@@ -63,7 +62,9 @@ class Command(BaseCommand):
         if options['bulk']:
             insee_layer.features.all().delete()
 
-        reader = csv.DictReader(options.get('source'), delimiter=';', quotechar='"')
+        reader = csv.DictReader(options.get('source'),
+                                delimiter=';',
+                                quotechar='"')
 
         insee_layer.from_csv_dictreader(
             reader,
@@ -71,4 +72,3 @@ class Command(BaseCommand):
             options.get('init'),
             options.get('creations_per_transaction'),
             )
-            
