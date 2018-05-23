@@ -98,7 +98,7 @@ class RequestTestCase(TestCase):
 
         self.assertEqual(201, response.status_code)
 
-        layer_pk = response.data.get('layer')
+        layer_pk = response.data.get('layer').get('id', None)
         self.assertIsInstance(layer_pk, int)
         self.assertEqual(
             3,
