@@ -48,6 +48,7 @@ for logger in six.itervalues(LOGGING['loggers']):  # noqa
 # Log every level.
 LOGGING['handlers']['console']['level'] = logging.NOTSET  # noqa
 
+CORS_ORIGIN_ALLOW_ALL = True
 
 try:
     from .local import *  # noqa
