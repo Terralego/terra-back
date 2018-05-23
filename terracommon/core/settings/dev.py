@@ -47,3 +47,5 @@ for logger in six.itervalues(LOGGING['loggers']):  # noqa
     logger['handlers'] = ['console']
 # Log every level.
 LOGGING['handlers']['console']['level'] = logging.NOTSET  # noqa
+
+CORS_ORIGIN_ALLOW_ALL = True
