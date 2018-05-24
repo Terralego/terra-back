@@ -13,8 +13,7 @@ from .models import Comment, Organization, UserRequest
 
 class UserRequestSerializer(serializers.ModelSerializer):
     owner = TerraUserSerializer(read_only=True)
-    layer = LayerWithFeaturesSerializer(read_only=True)
-    geojson = serializers.JSONField(write_only=True, required=True)
+    geojson = LayerWithFeaturesSerializer(source='layer')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -30,7 +29,7 @@ class UserRequestSerializer(serializers.ModelSerializer):
                 )
 
             layer.from_geojson(
-                json.dumps(validated_data.pop('geojson')),
+                json.dumps(validated_data.pop('layer').get('geojson')),
                 '01-01',
                 '12-01'
                 )
@@ -40,9 +39,17 @@ class UserRequestSerializer(serializers.ModelSerializer):
 
             return super().create(validated_data)
 
+    def update(self, instance, validated_data):
+        geojson = validated_data.pop('layer').get('geojson')
+        instance.layer.from_geojson(json.dumps(geojson),
+                                    '01-01',
+                                    '12-31',
+                                    True)
+        return super().update(instance, validated_data)
+
     class Meta:
         model = UserRequest
-        fields = '__all__'
+        exclude = ('layer', )
         read_only_fields = ('owner', )
 
 
