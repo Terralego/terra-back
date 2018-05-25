@@ -5,7 +5,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from terracommon.terra.models import Layer
-from terracommon.terra.serializers import (LayerWithFeaturesSerializer,
+from terracommon.terra.serializers import (GeoJSONLayerSerializer,
                                            TerraUserSerializer)
 
 from .models import Comment, Organization, UserRequest
@@ -13,7 +13,7 @@ from .models import Comment, Organization, UserRequest
 
 class UserRequestSerializer(serializers.ModelSerializer):
     owner = TerraUserSerializer(read_only=True)
-    geojson = LayerWithFeaturesSerializer(source='layer')
+    geojson = GeoJSONLayerSerializer(source='layer')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -29,7 +29,7 @@ class UserRequestSerializer(serializers.ModelSerializer):
                 )
 
             layer.from_geojson(
-                json.dumps(validated_data.pop('layer').get('geojson')),
+                json.dumps(validated_data.pop('layer')),
                 '01-01',
                 '12-01'
                 )
@@ -40,7 +40,7 @@ class UserRequestSerializer(serializers.ModelSerializer):
             return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        geojson = validated_data.pop('layer').get('geojson')
+        geojson = validated_data.pop('layer')
         instance.layer.from_geojson(json.dumps(geojson),
                                     '01-01',
                                     '12-31',
