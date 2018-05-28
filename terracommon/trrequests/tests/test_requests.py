@@ -5,7 +5,6 @@ from rest_framework.test import APIClient
 from terracommon.terra.models import Layer
 from terracommon.terra.tests.factories import TerraUserFactory
 
-from .factories import OrganizationFactory
 
 class RequestTestCase(TestCase):
     geojson = {
