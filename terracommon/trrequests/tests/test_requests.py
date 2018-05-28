@@ -6,6 +6,8 @@ from rest_framework.test import APIClient
 from terracommon.terra.models import Layer
 from terracommon.terra.tests.factories import TerraUserFactory
 
+from terracommon.trrequests.permissions import IsOwnerOrStaff
+
 
 class RequestTestCase(TestCase):
     geojson = {
@@ -113,3 +115,7 @@ class RequestTestCase(TestCase):
         settings.REQUEST_SCHEMA = None
         response = self.client.get(reverse('request-schema'))
         self.assertEqual(500, response.status_code)
+
+    def test_object_permission(self):
+        permission = IsOwnerOrStaff
+        
