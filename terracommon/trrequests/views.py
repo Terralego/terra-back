@@ -25,8 +25,8 @@ class RequestViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'], url_path='schema')
     def schema(self, request):
-        if settings.REQUEST_SCHEMA:
-            return Response(json.dumps(settings.REQUEST_SCHEMA))
+        if isinstance(settings.REQUEST_SCHEMA, dict):
+            return Response(settings.REQUEST_SCHEMA)
         else:
             return HttpResponseServerError()
 

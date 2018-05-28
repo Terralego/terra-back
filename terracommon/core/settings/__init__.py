@@ -148,3 +148,5 @@ MEDIA_ROOT = os.path.join(PUBLIC_DIR, 'media')
 LOGGING = copy.deepcopy(DEFAULT_LOGGING)
 
 AUTH_USER_MODEL = 'terra.TerraUser'
+
+REQUEST_SCHEMA = {}

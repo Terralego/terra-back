@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -100,3 +101,15 @@ class RequestTestCase(TestCase):
             3,
             Layer.objects.get(pk=layer_pk).features.all().count()
             )
+
+        response = self.client.get(reverse('request-list'))
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(self.user.userrequests.all().count(), len(response.json()))
+
+    def test_schema(self):
+        response = self.client.get(reverse('request-schema'))
+        self.assertDictEqual(settings.REQUEST_SCHEMA, response.json())
+
+        settings.REQUEST_SCHEMA = None
+        response = self.client.get(reverse('request-schema'))
+        self.assertEqual(500, response.status_code)
