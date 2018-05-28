@@ -2,9 +2,10 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from terracommon.terra.models import Layer, TerraUser
-from terracommon.trrequests.models import Organization
+from terracommon.terra.models import Layer
+from terracommon.terra.tests.factories import TerraUserFactory
 
+from .factories import OrganizationFactory
 
 class RequestTestCase(TestCase):
     geojson = {
@@ -74,14 +75,10 @@ class RequestTestCase(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.user = TerraUser.objects.create_user(
-            email='foo@bar.com',
-            password='123456'
-        )
-        self.client.force_authenticate(user=self.user)
 
-        self.organization = Organization.objects.create()
-        self.organization.owner.set([self.user, ])
+        self.user = TerraUserFactory(organizations=1)
+        self.client.force_authenticate(user=self.user)
+        self.organization = self.user.organizations.all()[0]
 
     def test_request_creation(self):
         response = self.client.post(
