@@ -2,8 +2,8 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from terracommon.trrequests.models import Organization
 from terracommon.terra.tests.factories import TerraUserFactory
+from terracommon.trrequests.models import Organization
 
 
 class OrganizationTestCase(TestCase):
