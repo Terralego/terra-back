@@ -106,7 +106,8 @@ class RequestTestCase(TestCase):
 
         response = self.client.get(reverse('request-list'))
         self.assertEqual(200, response.status_code)
-        self.assertEqual(self.user.userrequests.all().count(), len(response.json()))
+        self.assertEqual(self.user.userrequests.all().count(),
+                         len(response.json()))
 
     def test_schema(self):
         response = self.client.get(reverse('request-schema'))
@@ -117,5 +118,5 @@ class RequestTestCase(TestCase):
         self.assertEqual(500, response.status_code)
 
     def test_object_permission(self):
-        permission = IsOwnerOrStaff
-        
+        permission = IsOwnerOrStaff  # TODO
+        help(permission)

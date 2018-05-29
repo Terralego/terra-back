@@ -35,8 +35,7 @@ class OrganizationTestCase(TestCase):
         self.assertEqual(200, response.status_code)
         response = response.json()
 
-        """This owner have two organizations, one created in user creation 
+        """This owner have two organizations, one created in user creation
            process, and one during this test.
         """
         self.assertEqual(2, len(response))
-        
