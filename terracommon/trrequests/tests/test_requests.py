@@ -1,9 +1,11 @@
+from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 
 from terracommon.terra.tests.factories import TerraUserFactory
 from terracommon.trrequests.models import UserRequest
+from terracommon.trrequests.permissions import IsOwnerOrStaff
 
 
 class RequestTestCase(TestCase):
@@ -103,6 +105,11 @@ class RequestTestCase(TestCase):
             request.layer.features.all().count()
             )
 
+        response = self.client.get(reverse('request-list'))
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(self.user.userrequests.all().count(),
+                         len(response.json()))
+
         """Check the detail view return also the same geojson data"""
         response = self.client.get(
             reverse('request-detail', args=[request.pk]),)
@@ -110,3 +117,15 @@ class RequestTestCase(TestCase):
         self.assertEqual(200, response.status_code)
         layer_geojson = response.data.get('geojson')
         self.assertDictEqual(layer_geojson, request.layer.to_geojson())
+
+    def test_schema(self):
+        response = self.client.get(reverse('request-schema'))
+        self.assertDictEqual(settings.REQUEST_SCHEMA, response.json())
+
+        settings.REQUEST_SCHEMA = None
+        response = self.client.get(reverse('request-schema'))
+        self.assertEqual(500, response.status_code)
+
+    def test_object_permission(self):
+        permission = IsOwnerOrStaff  # TODO
+        dir(permission)

@@ -2,7 +2,8 @@
 omit = */tests/*
         */migrations/*
         */apps.py
-        project/
+        terracommon/project/*
+        terracommon/core/settings/*
         manage.py
 source = .
 
