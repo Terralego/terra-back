@@ -5,17 +5,17 @@ from django.contrib.gis.geos.geometry import GEOSGeometry
 from django.test import TestCase
 from django.urls import reverse
 
-from terracommon.terra.models import Layer, TerraUser
+from .factories import LayerFactory, TerraUserFactory
 
 
 class FeaturesTestCase(TestCase):
-    fake_geometry = GEOSGeometry('''{
+    fake_geometry = {
         "type": "Point",
         "coordinates": [
-          2.4609375,
-          45.583289756006316
+          2.,
+          45.
         ]
-      }''')
+    }
     intersect_geometry = {
         "type": "LineString",
         "coordinates": [
@@ -45,46 +45,20 @@ class FeaturesTestCase(TestCase):
     group_name = 'mygroup'
 
     def setUp(self):
-        self.user = TerraUser.objects.create_user(
-            email='foo@bar.com',
-            password='123456'
-        )
-        self.client.login(username='foo@bar.com', password='123456')
+        features_dates = [
+            {'from_date': '12-01', 'to_date': '02-01'},
+            {'from_date': '04-01', 'to_date': '05-01'},
+            {'from_date': '01-01', 'to_date': '03-01'},
+            {'from_date': '10-01', 'to_date': '12-31'},
+            {'from_date': '01-20', 'to_date': '12-20'},
+        ]
+        self.layer = LayerFactory.create(group=self.group_name,
+                                         add_features=features_dates)
 
-        self.layer = Layer.objects.create(group=self.group_name)
+        self.user = TerraUserFactory()
+        self.client.force_login(self.user)
 
     def test_features_dates(self):
-        self.layer.features.create(
-            geom=self.fake_geometry,
-            properties={},
-            from_date='12-01',
-            to_date='02-01'
-        )
-        self.layer.features.create(
-            geom=self.fake_geometry,
-            properties={},
-            from_date='04-01',
-            to_date='05-01'
-        )
-        self.layer.features.create(
-            geom=self.fake_geometry,
-            properties={},
-            from_date='01-01',
-            to_date='03-01'
-        )
-        self.layer.features.create(
-            geom=self.fake_geometry,
-            properties={},
-            from_date='10-01',
-            to_date='12-31'
-        )
-        self.layer.features.create(
-            geom=self.fake_geometry,
-            properties={},
-            from_date='01-20',
-            to_date='12-20'
-        )
-
         dates = (
             (2, date(2018, 1, 5)),
             (3, date(2018, 1, 25)),
@@ -123,7 +97,7 @@ class FeaturesTestCase(TestCase):
         """Must not intersect with this point"""
         response = self.client.post(
             reverse('group-intersect', args=[self.group_name]),
-            {'geom': self.fake_geometry.json, },)
+            {'geom': json.dumps(self.fake_geometry), },)
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(0, len(response.json().get('features')))
