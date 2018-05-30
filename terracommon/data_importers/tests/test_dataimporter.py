@@ -1,6 +1,8 @@
 import os
-from django.test import TestCase
+
 from django.core.management import call_command
+from django.test import TestCase
+
 
 class DataImporterTestCase(TestCase):
     def test_command_launch(self):
