@@ -4,13 +4,16 @@ import uuid
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.contrib.gis.db import models
 from django.contrib.gis.geos.geometry import GEOSGeometry
+from django.contrib.gis.geos.point import Point
 from django.contrib.postgres.fields import JSONField
 from django.core.serializers import serialize
+from django.db import transaction
 from django.db.models import Manager
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .fields import DateFieldYearLess
+from .helpers import ChunkIterator
 from .managers import FeatureQuerySet, TerraUserManager
 
 
@@ -18,6 +21,48 @@ class Layer(models.Model):
     name = models.CharField(max_length=256)
     group = models.CharField(max_length=255, default="__nogroup__")
     schema = JSONField(default=dict, blank=True)
+
+    def from_csv_dictreader(self, reader, pk_properties, init=False,
+                            chunk_size=1000, fast=False):
+        """Import (create or update) features from csv.DictReader object
+        :param reader: csv.DictReader object
+        :param pk_properties: keys of row that is used to identify unicity
+        :param init: allow to speed up import if there is only new Feature's
+                    (no updates)
+        :param chunk_size: only used if init=True, control the size of
+                           bulk_create
+        """
+        # rl = list(reader)
+        chunks = ChunkIterator(reader, chunk_size)
+        if init:
+            for chunk in chunks:
+                entries = [
+                    Feature(
+                        geom=Point(),
+                        properties=row,
+                        layer=self,
+                    )
+                    for row in chunk
+                ]
+                Feature.objects.bulk_create(entries)
+        else:
+            for chunk in chunks:
+                sp = None
+                if fast:
+                    sp = transaction.savepoint()
+                for row in chunk:
+                    Feature.objects.update_or_create(
+                        defaults={
+                            'geom': Point(),
+                            'properties': row,
+                            'layer': self,
+                        },
+                        layer=self,
+                        **{f'properties__{p}': row.get(p, '')
+                            for p in pk_properties}
+                    )
+                if sp:
+                    transaction.savepoint_commit(sp)
 
     def from_geojson(self, geojson_data, from_date, to_date, update=False):
         """
