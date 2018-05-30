@@ -19,10 +19,10 @@ coverage
 isort
 pylama
 tblib
-factory-boy
 Sphinx
 sphinx-intl
 sphinx_rtd_theme
+factory_boy
 
 # production
 gunicorn
