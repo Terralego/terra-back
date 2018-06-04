@@ -31,6 +31,17 @@ class UserRequest(BaseUpdatableModel):
     state = models.IntegerField()
     properties = JSONField(default=dict, blank=True)
 
+    class Meta:
+        permissions = (
+            ('can_administrate', 'Has administrator permissions on requests'),
+            ('can_read_self', 'Is able to get own requests'),
+            ('can_read_all', 'Is able to get all requests'),
+            ('can_comment', 'Is able to comment an user request'),
+            ('can_internal_comment', 'Is able to add comments not visible by users'),
+            ('can_change_state', 'Is authorized to change the request state'),
+            ('can_approve', 'Is able to set the approved state'),
+        )
+
 
 class Comment(BaseUpdatableModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
