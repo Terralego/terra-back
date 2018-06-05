@@ -3,25 +3,38 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from terracommon.trrequests.models import Comment
-from terracommon.trrequests.tests.factories import UserRequestFactory
+
+from .factories import UserRequestFactory
+from .mixins import TestPermissionsMixin
 
 
-class OrganizationTestCase(TestCase):
+class OrganizationTestCase(TestCase, TestPermissionsMixin):
 
     def setUp(self):
         self.client = APIClient()
 
         self.request = UserRequestFactory()
-        self.client.force_authenticate(user=self.request.owner)
+        self.user = self.request.owner
+        self.client.force_authenticate(user=self.user)
 
-    def test_organization_creation(self):
+    def test_comment_creation(self):
+        comment_request = {
+            'properties': {
+                'comment': 'lipsum',
+                }
+        }
         response = self.client.post(reverse('comment-list',
                                             args=[self.request.pk, ]),
-                                    {
-                                        'properties': {
-                                            'comment': 'lipsum',
-                                        }
-                                    }, format='json')
+                                    comment_request,
+                                    format='json')
+        self.assertEqual(403, response.status_code)
+
+        self._set_permissions(['can_comment_requests', ])
+
+        response = self.client.post(reverse('comment-list',
+                                            args=[self.request.pk, ]),
+                                    comment_request,
+                                    format='json')
 
         self.assertEqual(201, response.status_code)
 

@@ -7,8 +7,10 @@ from terracommon.terra.tests.factories import TerraUserFactory
 from terracommon.trrequests.models import UserRequest
 from terracommon.trrequests.permissions import IsOwnerOrStaff
 
+from .mixins import TestPermissionsMixin
 
-class RequestTestCase(TestCase):
+
+class RequestTestCase(TestCase, TestPermissionsMixin):
     geojson = {
         "type": "FeatureCollection",
         "features": [
@@ -82,29 +84,50 @@ class RequestTestCase(TestCase):
         self.organization = self.user.organizations.all()[0]
 
     def test_request_creation(self):
-        response = self.client.post(
-            reverse('request-list'),
-            {
-                'state': 0,
-                'properties': {
-                    'myproperty': 'myvalue',
-                },
-                'geojson': self.geojson,
-                'organization': [self.organization.pk]
+        request = {
+            'state': 0,
+            'properties': {
+                'myproperty': 'myvalue',
+            },
+            'geojson': self.geojson,
+            'organization': [self.organization.pk]
 
-            }, format='json')
+        }
+        """First we try with no rights"""
+        response = self.client.post(reverse('request-list'),
+                                    request,
+                                    format='json')
+        self.assertEqual(403, response.status_code)
+
+        """Then we add the permissions to the user"""
+        self._set_permissions(['can_create_requests', ])
+        response = self.client.post(reverse('request-list'),
+                                    request,
+                                    format='json')
 
         self.assertEqual(201, response.status_code)
 
         request = UserRequest.objects.get(pk=response.data.get('id'))
         layer_geojson = response.data.get('geojson')
 
+        self.assertEqual(request.state, 0)
         self.assertDictEqual(layer_geojson, request.layer.to_geojson())
         self.assertEqual(
             3,
             request.layer.features.all().count()
             )
 
+        """Test listing requests with no can_read_self_requests permission"""
+        response = self.client.get(reverse('request-list'))
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(0, len(response.json()))
+
+        response = self.client.get(
+            reverse('request-detail', args=[request.pk]),)
+        self.assertEqual(404, response.status_code)
+
+        """And with the permission"""
+        self._set_permissions(['can_read_self_requests', ])
         response = self.client.get(reverse('request-list'))
         self.assertEqual(200, response.status_code)
         self.assertEqual(self.user.userrequests.all().count(),
@@ -117,6 +140,8 @@ class RequestTestCase(TestCase):
         self.assertEqual(200, response.status_code)
         layer_geojson = response.data.get('geojson')
         self.assertDictEqual(layer_geojson, request.layer.to_geojson())
+
+        self._clean_permissions()
 
     def test_schema(self):
         response = self.client.get(reverse('request-schema'))

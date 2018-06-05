@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseServerError
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
@@ -16,7 +17,21 @@ class RequestViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrStaff, ]
 
     def get_queryset(self):
-        return self.request.user.userrequests.all()
+        if self.request.user.has_perm('trrequests.can_read_all_requests'):
+            return UserRequest.objects.all()
+        elif self.request.user.has_perm('trrequests.can_read_self_requests'):
+            return self.request.user.userrequests.all()
+        return []
+
+    def create(self, request, *args, **kwargs):
+        if not self.request.user.has_perm('trrequests.can_create_requests'):
+            raise PermissionDenied
+
+        if not self.request.user.has_perm(
+                'trrequests.can_change_state_requests'):
+            del self.request.data['state']
+
+        return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -39,6 +54,9 @@ class CommentViewSet(viewsets.ModelViewSet):
         return request.comments.all()
 
     def perform_create(self, serializer):
+        if not self.request.user.has_perm('trrequests.can_comment_requests'):
+            raise PermissionDenied
+
         auto_datas = {
             'owner': self.request.user,
             'userrequest': get_object_or_404(UserRequest,
