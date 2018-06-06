@@ -28,8 +28,23 @@ class UserRequest(BaseUpdatableModel):
                               related_name='userrequests')
     organization = models.ManyToManyField(Organization,
                                           related_name='userrequests')
-    state = models.IntegerField()
+    state = models.IntegerField(default=0)
     properties = JSONField(default=dict, blank=True)
+
+    class Meta:
+        permissions = (
+            ('can_administrate_requests',
+             'Has administrator permissions on requests'),
+            ('can_create_requests', 'Is able to create a new requests'),
+            ('can_read_self_requests', 'Is able to get own requests'),
+            ('can_read_all_requests', 'Is able to get all requests'),
+            ('can_comment_requests', 'Is able to comment an user request'),
+            ('can_internal_comment_requests',
+             'Is able to add comments not visible by users'),
+            ('can_change_state_requests',
+             'Is authorized to change the request state'),
+            ('can_approve_requests', 'Is able to set the approved state'),
+        )
 
 
 class Comment(BaseUpdatableModel):
