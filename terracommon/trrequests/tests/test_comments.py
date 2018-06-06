@@ -53,11 +53,29 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
 
         """And then test what we can retrieve, with internal rights. In this
         test we created 1 internal comment and 2 public comments"""
+        """First we test we internal comments allowed"""
         response = self.client.get(
             reverse('comment-list', args=[self.request.pk, ]))
         self.assertEqual(200, response.status_code)
         response = response.json()
         self.assertEqual(3, len(response))
+
+        """Then with no comment allowed"""
+        self._clean_permissions()
+        response = self.client.get(
+            reverse('comment-list', args=[self.request.pk, ]))
+        self.assertEqual(200, response.status_code)
+        response = response.json()
+        self.assertEqual(0, len(response))
+
+        """Finally we test with "normal" comment allowed"""
+        self._set_permissions(['can_comment_requests', ])
+        response = self.client.get(
+            reverse('comment-list', args=[self.request.pk, ]))
+        self.assertEqual(200, response.status_code)
+        response = response.json()
+        self.assertEqual(2, len(response))
+
 
     def _post_comment(self, comment):
         return self.client.post(reverse('comment-list',
