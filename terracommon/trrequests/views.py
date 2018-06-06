@@ -50,7 +50,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self, *args, **kwargs):
         request_pk = self.kwargs.get('request_pk')
-        if self.request.user.has_perm('trrequests.can_internal_comment_requests'):
+        if self.request.user.has_perm(
+                'trrequests.can_internal_comment_requests'):
             request = get_object_or_404(UserRequest, pk=request_pk)
             return request.comments.all()
         elif self.request.user.has_perm('trrequests.can_comment_requests'):
@@ -59,8 +60,9 @@ class CommentViewSet(viewsets.ModelViewSet):
         return []
 
     def perform_create(self, serializer):
-        if not (self.request.user.has_perm('trrequests.can_comment_requests') 
-                or self.request.user.has_perm('trrequests.can_internal_comment_requests')):
+        if not (self.request.user.has_perm('trrequests.can_comment_requests')
+                or self.request.user.has_perm(
+                    'trrequests.can_internal_comment_requests')):
             raise PermissionDenied
 
         auto_datas = {
@@ -69,7 +71,8 @@ class CommentViewSet(viewsets.ModelViewSet):
                                              pk=self.kwargs.get('request_pk'))
         }
 
-        if not self.request.user.has_perm('trrequests.can_internal_comment_requests'):
+        if not self.request.user.has_perm(
+                'trrequests.can_internal_comment_requests'):
             auto_datas['is_internal'] = False
 
         serializer.save(**auto_datas)

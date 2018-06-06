@@ -44,12 +44,11 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         comment_request['is_internal'] = True
         response = self._post_comment(comment_request)
         self.assertFalse(response.json().get('is_internal'))
-        
+
         """Allow internal comments and test request"""
         self._set_permissions(['can_internal_comment_requests', ])
         response = self._post_comment(comment_request)
         self.assertTrue(response.json().get('is_internal'))
-        
 
         """And then test what we can retrieve, with internal rights. In this
         test we created 1 internal comment and 2 public comments"""
@@ -75,7 +74,6 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(200, response.status_code)
         response = response.json()
         self.assertEqual(2, len(response))
-
 
     def _post_comment(self, comment):
         return self.client.post(reverse('comment-list',
