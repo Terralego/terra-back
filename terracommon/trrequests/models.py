@@ -57,3 +57,4 @@ class Comment(BaseUpdatableModel):
                                 null=True,
                                 on_delete=models.PROTECT)
     properties = JSONField(default=dict, blank=True)
+    is_internal = models.BooleanField(default=False)
