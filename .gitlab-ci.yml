@@ -15,17 +15,19 @@ before_script:
 - apt-get update
 - apt-get install -y python3-pip
 - apt-get install -y $(grep -vE "^\s*#" apt.txt  | tr "\n" " ") && apt-get clean all && apt-get autoclean
-- pip3 install -r requirements.txt
+- virtualenv3 .
+- ./bin/pip3 install -r requirements.txt
+
 
 tests:
   stage: tests
   services:
     - mdillon/postgis:10-alpine
   script:
-     - tox -c tox.ini -e tests,coverage
+     - ./bin/tox -c tox.ini -e tests,coverage
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
 
 linting:
   stage: linting
   script:
-     - tox -c tox.ini -e linting
+     - ./bin/tox -c tox.ini -e linting
