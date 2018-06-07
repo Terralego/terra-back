@@ -150,3 +150,5 @@ LOGGING = copy.deepcopy(DEFAULT_LOGGING)
 AUTH_USER_MODEL = 'terra.TerraUser'
 
 REQUEST_SCHEMA = {}
+
+MAX_TILE_ZOOM = 15
