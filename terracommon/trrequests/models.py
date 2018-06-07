@@ -33,8 +33,6 @@ class UserRequest(BaseUpdatableModel):
 
     class Meta:
         permissions = (
-            ('can_administrate_requests',
-             'Has administrator permissions on requests'),
             ('can_create_requests', 'Is able to create a new requests'),
             ('can_read_self_requests', 'Is able to get own requests'),
             ('can_read_all_requests', 'Is able to get all requests'),
@@ -43,7 +41,6 @@ class UserRequest(BaseUpdatableModel):
              'Is able to add comments not visible by users'),
             ('can_change_state_requests',
              'Is authorized to change the request state'),
-            ('can_approve_requests', 'Is able to set the approved state'),
         )
 
 
@@ -57,3 +54,4 @@ class Comment(BaseUpdatableModel):
                                 null=True,
                                 on_delete=models.PROTECT)
     properties = JSONField(default=dict, blank=True)
+    is_internal = models.BooleanField(default=False)

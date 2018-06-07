@@ -4,7 +4,9 @@ from django.contrib.auth.models import Permission
 class TestPermissionsMixin:
 
     def _clean_permissions(self):
-        self.user.user_permissions.all().delete()
+        self.user.user_permissions.clear()
+        delattr(self.user, '_user_perm_cache')
+        delattr(self.user, '_perm_cache')
 
     def _set_permissions(self, perms):
         for perm in perms:
