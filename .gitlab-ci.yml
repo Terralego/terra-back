@@ -2,6 +2,7 @@ image: ubuntu:artful
 
 stages:
   - tests
+  - linting
 
 variables:
   DOCKER_DRIVER: overlay2
@@ -26,6 +27,6 @@ tests:
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
 
 linting:
-  stage: tests
+  stage: linting
   script:
      - ./bin/tox -c tox.ini -e linting
