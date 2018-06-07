@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import timedelta
 import logging
 import os
 
@@ -49,3 +50,5 @@ for logger in six.itervalues(LOGGING['loggers']):  # noqa
 LOGGING['handlers']['console']['level'] = logging.NOTSET  # noqa
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+JWT_AUTH['JWT_EXPIRATION_DELTA'] = timedelta(hours=12)
