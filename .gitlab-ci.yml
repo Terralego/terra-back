@@ -13,8 +13,8 @@ variables:
 
 before_script:
 - apt-get update
+- apt-get install -y python3-pip
 - apt-get install -y $(grep -vE "^\s*#" apt.txt  | tr "\n" " ") && apt-get clean all && apt-get autoclean
-- apt-get install python3-pip
 - pip3 install -r requirements.txt
 
 tests:
