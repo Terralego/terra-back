@@ -7,6 +7,7 @@ from terracommon.terra.tests.factories import TerraUserFactory
 from terracommon.trrequests.models import UserRequest
 from terracommon.trrequests.permissions import IsOwnerOrStaff
 
+from .factories import UserRequestFactory
 from .mixins import TestPermissionsMixin
 
 
@@ -154,3 +155,27 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
     def test_object_permission(self):
         permission = IsOwnerOrStaff  # TODO
         dir(permission)
+
+    def test_request_change_state(self):
+        request = UserRequestFactory()
+        new_status = 10
+        self._set_permissions(['can_read_all_requests', ])
+
+        """Test with no permission to change status"""
+        response = self.client.post(
+            reverse('request-status', args=[request.pk]),
+            {'state': new_status},
+            format='json')
+        self.assertEqual(403, response.status_code)
+
+        self._set_permissions(['can_change_state_requests', ])
+
+        """Test with the can_change_state_requests permission"""
+        response = self.client.post(
+            reverse('request-status', args=[request.pk]),
+            {'state': new_status},
+            format='json')
+
+        self.assertEqual(202, response.status_code)
+        request.refresh_from_db()
+        self.assertEqual(new_status, request.state)
