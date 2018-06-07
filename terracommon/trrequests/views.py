@@ -1,10 +1,12 @@
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
+from django.http import Http404
 from django.http.response import HttpResponseServerError
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
-from rest_framework.decorators import list_route
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
+from rest_framework.status import HTTP_202_ACCEPTED
 
 from .models import UserRequest
 from .permissions import IsOwnerOrStaff
@@ -21,7 +23,7 @@ class RequestViewSet(viewsets.ModelViewSet):
             return UserRequest.objects.all()
         elif self.request.user.has_perm('trrequests.can_read_self_requests'):
             return self.request.user.userrequests.all()
-        return []
+        return UserRequest.objects.none()
 
     def create(self, request, *args, **kwargs):
         if not self.request.user.has_perm('trrequests.can_create_requests'):
@@ -42,6 +44,20 @@ class RequestViewSet(viewsets.ModelViewSet):
             return Response(settings.REQUEST_SCHEMA)
         else:
             return HttpResponseServerError()
+
+    @detail_route(methods=['post'], url_path='status')
+    def status(self, request, pk):
+        try:
+            request = self.get_queryset().get(pk=pk)
+        except self.get_queryset().model.DoesNotExist:
+            raise Http404
+
+        if (self.request.user.has_perm('trrequests.can_change_state_requests')
+                and 'state' in self.request.data):
+            request.state = int(self.request.data.get('state'))
+            request.save()
+            return Response(status=HTTP_202_ACCEPTED)
+        raise PermissionDenied
 
 
 class CommentViewSet(viewsets.ModelViewSet):
