@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from datetime import timedelta
 import logging
 import os
+from datetime import timedelta
 
 from django.utils import six
 
