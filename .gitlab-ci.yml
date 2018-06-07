@@ -14,9 +14,7 @@ variables:
 before_script:
 - apt-get update
 - apt-get install -y $(grep -vE "^\s*#" apt.txt  | tr "\n" " ") && apt-get clean all && apt-get autoclean
-- curl -O https://bootstrap.pypa.io/get-pip.py
-- python get-pip.py
-- pip install -r requirements.txt
+- pip3 install -r requirements.txt
 
 tests:
   stage: tests
