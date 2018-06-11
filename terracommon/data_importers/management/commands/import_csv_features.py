@@ -48,6 +48,14 @@ class Command(BaseCommand):
             help=_('Specify source file path'),
         )
         parser.add_argument(
+            '--delimiter',
+            action='store',
+            dest='delimiter',
+            default=';',
+            required=False,
+            help=_('Specify CSV delimiter')
+        )
+        parser.add_argument(
             '--creations-per-transaction',
             dest='creations_per_transaction',
             type=int,
@@ -71,7 +79,7 @@ class Command(BaseCommand):
             insee_layer.features.all().delete()
 
         reader = csv.DictReader(options.get('source'),
-                                delimiter=';',
+                                delimiter=options.get('delimiter'),
                                 quotechar='"')
 
         insee_layer.from_csv_dictreader(
