@@ -62,6 +62,20 @@ class Command(BaseCommand):
             default=1000,
             help=_('Number of operations per transaction')
         )
+        parser.add_argument(
+            '--longitude',
+            required=False,
+            action='store',
+            dest='longitude',
+            help=_('Name of longitude column')
+        )
+        parser.add_argument(
+            '--latitude',
+            required=False,
+            action='store',
+            dest='latitude',
+            help=_('Name of latitude column')
+        )
         parser.add_argument('--fast',
                             action='store_true',
                             default=False,
@@ -87,5 +101,7 @@ class Command(BaseCommand):
             self.pk_properties.get(layer_name, []),
             options.get('init'),
             options.get('creations_per_transaction'),
-            options.get('fast')
-            )
+            options.get('fast'),
+            options.get('longitude'),
+            options.get('latitude')
+        )
