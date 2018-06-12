@@ -5,6 +5,7 @@ import sys
 from django.core.management import BaseCommand
 from django.utils.translation import ugettext as _
 
+from terracommon.terra.helpers import GeometryDefiner
 from terracommon.terra.models import Layer
 
 
@@ -96,12 +97,18 @@ class Command(BaseCommand):
                                 delimiter=options.get('delimiter'),
                                 quotechar='"')
 
+        geometry_columns = {
+            GeometryDefiner.LONGITUDE: options.get('longitude'),
+            GeometryDefiner.LATITUDE: options.get('latitude')
+        }
+        geometry_columns_filtered = {k: v for k, v in geometry_columns.items()
+                                     if v is not None}
+
         insee_layer.from_csv_dictreader(
             reader,
             self.pk_properties.get(layer_name, []),
             options.get('init'),
             options.get('creations_per_transaction'),
             options.get('fast'),
-            options.get('longitude'),
-            options.get('latitude')
+            geometry_columns_filtered
         )
