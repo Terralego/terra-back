@@ -5,6 +5,8 @@ from datetime import timedelta
 
 from django.utils.log import DEFAULT_LOGGING
 
+from terracommon.terra.helpers import Choices
+
 PROJECT_DIR = os.path.abspath(os.environ.get('PROJECT_DIR'))
 SRC_DIR = os.path.dirname(PROJECT_DIR)
 BASE_DIR = os.path.dirname(SRC_DIR)
@@ -152,3 +154,10 @@ AUTH_USER_MODEL = 'terra.TerraUser'
 REQUEST_SCHEMA = {}
 
 MAX_TILE_ZOOM = 15
+
+STATUSES = Choices(
+    ('DRAFT', 100, 'Draft'),
+    ('SUBMITTED', 200, 'Submitted'),
+    ('ACCEPTED', 300, 'Accepted'),
+    ('REFUSED', -1, 'Refused'),
+)
