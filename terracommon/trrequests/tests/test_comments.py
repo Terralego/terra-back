@@ -57,7 +57,7 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
             reverse('comment-list', args=[self.request.pk, ]))
         self.assertEqual(200, response.status_code)
         response = response.json()
-        self.assertEqual(3, len(response))
+        self.assertEqual(3, response.get('count'))
 
         """Then with no comment allowed"""
         self._clean_permissions()
@@ -65,7 +65,7 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
             reverse('comment-list', args=[self.request.pk, ]))
         self.assertEqual(200, response.status_code)
         response = response.json()
-        self.assertEqual(0, len(response))
+        self.assertEqual(0, response.get('count'))
 
         """Finally we test with "normal" comment allowed"""
         self._set_permissions(['can_comment_requests', ])
@@ -73,7 +73,7 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
             reverse('comment-list', args=[self.request.pk, ]))
         self.assertEqual(200, response.status_code)
         response = response.json()
-        self.assertEqual(2, len(response))
+        self.assertEqual(2, response.get('count'))
 
     def _post_comment(self, comment):
         return self.client.post(reverse('comment-list',
