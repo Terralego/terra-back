@@ -154,7 +154,7 @@ AUTH_USER_MODEL = 'terra.TerraUser'
 
 REQUEST_SCHEMA = {}
 
-MAX_TILE_ZOOM = 15
+MIN_TILE_ZOOM = 15
 
 STATUSES = Choices(
     ('DRAFT', 100, 'Draft'),
