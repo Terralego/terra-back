@@ -38,4 +38,4 @@ class OrganizationTestCase(TestCase):
         """This owner have two organizations, one created in user creation
            process, and one during this test.
         """
-        self.assertEqual(2, len(response))
+        self.assertEqual(2, response.get('count'))

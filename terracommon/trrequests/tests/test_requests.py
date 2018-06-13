@@ -121,7 +121,7 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
         """Test listing requests with no can_read_self_requests permission"""
         response = self.client.get(reverse('request-list'))
         self.assertEqual(200, response.status_code)
-        self.assertEqual(0, len(response.json()))
+        self.assertEqual(0, response.json().get('count'))
 
         response = self.client.get(
             reverse('request-detail', args=[request.pk]),)
@@ -132,7 +132,7 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
         response = self.client.get(reverse('request-list'))
         self.assertEqual(200, response.status_code)
         self.assertEqual(self.user.userrequests.all().count(),
-                         len(response.json()))
+                         response.json().get('count'))
 
         """Check the detail view return also the same geojson data"""
         response = self.client.get(
