@@ -9,6 +9,6 @@ class DataImporterTestCase(TestCase):
         test_file = os.path.join(os.path.dirname(__file__), 'test.csv')
         call_command('import_csv_features',
                      '--layer=companies',
-                     '--pk_property=SIREN',
-                     '--pk_property=NIC',
+                     '--key=SIREN',
+                     '--key=NIC',
                      f'--source={test_file}')

@@ -21,13 +21,15 @@ class Command(BaseCommand):
             help=_('Specify layer name')
         )
         parser.add_argument(
-            '--pk_property',
+            '--key',
             required=True,
             action='append',
             dest='pk_properties',
-            help=_("Define the type of feature to import."
+            help=_("Define primary keys of this data"
                    "Example with companies:"
-                   "--pk_property=SIREN --pk_property=NIC")
+                   "--key=SIREN --key=NIC"
+                   "Example with INSEE:"
+                   "--key=code_insee")
         )
         parser.add_argument(
             '--init',
