@@ -111,7 +111,7 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
         request = UserRequest.objects.get(pk=response.data.get('id'))
         layer_geojson = response.data.get('geojson')
 
-        self.assertEqual(request.state, 0)
+        self.assertEqual(request.state, settings.STATES.DRAFT)
         self.assertDictEqual(layer_geojson, request.layer.to_geojson())
         self.assertEqual(
             3,
