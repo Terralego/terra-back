@@ -6,7 +6,6 @@ from django.core.management import BaseCommand
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext as _
 
-from terracommon.terra.helpers import GeometryDefiner
 from terracommon.terra.models import Layer
 
 
@@ -108,13 +107,6 @@ class Command(BaseCommand):
                                 delimiter=options.get('delimiter'),
                                 quotechar='"')
 
-        geometry_columns = {
-            GeometryDefiner.LONGITUDE: options.get('longitude'),
-            GeometryDefiner.LATITUDE: options.get('latitude')
-        }
-        geometry_columns_filtered = {k: v for k, v in geometry_columns.items()
-                                     if v is not None}
-
         layer.from_csv_dictreader(
             reader=reader,
             options=options,
@@ -122,6 +114,5 @@ class Command(BaseCommand):
             pk_properties=options.get('pk_properties'),
             init=options.get('init'),
             chunk_size=options.get('chunk_size'),
-            fast=options.get('fast'),
-            geometry_columns=geometry_columns_filtered
+            fast=options.get('fast')
         )
