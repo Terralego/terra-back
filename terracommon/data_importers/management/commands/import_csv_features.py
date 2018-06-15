@@ -117,8 +117,9 @@ class Command(BaseCommand):
 
         layer.from_csv_dictreader(
             reader=reader,
-            pk_properties=options.get('pk_properties'),
+            options=options,
             operations=operations,
+            pk_properties=options.get('pk_properties'),
             init=options.get('init'),
             chunk_size=options.get('chunk_size'),
             fast=options.get('fast'),
