@@ -3,6 +3,7 @@ import csv
 import sys
 
 from django.core.management import BaseCommand
+from django.utils.module_loading import import_string
 from django.utils.translation import ugettext as _
 
 from terracommon.terra.helpers import GeometryDefiner
@@ -64,6 +65,12 @@ class Command(BaseCommand):
                             dest='layer',
                             help=_('Specify layer name')
                             )
+        parser.add_argument('-o', '--operation',
+                            required=True,
+                            action='append',
+                            dest='operations',
+                            help=_('Specify transform functions')
+                            )
         parser.add_argument('-s', '--source',
                             dest='source',
                             type=argparse.FileType('r',
@@ -92,6 +99,11 @@ class Command(BaseCommand):
         if options['bulk']:
             layer.features.all().delete()
 
+        operations = None
+        if options['operations']:
+            operations = [import_string(path) for path in
+                          options.get('operations')]
+
         reader = csv.DictReader(options.get('source'),
                                 delimiter=options.get('delimiter'),
                                 quotechar='"')
@@ -106,6 +118,7 @@ class Command(BaseCommand):
         layer.from_csv_dictreader(
             reader=reader,
             pk_properties=options.get('pk_properties'),
+            operations=operations,
             init=options.get('init'),
             chunk_size=options.get('chunk_size'),
             fast=options.get('fast'),
