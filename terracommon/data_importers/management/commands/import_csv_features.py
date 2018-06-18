@@ -26,12 +26,27 @@ class Command(BaseCommand):
                             default=1000,
                             help=_('Number of rows per transaction')
                             )
-        parser.add_argument('-d', '--delimiter',
+        parser.add_argument('-cd', '--delimiter',
                             action='store',
                             dest='delimiter',
                             default=';',
                             required=False,
                             help=_('Specify CSV delimiter')
+                            )
+        parser.add_argument('-cq', '--quotechar',
+                            action='store',
+                            dest='quotechar',
+                            default='"',
+                            required=False,
+                            help=_('Specify CSV quotechar')
+                            )
+        parser.add_argument('-cs', '--source',
+                            dest='source',
+                            type=argparse.FileType('r',
+                                                   encoding='iso-8859-15'),
+                            default=sys.stdin,
+                            required=True,
+                            help=_('Specify CSV path'),
                             )
         parser.add_argument('-f', '--fast',
                             action='store_true',
@@ -70,14 +85,6 @@ class Command(BaseCommand):
                             dest='operations',
                             help=_('Specify transform functions')
                             )
-        parser.add_argument('-s', '--source',
-                            dest='source',
-                            type=argparse.FileType('r',
-                                                   encoding='iso-8859-15'),
-                            default=sys.stdin,
-                            required=True,
-                            help=_('Specify source file path'),
-                            )
         parser.add_argument('--longitude',
                             required=False,
                             action='store',
@@ -105,7 +112,7 @@ class Command(BaseCommand):
 
         reader = csv.DictReader(options.get('source'),
                                 delimiter=options.get('delimiter'),
-                                quotechar='"')
+                                quotechar=options.get('quotechar'))
 
         layer.from_csv_dictreader(
             reader=reader,
