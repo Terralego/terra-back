@@ -14,6 +14,7 @@ variables:
 
 cache:
   paths:
+    - /var/cache/apt/
     - .cache/
     - venv/
 
