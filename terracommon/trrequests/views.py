@@ -9,14 +9,13 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_202_ACCEPTED
 
 from .models import UserRequest
-from .permissions import IsOwnerOrStaff
 from .serializers import (CommentSerializer, OrganizationSerializer,
                           UserRequestSerializer)
 
 
 class RequestViewSet(viewsets.ModelViewSet):
     serializer_class = UserRequestSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwnerOrStaff, ]
+    permission_classes = [permissions.IsAuthenticated, ]
 
     def get_queryset(self):
         if self.request.user.has_perm('trrequests.can_read_all_requests'):
@@ -62,7 +61,7 @@ class RequestViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwnerOrStaff, ]
+    permission_classes = [permissions.IsAuthenticated, ]
 
     def get_queryset(self, *args, **kwargs):
         request_pk = self.kwargs.get('request_pk')
@@ -96,7 +95,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class OrganizationViewSet(viewsets.ModelViewSet):
     serializer_class = OrganizationSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwnerOrStaff, ]
+    permission_classes = [permissions.IsAuthenticated, ]
 
     def get_queryset(self):
         return self.request.user.organizations.all()
