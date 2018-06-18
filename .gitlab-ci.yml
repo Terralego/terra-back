@@ -5,6 +5,7 @@ stages:
   - linting
 
 variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache"
   DOCKER_DRIVER: overlay2
   POSTGRES_USER: user
   POSTGRES_DB: db
@@ -13,6 +14,7 @@ variables:
 
 cache:
   paths:
+    - .cache/
     - venv/
 
 before_script:
