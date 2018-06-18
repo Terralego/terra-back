@@ -40,11 +40,12 @@ class UserRequestSerializer(serializers.ModelSerializer):
             return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        geojson = validated_data.pop('layer')
-        instance.layer.from_geojson(json.dumps(geojson),
-                                    '01-01',
-                                    '12-31',
-                                    True)
+        if 'layer' in validated_data:
+            geojson = validated_data.pop('layer')
+            instance.layer.from_geojson(json.dumps(geojson),
+                                        '01-01',
+                                        '12-31',
+                                        True)
         return super().update(instance, validated_data)
 
     class Meta:
