@@ -26,10 +26,6 @@ class RequestViewSet(viewsets.ModelViewSet):
         if not self.request.user.has_perm('trrequests.can_create_requests'):
             raise PermissionDenied
 
-        if not self.request.user.has_perm(
-                'trrequests.can_change_state_requests'):
-            del self.request.data['state']
-
         return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
