@@ -163,3 +163,5 @@ STATES = Choices(
     ('ACCEPTED', 300, 'Accepted'),
     ('REFUSED', -1, 'Refused'),
 )
+
+TERRA_APPLIANCE_SETTINGS = {}
