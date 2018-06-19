@@ -15,7 +15,7 @@ from django.utils.translation import gettext_lazy as _
 from mercantile import tiles
 
 from .fields import DateFieldYearLess
-from .helpers import ChunkIterator, GeometryDefiner
+from .helpers import ChunkIterator
 from .managers import FeatureQuerySet, TerraUserManager
 from .tiles.helpers import VectorTile
 
@@ -29,58 +29,69 @@ class Layer(models.Model):
     group = models.CharField(max_length=255, default="__nogroup__")
     schema = JSONField(default=dict, blank=True)
 
-    def _initial_import_from_csv(self, chunks, geometry_columns=None):
+    def _initial_import_from_csv(self, chunks, options, operations):
         for chunk in chunks:
             entries = []
             for row in chunk:
-                geometry = GeometryDefiner.get_geometry(geometry_columns, row)
-                if geometry is None:
-                    logger.warning(f'geometry error, row skipped : {row}')
+                feature_args = {
+                    "geom": None,
+                    "properties": row,
+                    "layer": self
+                }
+
+                for operation in operations:
+                    operation(feature_args, options)
+
+                if not feature_args.get("geom"):
+                    logger.warning('empty geometry,'
+                                   f' row skipped : {row}')
                     continue
+
                 entries.append(
-                    Feature(
-                        geom=geometry,
-                        properties=row,
-                        layer=self,
-                    )
+                    Feature(**feature_args)
                 )
             Feature.objects.bulk_create(entries)
 
-    def _complementary_import_from_csv(self, chunks, pk_properties,
-                                       fast=False, geometry_columns=None):
+    def _complementary_import_from_csv(self, chunks, options, operations,
+                                       pk_properties, fast=False):
         for chunk in chunks:
             sp = None
             if fast:
                 sp = transaction.savepoint()
             for row in chunk:
-                geometry = GeometryDefiner.get_geometry(geometry_columns, row)
-                filter_kwargs = {f'properties__{p}': row.get(p, '')
-                                 for p in pk_properties}
-                filter_kwargs['layer'] = self
-                if geometry is not None:
+                feature_args = {
+                    "geom": None,
+                    "properties": row,
+                    "layer": self
+                }
+
+                for operation in operations:
+                    operation(feature_args, options)
+
+                filter_kwargs = {
+                    f'properties__{p}': feature_args["properties"].get(p, '')
+                    for p in pk_properties}
+                filter_kwargs['layer'] = feature_args.get("layer", self)
+
+                if feature_args.get("geom"):
                     Feature.objects.update_or_create(
-                        defaults={
-                            'geom': geometry,
-                            'properties': row,
-                            'layer': self,
-                        },
+                        defaults=feature_args,
                         **filter_kwargs
                     )
                 else:
                     try:
                         Feature.objects.filter(**filter_kwargs).update(
-                            **{'properties': row})
+                            **{'properties': feature_args["properties"]})
                     except Feature.DoesNotExist:
-                        logger.warning('feature does not exist, '
-                                       'empty geometry, '
-                                       f'row skipped : {row}')
+                        logger.warning('feature does not exist,'
+                                       ' empty geometry,'
+                                       f' row skipped : {row}')
                         continue
             if sp:
                 transaction.savepoint_commit(sp)
 
-    def from_csv_dictreader(self, reader, pk_properties, init=False,
-                            chunk_size=1000, fast=False,
-                            geometry_columns=None):
+    def from_csv_dictreader(self, reader, pk_properties, options, operations,
+                            init=False, chunk_size=1000, fast=False):
         """Import (create or update) features from csv.DictReader object
         :param reader: csv.DictReader object
         :param pk_properties: keys of row that is used to identify unicity
@@ -88,14 +99,22 @@ class Layer(models.Model):
                     (no updates)
         :param chunk_size: only used if init=True, control the size of
                            bulk_create
-        :param geometry_columns: name of geometry columns
         """
         chunks = ChunkIterator(reader, chunk_size)
         if init:
-            self._initial_import_from_csv(chunks, geometry_columns)
+            self._initial_import_from_csv(
+                chunks=chunks,
+                options=options,
+                operations=operations
+            )
         else:
-            self._complementary_import_from_csv(chunks, pk_properties, fast,
-                                                geometry_columns)
+            self._complementary_import_from_csv(
+                chunks=chunks,
+                options=options,
+                operations=operations,
+                pk_properties=pk_properties,
+                fast=fast
+            )
 
     def from_geojson(self, geojson_data, from_date, to_date, id_field=None,
                      update=False):

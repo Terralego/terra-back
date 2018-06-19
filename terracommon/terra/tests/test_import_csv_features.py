@@ -4,8 +4,8 @@ import tempfile
 from django.contrib.gis.geos import Point
 from django.test import TestCase
 
-from terracommon.terra.helpers import GeometryDefiner
 from terracommon.terra.models import Layer
+from terracommon.terra.transformations import set_geometry_from_options
 
 
 class ImportCSVFeaturesTestCase(TestCase):
@@ -36,7 +36,10 @@ class ImportCSVFeaturesTestCase(TestCase):
         )
 
         initial = self.layer.features.all().count()
-        self.layer.from_csv_dictreader(reader, ['CODGEO'])
+        self.layer.from_csv_dictreader(reader=reader,
+                                       options=[],
+                                       operations=[],
+                                       pk_properties=['CODGEO'])
 
         expected = initial
         self.assertEqual(self.layer.features.all().count(), expected)
@@ -61,15 +64,21 @@ class ImportCSVFeaturesTestCase(TestCase):
               'France', '1.408246', '43.575224']]
         )
 
-        geometry_columns = {
-            GeometryDefiner.LONGITUDE: 'x',
-            GeometryDefiner.LATITUDE: 'y'
+        options = {
+            'longitude': 'x',
+            'latitude': 'y',
         }
+        operations = [
+            set_geometry_from_options,
+        ]
 
-        self.layer.from_csv_dictreader(reader, ['SIREN', 'NIC'], init=True,
-                                       geometry_columns=geometry_columns)
+        self.layer.from_csv_dictreader(reader=reader,
+                                       options=options,
+                                       operations=operations,
+                                       pk_properties=['SIREN', 'NIC'],
+                                       init=True)
 
-        """Init mode only create new items, it does not reset database"""
+        # Init mode only create new items, it does not reset database
         self.assertEqual(self.layer.features.all().count(), 6)
 
         feature = self.layer.features.get(properties__SIREN='813792686',
@@ -99,13 +108,18 @@ class ImportCSVFeaturesTestCase(TestCase):
               'France', '-1.560408', '47.218658']]
         )
 
-        geometry_columns = {
-            GeometryDefiner.LONGITUDE: 'long',
-            GeometryDefiner.LATITUDE: 'lat'
+        options = {
+            'longitude': 'long',
+            'latitude': 'lat',
         }
+        operations = [
+            set_geometry_from_options,
+        ]
 
-        self.layer.from_csv_dictreader(reader, ['SIREN', 'NIC'],
-                                       geometry_columns=geometry_columns)
+        self.layer.from_csv_dictreader(reader=reader,
+                                       options=options,
+                                       operations=operations,
+                                       pk_properties=['SIREN', 'NIC'])
 
         expected = initial + 1
         self.assertEqual(self.layer.features.all().count(), expected)
@@ -114,3 +128,49 @@ class ImportCSVFeaturesTestCase(TestCase):
                                           properties__NIC='00097')
         self.assertEqual(feature.properties.get('L1_NORMALISEE', ''),
                          '52 RUE JACQUES BABINET')
+
+    def test_operations(self):
+        self.layer.features.create(
+            geom=Point(1.405812, 43.574511),
+            properties={
+                'SIREN': '437582422',
+                'NIC': '00097',
+                'L1_NORMALISEE': '36 RUE JACQUES BABINET',
+                'L2_NORMALISEE': '31100 TOULOUSE',
+                'L3_NORMALISEE': 'France',
+            },
+        )
+
+        reader = self.get_csv_reader_from_dict(
+            ['SIREN', 'NIC', 'L1_NORMALISEE', 'L2_NORMALISEE',
+             'L3_NORMALISEE', 'x', 'y'],
+            [['437582422', '00097', '52 RUE JACQUES BABINET', '31100 TOULOUSE',
+              'France', '1.408246', '43.575224']]
+        )
+
+        def custom_transformation(feature_args, options):
+            properties = feature_args.get('properties')
+            if properties.get('x'):
+                properties['long'] = properties['x']
+                del properties['x']
+            if properties.get('y'):
+                properties['lat'] = properties['y']
+                del properties['y']
+            feature_args['properties'] = properties
+
+        options = {
+            'latitude': 'lat',
+            'longitude': 'long',
+        }
+        operations = [
+            custom_transformation,
+            set_geometry_from_options,
+        ]
+        self.layer.from_csv_dictreader(reader=reader,
+                                       options=options,
+                                       operations=operations,
+                                       pk_properties=['SIREN', 'NIC'])
+
+        feature = self.layer.features.get(properties__SIREN='437582422',
+                                          properties__NIC='00097')
+        self.assertEqual((1.408246, 43.575224), feature.geom.coords)
