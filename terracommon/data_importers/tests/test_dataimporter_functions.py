@@ -1,2 +1,2 @@
-def empty_operation(options, **feature_args):
+def empty_operation(feature_args, options):
     return feature_args
