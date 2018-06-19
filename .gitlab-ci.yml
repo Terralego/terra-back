@@ -19,17 +19,16 @@ cache:
     - venv/
 
 before_script:
-  - python3 -m venv venv/
-  - ./venv/bin/pip3 install -r requirements.txt
+    - apt-get update
+    - apt-get install -y python3-pip
+    - apt-get install -y $(grep -vE "^\s*#" apt.txt  | tr "\n" " ") && apt-get clean all && apt-get autoclean
+    - python3 -m venv venv/
+    - ./venv/bin/pip3 install -r requirements.txt
 
 tests:
   stage: tests
   services:
     - mdillon/postgis:10-alpine
-  before_script:
-    - apt-get update
-    - apt-get install -y python3-pip
-    - apt-get install -y $(grep -vE "^\s*#" apt.txt  | tr "\n" " ") && apt-get clean all && apt-get autoclean
   script:
     - ./venv/bin/tox -c tox.ini -e tests,coverage
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
