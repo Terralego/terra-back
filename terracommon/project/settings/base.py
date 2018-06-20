@@ -14,7 +14,8 @@ CUSTOM_APPS = (
     'terracommon.core',
     'terracommon.terra',
     'terracommon.trrequests',
-    'terracommon.data_importers'
+    'terracommon.data_importers',
+    'terracommon.events',
 )
 
 for app in CUSTOM_APPS:
