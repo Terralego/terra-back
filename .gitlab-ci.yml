@@ -5,28 +5,35 @@ stages:
   - linting
 
 variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache"
   DOCKER_DRIVER: overlay2
   POSTGRES_USER: user
   POSTGRES_DB: db
   POSTGRES_PASSWORD: password
   POSTGRES_HOST: mdillon__postgis
 
+cache:
+  paths:
+    - /var/cache/apt/
+    - .cache/
+    - venv/
+
 before_script:
-- apt-get update
-- apt-get install -y python3-pip
-- apt-get install -y $(grep -vE "^\s*#" apt.txt  | tr "\n" " ") && apt-get clean all && apt-get autoclean
-- python3 -m venv .
-- ./bin/pip3 install -r requirements.txt
+    - apt-get update
+    - apt-get install -y python3-pip
+    - apt-get install -y $(grep -vE "^\s*#" apt.txt  | tr "\n" " ")
+    - python3 -m venv venv/
+    - ./venv/bin/pip3 install -r requirements.txt
 
 tests:
   stage: tests
   services:
     - mdillon/postgis:10-alpine
   script:
-     - ./bin/tox -c tox.ini -e tests,coverage
+    - ./venv/bin/tox -c tox.ini -e tests,coverage
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
 
 linting:
   stage: linting
   script:
-     - ./bin/tox -c tox.ini -e linting
+     - ./venv/bin/tox -c tox.ini -e linting
