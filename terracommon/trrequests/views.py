@@ -6,6 +6,8 @@ from rest_framework import permissions, viewsets
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
+from terracommon.events.signals import event
+
 from .models import UserRequest
 from .serializers import (CommentSerializer, OrganizationSerializer,
                           UserRequestSerializer)
@@ -29,7 +31,12 @@ class RequestViewSet(viewsets.ModelViewSet):
         return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        instance = serializer.save(owner=self.request.user)
+        event.send(
+            self.__class__,
+            action="USERREQUEST_CREATED",
+            user=self.request.user,
+            instance=instance)
 
     def patch(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)

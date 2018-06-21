@@ -6,3 +6,5 @@ class EventsConfig(AppConfig):
 
     def ready(self):
         from . import signals
+        if signals:
+            return True
