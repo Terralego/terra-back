@@ -7,8 +7,7 @@ from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
 from .models import UserRequest
-from .serializers import (CommentSerializer, OrganizationSerializer,
-                          UserRequestSerializer)
+from .serializers import CommentSerializer, UserRequestSerializer
 
 
 class RequestViewSet(viewsets.ModelViewSet):
@@ -74,14 +73,3 @@ class CommentViewSet(viewsets.ModelViewSet):
             auto_datas['is_internal'] = False
 
         serializer.save(**auto_datas)
-
-
-class OrganizationViewSet(viewsets.ModelViewSet):
-    serializer_class = OrganizationSerializer
-    permission_classes = [permissions.IsAuthenticated, ]
-
-    def get_queryset(self):
-        return self.request.user.organizations.all()
-
-    def perform_create(self, serializer):
-        serializer.save(owner=[self.request.user, ])
