@@ -16,9 +16,15 @@ def signal_event_proxy(sender, action, instance, user, *args, **kwargs):
         try:
             handler_class = import_string(handler.handler)
             executor = handler_class(handler.action, handler.settings)
-            executor(*args, instance=instance, user=user, **kwargs)
-        except ImportError:
-            logger.error(f"An error occured loading {handler.handler}")
+            args = {
+                'instance': instance,
+                'user': user,
+                **kwargs
+            }
+            if executor.is_callable(**args):
+                executor(**args)
+        except ImportError as e:
+            logger.error(f"An error occured loading {handler.handler}: {e}")
 
 
 event.connect(signal_event_proxy)

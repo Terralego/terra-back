@@ -1,5 +1,9 @@
+import types
+
 from django.core.mail import send_mail
 from simpleeval import EvalWithCompoundTypes, simple_eval
+
+from . import funcs
 
 
 class AbstractHandler(object):
@@ -11,15 +15,24 @@ class AbstractHandler(object):
         self.event = event
         self.settings.update(settings)
 
-    def is_callable(self):
-        return simple_eval(self.settings.get('condition'))
+    def is_callable(self, **kwargs):
+        return simple_eval(
+            self.settings.get('condition'),
+            names=self.get_names(**kwargs)
+            )
 
-    def __call__(self, *args, **kwargs):
+    def get_names(self, **kwargs):
+        return {k: str(v) for k, v in kwargs.items()}
+
+    def get_functions(self):
+        return {
+            f: getattr(funcs, f)
+            for f in dir(funcs)
+            if isinstance(getattr(funcs, f), types.FunctionType)
+        }
+
+    def __call__(self, **kwargs):
         raise NotImplementedError
-
-    def _clean_kwargs(self, **kwargs):
-        # TODO Clean kwargs to have a dict of values, no objects
-        return kwargs
 
 
 class SendEmailHandler(AbstractHandler):
@@ -30,22 +43,24 @@ class SendEmailHandler(AbstractHandler):
     """
 
     settings = {
-        'condition': True,
+        'condition': 'True',
         'from': 'terralego@terralego',
-        'emails': '[user.email, ]',
-        'subject_tpl': 'Hello world {user.email}',
-        'body_tpl': 'Dear, your properties {user.properties} '
+        'emails': "[user['email'], ]",
+        'subject_tpl': "Hello world {user[email]}",
+        'body_tpl': "Dear, your properties {user[properties]}"
     }
 
     def __call__(self, **kwargs):
-        args = self._clean_kwargs(**kwargs)
-        s = EvalWithCompoundTypes(names=args)
-
+        names = self.get_names(**kwargs)
+        s = EvalWithCompoundTypes(
+            names=names,
+            functions=self.get_functions()
+            )
         receivers = s.eval(self.settings.get('emails'))
 
         for receiver in receivers:
-            subject = self.settings.get('subject_tpl').format(**args)
-            body = self.settings.get('body_tpl').format(**args)
+            subject = self.settings.get('subject_tpl').format(**names)
+            body = self.settings.get('body_tpl').format(**names)
             send_mail(
                 subject,
                 body,
@@ -53,3 +68,11 @@ class SendEmailHandler(AbstractHandler):
                 [receiver, ],
                 fail_silently=True,
                 )
+
+    def get_names(self, **kwargs):
+        return {
+            'user': {
+                'email': kwargs.get('user').email,
+                'properties': kwargs.get('user').properties
+            },
+        }
