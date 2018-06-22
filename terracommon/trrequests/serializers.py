@@ -14,6 +14,7 @@ from .models import Comment, Organization, UserRequest
 class UserRequestSerializer(serializers.ModelSerializer):
     owner = TerraUserSerializer(read_only=True)
     geojson = GeoJSONLayerSerializer(source='layer')
+    reviewers = TerraUserSerializer(read_only=True, many=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
