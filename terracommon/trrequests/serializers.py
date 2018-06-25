@@ -8,18 +8,12 @@ from terracommon.terra.models import Layer
 from terracommon.terra.serializers import (GeoJSONLayerSerializer,
                                            TerraUserSerializer)
 
-from .models import Comment, Organization, UserRequest
+from .models import Comment, UserRequest
 
 
 class UserRequestSerializer(serializers.ModelSerializer):
     owner = TerraUserSerializer(read_only=True)
     geojson = GeoJSONLayerSerializer(source='layer')
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        request_user = self.context['request'].user
-        self.fields['organization'].queryset = (
-                            Organization.objects.filter(owner=request_user))
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -51,14 +45,6 @@ class UserRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserRequest
         exclude = ('layer', )
-        read_only_fields = ('owner', )
-
-
-class OrganizationSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Organization
-        fields = '__all__'
         read_only_fields = ('owner', )
 
 

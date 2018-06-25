@@ -13,12 +13,6 @@ class BaseUpdatableModel(models.Model):
         abstract = True
 
 
-class Organization(models.Model):
-    owner = models.ManyToManyField(settings.AUTH_USER_MODEL,
-                                   related_name='organizations')
-    properties = JSONField(default=dict, blank=True)
-
-
 class UserRequest(BaseUpdatableModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.PROTECT,
@@ -26,8 +20,6 @@ class UserRequest(BaseUpdatableModel):
     layer = models.ForeignKey(Layer,
                               on_delete=models.PROTECT,
                               related_name='userrequests')
-    organization = models.ManyToManyField(Organization,
-                                          related_name='userrequests')
     state = models.IntegerField(default=settings.STATES.DRAFT)
     reviewers = models.ManyToManyField(settings.AUTH_USER_MODEL,
                                        blank=True,

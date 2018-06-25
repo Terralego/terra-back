@@ -1,6 +1,6 @@
 import factory
 
-from terracommon.trrequests.models import Organization, UserRequest
+from terracommon.trrequests.models import UserRequest
 
 
 class UserRequestFactory(factory.DjangoModelFactory):
@@ -12,10 +12,3 @@ class UserRequestFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = UserRequest
-
-
-class OrganizationFactory(factory.DjangoModelFactory):
-    properties = {}
-
-    class Meta:
-        model = Organization
