@@ -21,6 +21,7 @@ class AbstractHandler(object):
         return simple_eval(
             self.settings.get('CONDITION'),
             names=self.vars,
+            functions=self.functions,
             )
 
     @cached_property
