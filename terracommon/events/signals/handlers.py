@@ -20,14 +20,15 @@ class AbstractHandler(object):
     def is_callable(self, **kwargs):
         return simple_eval(
             self.settings.get('CONDITION'),
-            names=self.names
+            names=self.vars,
             )
 
     @cached_property
-    def names(self):
+    def vars(self):
         return {k: str(v) for k, v in self.args.items()}
 
-    def get_functions(self):
+    @cached_property
+    def functions(self):
         return {
             f: getattr(funcs, f)
             for f in dir(funcs)
@@ -55,14 +56,14 @@ class SendEmailHandler(AbstractHandler):
 
     def __call__(self):
         s = EvalWithCompoundTypes(
-            names=self.names,
-            functions=self.get_functions()
+            names=self.vars,
+            functions=self.functions
             )
         receivers = s.eval(self.settings.get('RECIPIENT_EMAILS'))
 
         for receiver in receivers:
-            subject = self.settings.get('SUBJECT_TPL').format(**self.names)
-            body = self.settings.get('BODY_TPL').format(**self.names)
+            subject = self.settings.get('SUBJECT_TPL').format(**self.vars)
+            body = self.settings.get('BODY_TPL').format(**self.vars)
             send_mail(
                 subject,
                 body,
@@ -72,7 +73,7 @@ class SendEmailHandler(AbstractHandler):
                 )
 
     @cached_property
-    def names(self):
+    def vars(self):
         return {
             'user': {
                 'email': self.args.get('user').email,
