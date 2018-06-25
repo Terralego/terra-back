@@ -14,6 +14,7 @@ from .models import Comment, UserRequest
 class UserRequestSerializer(serializers.ModelSerializer):
     owner = TerraUserSerializer(read_only=True)
     geojson = GeoJSONLayerSerializer(source='layer')
+    reviewers = TerraUserSerializer(read_only=True, many=True)
 
     def create(self, validated_data):
         with transaction.atomic():
