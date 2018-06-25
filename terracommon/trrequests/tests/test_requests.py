@@ -85,7 +85,6 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
 
     def test_request_creation(self):
         request = {
-            'state': 0,
             'properties': {
                 'myproperty': 'myvalue',
             },
