@@ -12,12 +12,12 @@ class AbstractHandler(object):
         'CONDITION': True,
     }
 
-    def __init__(self, event, settings, args):
+    def __init__(self, event, settings, **kwargs):
         self.event = event
         self.settings.update(settings)
-        self.args = args
+        self.args = kwargs
 
-    def valid_condition(self, **kwargs):
+    def valid_condition(self):
         return simple_eval(
             self.settings.get('CONDITION'),
             names=self.vars,

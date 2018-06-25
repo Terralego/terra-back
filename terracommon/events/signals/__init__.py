@@ -21,7 +21,7 @@ def signal_event_proxy(sender, action, instance, user, *args, **kwargs):
             }
 
             handler_class = import_string(handler.handler)
-            executor = handler_class(handler.action, handler.settings, args)
+            executor = handler_class(handler.action, handler.settings, **args)
 
             if executor.valid_condition():
                 executor()
