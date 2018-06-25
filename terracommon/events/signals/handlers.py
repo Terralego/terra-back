@@ -1,6 +1,7 @@
 import types
 
 from django.core.mail import send_mail
+from django.utils.functional import cached_property
 from simpleeval import EvalWithCompoundTypes, simple_eval
 
 from . import funcs
@@ -8,21 +9,23 @@ from . import funcs
 
 class AbstractHandler(object):
     settings = {
-        'condition': True,
+        'CONDITION': True,
     }
 
-    def __init__(self, event, settings):
+    def __init__(self, event, settings, args):
         self.event = event
         self.settings.update(settings)
+        self.args = args
 
     def is_callable(self, **kwargs):
         return simple_eval(
-            self.settings.get('condition'),
-            names=self.get_names(**kwargs)
+            self.settings.get('CONDITION'),
+            names=self.names
             )
 
-    def get_names(self, **kwargs):
-        return {k: str(v) for k, v in kwargs.items()}
+    @cached_property
+    def names(self):
+        return {k: str(v) for k, v in self.args.items()}
 
     def get_functions(self):
         return {
@@ -31,7 +34,7 @@ class AbstractHandler(object):
             if isinstance(getattr(funcs, f), types.FunctionType)
         }
 
-    def __call__(self, **kwargs):
+    def __call__(self):
         raise NotImplementedError
 
 
@@ -39,40 +42,40 @@ class SendEmailHandler(AbstractHandler):
     """
     This handler send an email to the list of users returned by the «emails»
     interpreted settings.
-    «subject_tpl» and «body_tpl» are formatted with python .format() method.
+    SUBJECT_TPL and BODY_TPL are formatted with python .format() method.
     """
 
     settings = {
-        'condition': 'True',
-        'from': 'terralego@terralego',
-        'emails': "[user['email'], ]",
-        'subject_tpl': "Hello world {user[email]}",
-        'body_tpl': "Dear, your properties {user[properties]}"
+        'CONDITION': 'True',
+        'FROM_EMAIL': 'terralego@terralego',
+        'RECIPIENT_EMAILS': "[user['email'], ]",
+        'SUBJECT_TPL': "Hello world {user[email]}",
+        'BODY_TPL': "Dear, your properties {user[properties]}"
     }
 
-    def __call__(self, **kwargs):
-        names = self.get_names(**kwargs)
+    def __call__(self):
         s = EvalWithCompoundTypes(
-            names=names,
+            names=self.names,
             functions=self.get_functions()
             )
-        receivers = s.eval(self.settings.get('emails'))
+        receivers = s.eval(self.settings.get('RECIPIENT_EMAILS'))
 
         for receiver in receivers:
-            subject = self.settings.get('subject_tpl').format(**names)
-            body = self.settings.get('body_tpl').format(**names)
+            subject = self.settings.get('SUBJECT_TPL').format(**self.names)
+            body = self.settings.get('BODY_TPL').format(**self.names)
             send_mail(
                 subject,
                 body,
-                self.settings.get('from'),
+                self.settings.get('FROM_EMAIL'),
                 [receiver, ],
                 fail_silently=True,
                 )
 
-    def get_names(self, **kwargs):
+    @cached_property
+    def names(self):
         return {
             'user': {
-                'email': kwargs.get('user').email,
-                'properties': kwargs.get('user').properties
+                'email': self.args.get('user').email,
+                'properties': self.args.get('user').properties
             },
         }
