@@ -1,5 +1,6 @@
 import types
 
+from django.conf import settings
 from django.core.mail import send_mail
 from django.utils.functional import cached_property
 from simpleeval import EvalWithCompoundTypes, simple_eval
@@ -49,7 +50,7 @@ class SendEmailHandler(AbstractHandler):
 
     settings = {
         'CONDITION': 'True',
-        'FROM_EMAIL': 'terralego@terralego',
+        'FROM_EMAIL': settings.DEFAULT_FROM_EMAIL,
         'RECIPIENT_EMAILS': "[user['email'], ]",
         'SUBJECT_TPL': "Hello world {user[email]}",
         'BODY_TPL': "Dear, your properties {user[properties]}"
