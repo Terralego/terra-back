@@ -19,7 +19,7 @@ class AbstractHandler(object):
 
     def valid_condition(self):
         return simple_eval(
-            self.settings.get('CONDITION'),
+            self.settings['CONDITION'],
             names=self.vars,
             functions=self.functions,
             )
@@ -60,15 +60,15 @@ class SendEmailHandler(AbstractHandler):
             names=self.vars,
             functions=self.functions
             )
-        receivers = s.eval(self.settings.get('RECIPIENT_EMAILS'))
+        receivers = s.eval(self.settings['RECIPIENT_EMAILS'])
 
         for receiver in receivers:
-            subject = self.settings.get('SUBJECT_TPL').format(**self.vars)
-            body = self.settings.get('BODY_TPL').format(**self.vars)
+            subject = self.settings['SUBJECT_TPL'].format(**self.vars)
+            body = self.settings['BODY_TPL'].format(**self.vars)
             send_mail(
                 subject,
                 body,
-                self.settings.get('FROM_EMAIL'),
+                self.settings['FROM_EMAIL'],
                 [receiver, ],
                 fail_silently=True,
                 )
@@ -77,7 +77,7 @@ class SendEmailHandler(AbstractHandler):
     def vars(self):
         return {
             'user': {
-                'email': self.args.get('user').email,
-                'properties': self.args.get('user').properties
+                'email': self.args['user'].email,
+                'properties': self.args['user'].properties
             },
         }
