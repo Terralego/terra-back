@@ -80,19 +80,15 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
     def setUp(self):
         self.client = APIClient()
 
-        self.user = TerraUserFactory(organizations=1)
+        self.user = TerraUserFactory()
         self.client.force_authenticate(user=self.user)
-        self.organization = self.user.organizations.all()[0]
 
     def test_request_creation(self):
         request = {
-            'state': 0,
             'properties': {
                 'myproperty': 'myvalue',
             },
             'geojson': self.geojson,
-            'organization': [self.organization.pk]
-
         }
         """First we try with no rights"""
         response = self.client.post(reverse('request-list'),
