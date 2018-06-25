@@ -3,7 +3,9 @@ import types
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils.functional import cached_property
+
 from simpleeval import EvalWithCompoundTypes, simple_eval
+from terracommon.terra.models import TerraUser
 
 from . import funcs
 
@@ -61,16 +63,23 @@ class SendEmailHandler(AbstractHandler):
             names=self.vars,
             functions=self.functions
             )
-        receivers = s.eval(self.settings['RECIPIENT_EMAILS'])
+        recipients = s.eval(self.settings['RECIPIENT_EMAILS'])
 
-        for receiver in receivers:
-            subject = self.settings['SUBJECT_TPL'].format(**self.vars)
-            body = self.settings['BODY_TPL'].format(**self.vars)
+        for recipient in recipients:
+            recipient_data = self._get_recipient_data(recipient)
+
+            subject = self.settings['SUBJECT_TPL'].format(
+                recipient=recipient_data,
+                **self.vars,)
+            body = self.settings['BODY_TPL'].format(
+                recipient=recipient_data,
+                **self.vars,)
+
             send_mail(
                 subject,
                 body,
                 self.settings['FROM_EMAIL'],
-                [receiver, ],
+                [recipient, ],
                 fail_silently=True,
                 )
 
@@ -82,3 +91,13 @@ class SendEmailHandler(AbstractHandler):
                 'properties': self.args['user'].properties
             },
         }
+
+    def _get_recipient_data(self, email):
+        try:
+            user = TerraUser.objects.get(email=email)
+            return {
+                'email': user.email,
+                'properties': user.properties,
+            }
+        except TerraUser.DoesNotExist:
+            return None
