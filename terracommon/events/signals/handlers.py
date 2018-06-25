@@ -3,8 +3,8 @@ import types
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils.functional import cached_property
-
 from simpleeval import EvalWithCompoundTypes, simple_eval
+
 from terracommon.terra.models import TerraUser
 
 from . import funcs
@@ -38,7 +38,12 @@ class AbstractHandler(object):
 
     @cached_property
     def vars(self):
-        return {k: str(v) for k, v in self.args.items()}
+        attrs = {
+            'settings': self.settings,
+            'event': self.event,
+        }
+        attrs.update({k: str(v) for k, v in self.args.items()})
+        return attrs
 
     @cached_property
     def functions(self):
