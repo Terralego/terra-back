@@ -157,7 +157,7 @@ REQUEST_SCHEMA = {}
 MAX_TILE_ZOOM = 17
 MIN_TILE_ZOOM = 10
 
-STATUSES = Choices(
+STATES = Choices(
     ('DRAFT', 100, 'Draft'),
     ('SUBMITTED', 200, 'Submitted'),
     ('ACCEPTED', 300, 'Accepted'),
