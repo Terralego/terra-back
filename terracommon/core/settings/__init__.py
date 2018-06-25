@@ -114,6 +114,8 @@ JWT_AUTH = {
     'JWT_AUTH_COOKIE': None,
 }
 
+CONVERTIT_URL = 'http://convertit:6543/'
+
 SERIALIZATION_MODULES = {
     'geojson': 'terracommon.terra.serializers.geojson',
 }
