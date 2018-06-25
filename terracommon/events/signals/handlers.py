@@ -16,6 +16,15 @@ class AbstractHandler(object):
     }
 
     def __init__(self, event, settings, **kwargs):
+        """
+        :param event: Is the event name raised
+        :param settings: Is a dict from settings of EventHandler model. It
+                         override default Handler settings.
+        :param **kwargs: Are all extra parameters provided by the event
+                         sender. All those arguments are provided to all
+                         eval or template.
+
+        """
         self.event = event
         self.settings.update(settings)
         self.args = kwargs
