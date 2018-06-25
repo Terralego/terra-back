@@ -28,7 +28,7 @@ class UserRequest(BaseUpdatableModel):
                               related_name='userrequests')
     organization = models.ManyToManyField(Organization,
                                           related_name='userrequests')
-    state = models.IntegerField(default=0)
+    state = models.IntegerField(default=settings.STATES.DRAFT)
     reviewers = models.ManyToManyField(settings.AUTH_USER_MODEL,
                                        blank=True,
                                        related_name='to_review')
