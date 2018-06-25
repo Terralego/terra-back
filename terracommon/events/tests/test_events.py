@@ -12,9 +12,8 @@ class EventsTestCase(TestCase, TestPermissionsMixin):
     def setUp(self):
         self.client = APIClient()
 
-        self.user = TerraUserFactory(organizations=1)
+        self.user = TerraUserFactory()
         self.client.force_authenticate(user=self.user)
-        self.organization = self.user.organizations.all()[0]
 
     def test_newrequest_event(self):
         self.signal_was_called = False
@@ -25,8 +24,6 @@ class EventsTestCase(TestCase, TestPermissionsMixin):
                 'myproperty': 'myvalue',
             },
             'geojson': {},
-            'organization': [self.organization.pk]
-
         }
 
         EventHandler.objects.create(
