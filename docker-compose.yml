@@ -8,6 +8,9 @@ services:
       - postgresql:/var/lib/postgresql/data
   #  ports:
   #   - "5432:5432"
+  convertit:
+    image: makinacorpus/convertit
+    hostname: convertit
   django:
     build: .
     tty: true
@@ -23,6 +26,7 @@ services:
       - DJANGO_SETTINGS_MODULE=terracommon.project.settings.dev
     depends_on:
       - db
+      - convertit
     working_dir: /code/
     command: /code/venv/bin/python3.6 ./manage.py runserver 0.0.0.0:8000
 volumes:

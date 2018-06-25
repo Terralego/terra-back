@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-from .models import Organization, UserRequest
+from .models import UserRequest
 
-admin.site.register(Organization)
 admin.site.register(UserRequest)

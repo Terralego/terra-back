@@ -6,6 +6,8 @@ djangorestframework-jwt>=1.11,<1.12
 drf-yasg>=1.5,<1.6
 django-cors-headers>=2.2,<2.3
 simpleeval>=0.9,<1.0
+secretary>=0.2,<0.3
+requests>=2.19,<2.20
 
 # SIG
 mercantile>=1.0,<1.1
