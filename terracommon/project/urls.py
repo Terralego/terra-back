@@ -8,6 +8,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path('api/', include('terracommon.terra.urls')),
+    path('api/', include('terracommon.trrequests.urls')),
 ]
 
 if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:
