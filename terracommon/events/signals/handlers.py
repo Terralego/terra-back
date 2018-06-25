@@ -17,7 +17,7 @@ class AbstractHandler(object):
         self.settings.update(settings)
         self.args = args
 
-    def is_callable(self, **kwargs):
+    def valid_condition(self, **kwargs):
         return simple_eval(
             self.settings.get('CONDITION'),
             names=self.vars,
