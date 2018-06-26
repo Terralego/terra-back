@@ -14,6 +14,7 @@ CUSTOM_APPS = (
     'terracommon.core',
     'terracommon.terra',
     'terracommon.trrequests',
+    'terracommon.accounts',
     'terracommon.data_importers',
     'terracommon.document_generator',
 )
