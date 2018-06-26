@@ -1,6 +1,6 @@
 import factory
 
-from terracommon.trrequests.models import UserRequest
+from terracommon.trrequests.models import Comment, UserRequest
 
 
 class UserRequestFactory(factory.DjangoModelFactory):
@@ -12,3 +12,13 @@ class UserRequestFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = UserRequest
+
+
+class CommentFactory(factory.DjangoModelFactory):
+    owner = factory.SubFactory(
+        'terracommon.accounts.tests.factories.TerraUserFactory')
+    userrequest = factory.SubFactory(
+        'terracommon.trrequests.tests.factories.UserRequestFactory')
+
+    class Meta:
+        model = Comment

@@ -4,6 +4,8 @@ from django.db import models
 
 from terracommon.terra.models import Feature, Layer
 
+from .helpers import UploadFileHelpers
+
 
 class BaseUpdatableModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -50,3 +52,12 @@ class Comment(BaseUpdatableModel):
                                 on_delete=models.PROTECT)
     properties = JSONField(default=dict, blank=True)
     is_internal = models.BooleanField(default=False)
+
+
+class UploadFile(BaseUpdatableModel):
+    comment = models.ForeignKey(Comment,
+                                on_delete=models.PROTECT,
+                                related_name="files")
+    name = models.CharField(max_length=255)
+    initial_filename = models.CharField(max_length=255, editable=False)
+    file = models.FileField(upload_to=UploadFileHelpers.rename_file)
