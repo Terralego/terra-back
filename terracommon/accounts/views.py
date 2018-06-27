@@ -2,18 +2,30 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.db.utils import IntegrityError
-from rest_framework import status, viewsets
-from rest_framework.decorators import list_route
+from rest_framework import status
+from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .forms import PasswordSetAndResetForm
-from .serializers import PasswordResetSerializer
+from .serializers import PasswordResetSerializer, UserProfileSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserProfileView(RetrieveUpdateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = (IsAuthenticated,)
 
-    @list_route(methods=['post', ], permission_classes=[])
-    def register(self, request):
+    def get_object(self):
+        return self.request.user
+
+    def get_queryset(self):
+        return get_user_model().objects.none()
+
+
+class UserRegisterView(GenericAPIView):
+    permission_classes = (AllowAny, )
+
+    def post(self, request):
         try:
             user = get_user_model().objects.create(
                 **{
@@ -44,12 +56,11 @@ class UserViewSet(viewsets.ModelViewSet):
         except IntegrityError:
             return Response(status=status.HTTP_409_CONFLICT)
 
-    @list_route(methods=['post', ],
-                permission_classes=[],
-                url_path=(r'reset/(?P<uidb64>[0-9A-Za-z_\-]+)/'
-                          r'(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})'),
-                url_name='reset-password')
-    def reset_password(self, request, uidb64, token):
+
+class UserSetPasswordView(GenericAPIView):
+    permission_classes = (AllowAny, )
+
+    def post(self, request, uidb64, token):
         serializer = PasswordResetSerializer(uidb64, token, data=request.data)
         serializer.is_valid(raise_exception=True)
 

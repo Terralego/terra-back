@@ -15,14 +15,14 @@ class RegistrationTestCase(TestCase):
         EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
     def test_registration_view(self):
         response = self.client.post(
-            reverse('accounts-register'),
+            reverse('accounts:register'),
             {
                 'email': 'toto@terra.',
             })
         self.assertEqual(400, response.status_code)
 
         response = self.client.post(
-            reverse('accounts-register'),
+            reverse('accounts:register'),
             {
                 'email': 'toto@terra.com',
             })
@@ -37,7 +37,7 @@ class RegistrationTestCase(TestCase):
 
         """Not same password"""
         response = self.client.post(
-            reverse('accounts-reset-password', args=[uidb64, token]),
+            reverse('accounts:reset-password', args=[uidb64, token]),
             {
                 'new_password1': 'pass1',
                 'new_password2': 'pass1false',
@@ -49,7 +49,7 @@ class RegistrationTestCase(TestCase):
         new_password = "azerty"
         self.assertFalse(user.check_password(new_password))
         response = self.client.post(
-            reverse('accounts-reset-password', args=[uidb64, token]),
+            reverse('accounts:reset-password', args=[uidb64, token]),
             {
                 'new_password1': new_password,
                 'new_password2': new_password,

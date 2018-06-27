@@ -1,8 +1,11 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
+
+UserModel = get_user_model()
 
 
 class PasswordResetSerializer(serializers.Serializer):
@@ -44,3 +47,11 @@ class PasswordResetSerializer(serializers.Serializer):
 
     def save(self):
         return self.set_password_form.save()
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserModel
+        fields = ('uuid', 'email', 'properties')
+        read_only_fields = ('uuid', UserModel.USERNAME_FIELD, )
