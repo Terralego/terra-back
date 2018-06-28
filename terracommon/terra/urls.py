@@ -1,5 +1,6 @@
+from django.conf import settings
 from django.http import HttpResponseNotFound
-from django.urls import include, path
+from django.urls import path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions, routers
@@ -33,13 +34,6 @@ urlpatterns = [
          name='token-refresh'),
     path(r'auth/user/', UserInformationsView.as_view()),
     path(r'settings/', SettingsView.as_view()),
-    # schemas
-    path('swagger/',
-         schema_view.with_ui('swagger', cache_timeout=None),
-         name='schema-swagger-ui'),
-    path('redoc/',
-         schema_view.with_ui('redoc', cache_timeout=None),
-         name='schema-redoc'),
     path(r'layer/<str:group>/intersects/',
          IntersectView.as_view(),
          name='group-intersect'),
@@ -50,7 +44,6 @@ urlpatterns = [
     path(r'layer/<str:group>/tiles/{z}/{x}/{y}/',
          lambda request, group: HttpResponseNotFound(),
          name='group-tiles-pattern'),
-    path('', include('terracommon.trrequests.urls'))
 ]
 
 router = routers.SimpleRouter()
@@ -63,3 +56,14 @@ router.register(r'layer_relation/(?P<layerrelation_pk>\d+)/feature_relation',
                 FeatureRelationViewSet)
 
 urlpatterns += router.urls
+
+if settings.DEBUG:
+    urlpatterns += [
+        # schemas
+        path('swagger/',
+             schema_view.with_ui('swagger', cache_timeout=None),
+             name='schema-swagger-ui'),
+        path('redoc/',
+             schema_view.with_ui('redoc', cache_timeout=None),
+             name='schema-redoc'),
+    ]
