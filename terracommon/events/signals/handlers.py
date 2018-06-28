@@ -12,7 +12,7 @@ from . import funcs
 
 class AbstractHandler(object):
     settings = {
-        'CONDITION': True,
+        'condition': True,
     }
 
     def __init__(self, event, settings, **kwargs):
@@ -31,7 +31,7 @@ class AbstractHandler(object):
 
     def valid_condition(self):
         return simple_eval(
-            self.settings['CONDITION'],
+            self.settings['condition'],
             names=self.vars,
             functions=self.functions,
             )
@@ -61,15 +61,15 @@ class SendEmailHandler(AbstractHandler):
     """
     This handler send an email to the list of users returned by the «emails»
     interpreted settings.
-    SUBJECT_TPL and BODY_TPL are formatted with python .format() method.
+    subject_tpl and body_tpl are formatted with python .format() method.
     """
 
     settings = {
-        'CONDITION': 'True',
-        'FROM_EMAIL': settings.DEFAULT_FROM_EMAIL,
-        'RECIPIENT_EMAILS': "[user['email'], ]",
-        'SUBJECT_TPL': "Hello world {user[email]}",
-        'BODY_TPL': "Dear, your properties {user[properties]}"
+        'condition': 'True',
+        'from_email': settings.DEFAULT_FROM_EMAIL,
+        'recipient_emails': "[user['email'], ]",
+        'subject_tpl': "Hello world {user[email]}",
+        'body_tpl': "Dear, your properties {user[properties]}"
     }
 
     def __call__(self):
@@ -77,22 +77,22 @@ class SendEmailHandler(AbstractHandler):
             names=self.vars,
             functions=self.functions
             )
-        recipients = s.eval(self.settings['RECIPIENT_EMAILS'])
+        recipients = s.eval(self.settings['recipient_emails'])
 
         for recipient in recipients:
             recipient_data = self._get_recipient_data(recipient)
 
-            subject = self.settings['SUBJECT_TPL'].format(
+            subject = self.settings['subject_tpl'].format(
                 recipient=recipient_data,
                 **self.vars,)
-            body = self.settings['BODY_TPL'].format(
+            body = self.settings['body_tpl'].format(
                 recipient=recipient_data,
                 **self.vars,)
 
             send_mail(
                 subject,
                 body,
-                self.settings['FROM_EMAIL'],
+                self.settings['from_email'],
                 [recipient, ],
                 fail_silently=True,
                 )
