@@ -55,3 +55,19 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserModel
         fields = ('uuid', 'email', 'properties')
         read_only_fields = ('uuid', UserModel.USERNAME_FIELD, )
+
+
+class TerraUserSerializer(serializers.ModelSerializer):
+    permissions = serializers.SerializerMethodField()
+    groups = serializers.SerializerMethodField()
+
+    def get_groups(self, obj):
+        return [group.name for group in obj.groups.all()]
+
+    def get_permissions(self, obj):
+        return list(obj.get_all_permissions())
+
+    class Meta:
+        model = UserModel
+        fields = ('id', 'is_superuser', 'email', 'uuid', 'properties',
+                  'is_staff', 'is_active', 'permissions', 'groups')

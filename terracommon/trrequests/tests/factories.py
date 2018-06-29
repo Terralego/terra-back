@@ -5,7 +5,7 @@ from terracommon.trrequests.models import UserRequest
 
 class UserRequestFactory(factory.DjangoModelFactory):
     owner = factory.SubFactory(
-        'terracommon.terra.tests.factories.TerraUserFactory')
+        'terracommon.accounts.tests.factories.TerraUserFactory')
     layer = factory.SubFactory(
         'terracommon.terra.tests.factories.LayerFactory')
     state = 0
