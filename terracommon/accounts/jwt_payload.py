@@ -1,6 +1,6 @@
 from rest_framework_jwt.utils import jwt_payload_handler
 
-from terracommon.terra.serializers import TerraUserSerializer
+from .serializers import TerraUserSerializer
 
 
 def terra_payload_handler(user):

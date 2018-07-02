@@ -4,9 +4,9 @@ import uuid
 from django.db import transaction
 from rest_framework import serializers
 
+from terracommon.accounts.serializers import TerraUserSerializer
 from terracommon.terra.models import Layer
-from terracommon.terra.serializers import (GeoJSONLayerSerializer,
-                                           TerraUserSerializer)
+from terracommon.terra.serializers import GeoJSONLayerSerializer
 
 from .models import Comment, UserRequest
 
