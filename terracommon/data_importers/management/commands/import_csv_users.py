@@ -3,6 +3,7 @@ import csv
 import sys
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core.management import BaseCommand
 from django.db import transaction
 from django.utils.translation import ugettext as _
@@ -50,6 +51,12 @@ class Command(BaseCommand):
                             help=_("Define the column used as userfield, "
                                    "others are put in properties")
                             )
+        parser.add_argument('-g', '--group',
+                            required=False,
+                            action='store',
+                            dest='group',
+                            help=_("Default group of newly created users")
+                            )
 
     @transaction.atomic
     def handle(self, *args, **options):
@@ -75,3 +82,7 @@ class Command(BaseCommand):
                 user.set_password(row[password])
             else:
                 user.set_unusable_password()
+
+            if options.get('group'):
+                group = Group.objects.get(name=options.get('group'))
+                user.groups.add(group)
