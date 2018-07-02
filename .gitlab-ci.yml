@@ -1,8 +1,8 @@
 image: ubuntu:artful
 
 stages:
-  - tests
   - linting
+  - tests
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache"
@@ -27,6 +27,7 @@ before_script:
 
 tests:
   stage: tests
+  tags: [shared-ci-docker]
   services:
     - mdillon/postgis:10-alpine
   script:
@@ -35,5 +36,6 @@ tests:
 
 linting:
   stage: linting
+  tags: [shared-ci-docker]
   script:
      - ./venv/bin/tox -c tox.ini -e linting
