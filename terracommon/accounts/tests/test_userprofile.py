@@ -14,18 +14,18 @@ class RegistrationTestCase(TestCase):
         """Tests all operations on user profile
         """
 
-        """unauthenticated user must be stopped"""
+        # unauthenticated user must be stopped
         response = self.client.get(reverse('accounts:profile'))
         self.assertEqual(401, response.status_code)
 
-        """let's try with an authenticated user"""
+        # let's try with an authenticated user
         self.client.force_authenticate(user=self.user)
 
         response = self.client.get(reverse('accounts:profile'))
         self.assertEqual(200, response.status_code)
         self.assertEqual(str(self.user.uuid), response.json()['uuid'])
 
-        """and try to update the profile"""
+        # and try to update the profile
         properties = {
             'firstname': 'John',
             'lastname': 'Malkovitch'
@@ -38,7 +38,7 @@ class RegistrationTestCase(TestCase):
         self.user.refresh_from_db()
         self.assertDictEqual(properties, self.user.properties)
 
-        """changing e-mail is forbidden"""
+        # changing e-mail is forbidden
         response = self.client.patch(reverse('accounts:profile'), {
             'email': 'john@lennon.com'
         }, format='json')

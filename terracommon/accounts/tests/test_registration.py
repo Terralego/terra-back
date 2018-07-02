@@ -35,7 +35,7 @@ class RegistrationTestCase(TestCase):
         token = default_token_generator.make_token(user)
         uidb64 = urlsafe_base64_encode(force_bytes(user.pk)).decode()
 
-        """Not same password"""
+        # Not same password
         response = self.client.post(
             reverse('accounts:reset-password', args=[uidb64, token]),
             {
@@ -45,7 +45,7 @@ class RegistrationTestCase(TestCase):
         )
         self.assertEqual(400, response.status_code)
 
-        """Good password and """
+        # Good password and
         new_password = "azerty"
         self.assertFalse(user.check_password(new_password))
         response = self.client.post(
