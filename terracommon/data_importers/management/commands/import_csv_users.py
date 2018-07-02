@@ -11,7 +11,7 @@ UserModel = get_user_model()
 
 
 class Command(BaseCommand):
-    help = _('Import insee data from csv to db.')
+    help = _('Import users from csv to database.')
 
     def add_arguments(self, parser):
         parser.add_argument('-cd', '--delimiter',
