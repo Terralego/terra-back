@@ -130,6 +130,13 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(self.user.userrequests.all().count(),
                          response.json().get('count'))
 
+        request_to_review = UserRequestFactory()
+        request_to_review.reviewers.add(self.user)
+        response = self.client.get(reverse('request-list'))
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(self.user.userrequests.all().count() + 1,
+                         response.json().get('count'))
+
         """Check the detail view return also the same geojson data"""
         response = self.client.get(
             reverse('request-detail', args=[request.pk]),)
