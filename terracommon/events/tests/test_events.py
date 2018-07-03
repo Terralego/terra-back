@@ -2,9 +2,9 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 
+from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.events.models import EventHandler
 from terracommon.events.signals import event
-from terracommon.terra.tests.factories import TerraUserFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin
 
 
