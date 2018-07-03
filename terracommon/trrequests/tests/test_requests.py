@@ -6,6 +6,7 @@ from rest_framework.test import APIClient
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.trrequests.models import UserRequest
 from terracommon.trrequests.permissions import IsOwnerOrStaff
+from terracommon.trrequests.serializers import UserRequestSerializer
 
 from .factories import UserRequestFactory
 from .mixins import TestPermissionsMixin
@@ -166,3 +167,21 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(200, response.status_code)
         request.refresh_from_db()
         self.assertEqual(new_state, request.state)
+
+    def test_geojson_update(self):
+        userrequest = UserRequestFactory(
+            owner=self.user,
+            layer__add_features=[{}, ])
+
+        self.assertEqual(1, userrequest.layer.features.all().count())
+
+        serializer = UserRequestSerializer()
+        validated_data = {
+            'layer': self.geojson,
+        }
+        serializer.update(userrequest, validated_data)
+        userrequest.refresh_from_db()
+        self.assertEqual(
+            len(self.geojson['features']),
+            userrequest.layer.features.all().count()
+            )
