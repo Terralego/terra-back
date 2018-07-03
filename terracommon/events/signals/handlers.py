@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.utils.functional import cached_property
 from simpleeval import EvalWithCompoundTypes, simple_eval
 
-from terracommon.terra.models import TerraUser
+from terracommon.accounts.models import TerraUser
 
 from . import funcs
 
