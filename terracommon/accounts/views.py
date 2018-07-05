@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .forms import PasswordSetAndResetForm
 from .serializers import PasswordResetSerializer, UserProfileSerializer
@@ -67,3 +68,19 @@ class UserSetPasswordView(GenericAPIView):
         serializer.save()
 
         return Response({'detail': 'Password has been changed'})
+
+
+class SettingsView(APIView):
+    permission_classes = ()
+
+    def get(self, request):
+        terra_settings = {
+            'states': {
+                y: x
+                for x, y in settings.STATES.VALUE_TO_CONST.items()
+                },
+        }
+
+        terra_settings.update(settings.TERRA_APPLIANCE_SETTINGS)
+
+        return Response(terra_settings)
