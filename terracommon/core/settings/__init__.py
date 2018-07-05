@@ -141,9 +141,7 @@ FORMAT_MODULE_PATH = [
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = (
-    os.path.join(PROJECT_DIR, 'static'),
-)
+STATICFILES_DIRS = ()
 STATIC_ROOT = os.path.join(PUBLIC_DIR, 'static')
 
 MEDIA_URL = '/media/'
