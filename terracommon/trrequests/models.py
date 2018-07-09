@@ -1,10 +1,11 @@
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from terracommon.terra.models import Feature, Layer
 
-from .helpers import UploadFileHelpers
+from .helpers import rename_comment_attachment
 
 
 class BaseUpdatableModel(models.Model):
@@ -52,12 +53,15 @@ class Comment(BaseUpdatableModel):
                                 on_delete=models.PROTECT)
     properties = JSONField(default=dict, blank=True)
     is_internal = models.BooleanField(default=False)
+    attachment = models.FileField(upload_to=rename_comment_attachment,
+                                  blank=True)
+    filename = models.CharField(max_length=255,
+                                editable=False,
+                                blank=True,
+                                help_text=_('Initial name of the attachment'))
 
-
-class UploadFile(BaseUpdatableModel):
-    comment = models.ForeignKey(Comment,
-                                on_delete=models.PROTECT,
-                                related_name="files")
-    name = models.CharField(max_length=255)
-    initial_filename = models.CharField(max_length=255, editable=False)
-    file = models.FileField(upload_to=UploadFileHelpers.rename_file)
+    def save(self, *args, **kwargs):
+        if not self.attachment.name.startswith('uploads/'):
+            # Save the name of the new file before upload_to move & rename it
+            self.filename = self.attachment.name
+        super().save(*args, **kwargs)

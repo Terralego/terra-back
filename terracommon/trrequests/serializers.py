@@ -10,7 +10,7 @@ from terracommon.events.signals import event
 from terracommon.terra.models import Layer
 from terracommon.terra.serializers import GeoJSONLayerSerializer
 
-from .models import Comment, UploadFile, UserRequest
+from .models import Comment, UserRequest
 
 
 class UserRequestSerializer(serializers.ModelSerializer):
@@ -65,22 +65,15 @@ class UserRequestSerializer(serializers.ModelSerializer):
         read_only_fields = ('owner',)
 
 
-class UploadFileSerializer(serializers.ModelSerializer):
-    def to_representation(self, obj):
-        ret = super(UploadFileSerializer, self).to_representation(obj)
-        ret['file'] = reverse('file-download',
-                              args=[obj.comment.userrequest_id, obj.comment.pk,
-                                    obj.pk])
-        return ret
-
-    class Meta:
-        model = UploadFile
-        fields = '__all__'
-
-
 class CommentSerializer(serializers.ModelSerializer):
     owner = TerraUserSerializer(read_only=True)
-    files = UploadFileSerializer(read_only=True, many=True)
+
+    def to_representation(self, obj):
+        repr = super(CommentSerializer, self).to_representation(obj)
+        if repr.get('attachment'):
+            repr['attachment'] = reverse('comment-attachment',
+                                         args=[obj.userrequest_id, obj.pk])
+        return repr
 
     class Meta:
         model = Comment

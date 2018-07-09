@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.http.response import HttpResponse, HttpResponseServerError
+from django.http.response import Http404, HttpResponse, HttpResponseServerError
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -10,16 +10,15 @@ from rest_framework.response import Response
 
 from terracommon.events.signals import event
 
-from .models import Comment, UserRequest
-from .serializers import (CommentSerializer, UploadFileSerializer,
-                          UserRequestSerializer)
+from .models import UserRequest
+from .serializers import CommentSerializer, UserRequestSerializer
 
 
 class RequestViewSet(viewsets.ModelViewSet):
     serializer_class = UserRequestSerializer
     permission_classes = [permissions.IsAuthenticated, ]
-    filter_backends = (SearchFilter, )
-    search_fields = ('properties', )
+    filter_backends = (SearchFilter,)
+    search_fields = ('properties',)
 
     def get_queryset(self):
         if self.request.user.has_perm('trrequests.can_read_all_requests'):
@@ -28,7 +27,7 @@ class RequestViewSet(viewsets.ModelViewSet):
             return UserRequest.objects.filter(
                 Q(owner=self.request.user)
                 | Q(reviewers__in=[self.request.user, ])
-                )
+            )
         return UserRequest.objects.none()
 
     def create(self, request, *args, **kwargs):
@@ -48,7 +47,7 @@ class RequestViewSet(viewsets.ModelViewSet):
     def patch(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
 
-    @list_route(methods=['get'], url_path='schema')
+    @list_route(methods=['get'])
     def schema(self, request):
         if isinstance(settings.REQUEST_SCHEMA, dict):
             return Response(settings.REQUEST_SCHEMA)
@@ -89,36 +88,13 @@ class CommentViewSet(viewsets.ModelViewSet):
 
         serializer.save(**auto_datas)
 
-
-class UploadFileViewSet(viewsets.ModelViewSet):
-    serializer_class = UploadFileSerializer
-    permission_classes = [permissions.IsAuthenticated, ]
-
-    def get_queryset(self, *args, **kwargs):
-        comment_pk = self.kwargs.get('comment_pk')
-        comment = get_object_or_404(Comment, pk=comment_pk)
-        return comment.files.all()
-
-    def create(self, request, *args, **kwargs):
-        self.request.data['comment'] = self.kwargs.get('comment_pk')
-        if request.FILES.get('file'):
-            self.request.data['initial_filename'] = self.request.FILES.get(
-                'file').name
-        return super().create(request, *args, **kwargs)
-
-    def patch(self, request, *args, **kwargs):
-        self.request.data['comment'] = self.kwargs.get('comment_pk')
-        if request.FILES.get('file'):
-            self.request.data['initial_filename'] = self.request.FILES.get(
-                'file').name
-        return super().partial_update(request, *args, **kwargs)
-
-    @detail_route(methods=['get'], url_path='download')
-    def get_details(self, request, request_pk=None, comment_pk=None, pk=None):
-        uf = self.get_object()
-        filename = uf.initial_filename
-        file_pointer = uf.file.open()
-        response = HttpResponse(file_pointer,
+    @detail_route(methods=['get'])
+    def attachment(self, request, request_pk=None, pk=None):
+        comment = self.get_object()
+        if not comment.attachment:
+            raise Http404('Attachment does not exist')
+        response = HttpResponse(comment.attachment,
                                 content_type='application/octet-stream')
-        response['Content-Disposition'] = f'attachment; filename={filename}'
+        response['Content-Disposition'] = ('attachment;'
+                                           f' filename={comment.filename}')
         return response
