@@ -40,7 +40,7 @@ class UserRequestSerializer(serializers.ModelSerializer):
             instance.layer.from_geojson(json.dumps(geojson),
                                         '01-01',
                                         '12-31',
-                                        True)
+                                        update=True)
         return super().update(instance, validated_data)
 
     class Meta:
