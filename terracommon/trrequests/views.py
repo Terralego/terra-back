@@ -5,6 +5,7 @@ from django.http.response import HttpResponseServerError
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import list_route
+from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
 from terracommon.events.signals import event
@@ -16,6 +17,8 @@ from .serializers import CommentSerializer, UserRequestSerializer
 class RequestViewSet(viewsets.ModelViewSet):
     serializer_class = UserRequestSerializer
     permission_classes = [permissions.IsAuthenticated, ]
+    filter_backends = (SearchFilter, )
+    search_fields = ('properties', )
 
     def get_queryset(self):
         if self.request.user.has_perm('trrequests.can_read_all_requests'):
