@@ -4,11 +4,12 @@ import os
 from django.core.management import call_command
 from django.test import TestCase
 
+from terracommon.terra.transformations import set_geometry_from_options
+
 
 class DataImporterTestCase(TestCase):
     def test_command_launch(self):
         test_file = os.path.join(os.path.dirname(__file__), 'test.csv')
-
         with self.assertLogs(level=logging.WARNING) as cm:
             call_command('import_csv_features',
                          ('--operation=terracommon.data_importers.tests'
@@ -20,7 +21,8 @@ class DataImporterTestCase(TestCase):
                          '--key=NIC',
                          f'--source={test_file}')
         self.assertEqual(len(cm.records), 1)
-        self.assertEqual(('can not define geometry for:'
-                          ' [(\'SIREN\', \'019778745\'),'
-                          ' (\'NIC\', \'00018\')]'),
-                         cm.records[0].msg)
+        log_record = cm.records[0]
+        self.assertEqual(set_geometry_from_options.__name__,
+                         log_record.funcName)
+        self.assertIn('019778745', log_record.msg)  # SIREN key
+        self.assertIn('00018', log_record.msg)  # NIC key
