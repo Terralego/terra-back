@@ -20,4 +20,7 @@ class DataImporterTestCase(TestCase):
                          '--key=NIC',
                          f'--source={test_file}')
         self.assertEqual(len(cm.records), 1)
-        self.assertIn('can not define geometry for:', cm.records[0].msg)
+        self.assertEqual(('can not define geometry for:'
+                          ' [(\'SIREN\', \'019778745\'),'
+                          ' (\'NIC\', \'00018\')]'),
+                         cm.records[0].msg)
