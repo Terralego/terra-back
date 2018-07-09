@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.http.response import HttpResponseServerError
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
@@ -20,7 +21,10 @@ class RequestViewSet(viewsets.ModelViewSet):
         if self.request.user.has_perm('trrequests.can_read_all_requests'):
             return UserRequest.objects.all()
         elif self.request.user.has_perm('trrequests.can_read_self_requests'):
-            return self.request.user.userrequests.all()
+            return UserRequest.objects.filter(
+                Q(owner=self.request.user)
+                | Q(reviewers__in=[self.request.user, ])
+                )
         return UserRequest.objects.none()
 
     def create(self, request, *args, **kwargs):
