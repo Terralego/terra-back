@@ -13,7 +13,7 @@ class SettingsViewTestCase(TestCase):
         self.client.force_authenticate(user=self.user)
 
     def test_view(self):
-        response = self.client.get(reverse('settings'))
+        response = self.client.get(reverse('accounts:settings'))
         self.assertEqual(200, response.status_code)
         self.assertListEqual(
             ['states', ],
