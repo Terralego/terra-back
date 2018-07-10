@@ -93,8 +93,8 @@ class CommentViewSet(viewsets.ModelViewSet):
         comment = self.get_object()
         if not comment.attachment:
             raise Http404('Attachment does not exist')
-        response = HttpResponse(comment.attachment,
-                                content_type='application/octet-stream')
+        response = HttpResponse()
         response['Content-Disposition'] = ('attachment;'
                                            f' filename={comment.filename}')
+        response['X-Accel-Redirect'] = f'{comment.attachment.url}'
         return response

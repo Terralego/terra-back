@@ -138,10 +138,9 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         """Download"""
         response = self._get_comment_attachment(pk=comment_id)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual('application/octet-stream',
-                         response.get('Content-Type'))
-        self.assertEquals(response.get('Content-Disposition'),
-                          f'attachment; filename={tmp_file.name}')
+        self.assertEquals(f'attachment; filename={tmp_file.name}',
+                          response.get('Content-Disposition'))
+        self.assertIsNotNone(response.get('X-Accel-Redirect'))
 
     def _get_comment_list(self):
         return self.client.get(
