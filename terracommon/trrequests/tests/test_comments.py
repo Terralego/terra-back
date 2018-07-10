@@ -1,6 +1,7 @@
 import json
 from io import StringIO
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -8,7 +9,7 @@ from rest_framework.test import APIClient
 
 from terracommon.trrequests.models import Comment
 
-from .factories import UserRequestFactory
+from .factories import CommentFactory, UserRequestFactory
 from .mixins import TestPermissionsMixin
 
 
@@ -21,126 +22,195 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         self.user = self.request.owner
         self.client.force_authenticate(user=self.user)
 
-    def test_comment_creation(self):
+    def test_simple_comment_creation_without_permission(self):
         comment_request = {
             'is_internal': False,
             'properties': {
                 'comment': 'lipsum',
             }
         }
-
         response = self._post_comment(comment_request)
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
-        self._set_permissions(['can_comment_requests', ])
-
+    def test_simple_comment_creation_with_permission(self):
+        comment_request = {
+            'is_internal': False,
+            'properties': {
+                'comment': 'lipsum',
+            }
+        }
+        self._set_permissions([
+            'can_comment_requests',
+        ])
         response = self._post_comment(comment_request)
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
-
         response = response.json()
-
         self.assertTrue(Comment.objects.get(pk=response.get('id')))
         self.assertEqual(self.request.owner.pk,
                          response.get('owner').get('id'))
         self.assertEqual('lipsum', response.get('properties').get('comment'))
 
-        """Testing with internal comments"""
-        comment_request['is_internal'] = True
+    def test_internal_comment_creation_without_internal_permission(self):
+        comment_request = {
+            'is_internal': True,
+            'properties': {
+                'comment': 'lipsum',
+            }
+        }
         response = self._post_comment(comment_request)
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
         self.assertFalse(response.json().get('is_internal'))
 
-        """Allow internal comments and test request"""
-        self._set_permissions(['can_internal_comment_requests', ])
+        self._set_permissions([
+            'can_comment_requests',
+        ])
         response = self._post_comment(comment_request)
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertFalse(response.json().get('is_internal'))
+
+    def test_internal_comment_creation_with_internal_permission(self):
+        comment_request = {
+            'is_internal': True,
+            'properties': {
+                'comment': 'lipsum',
+            }
+        }
+        self._set_permissions([
+            'can_comment_requests',
+            'can_internal_comment_requests',
+        ])
+        response = self._post_comment(comment_request)
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertTrue(response.json().get('is_internal'))
 
-        """And then test what we can retrieve, with internal rights. In this
-        test we created 1 internal comment and 2 public comments"""
-        """First we test we internal comments allowed"""
+    def test_comment_retrieval_without_permission(self):
+        for _ in range(2):
+            CommentFactory(userrequest=self.request)
+        CommentFactory(userrequest=self.request, is_internal=True)
         response = self._get_comment_list()
         self.assertEqual(status.HTTP_200_OK, response.status_code)
-        response = response.json()
-        self.assertEqual(3, response.get('count'))
+        self.assertEqual(0, response.json().get('count'))
 
-        """Then with no comment allowed"""
-        self._clean_permissions()
+    def test_comment_retrieval_with_normal_permission(self):
+        self._set_permissions([
+            'can_comment_requests',
+        ])
+        for _ in range(2):
+            CommentFactory(userrequest=self.request)
+        CommentFactory(userrequest=self.request,
+                       is_internal=True)
         response = self._get_comment_list()
         self.assertEqual(status.HTTP_200_OK, response.status_code)
-        response = response.json()
-        self.assertEqual(0, response.get('count'))
+        self.assertEqual(2, response.json().get('count'))
 
-        """Finally we test with "normal" comment allowed"""
-        self._set_permissions(['can_comment_requests', ])
+    def test_comment_retrieval_with_internal_permission(self):
+        self._set_permissions([
+            'can_comment_requests',
+            'can_internal_comment_requests',
+        ])
+        for _ in range(2):
+            CommentFactory(userrequest=self.request)
+        CommentFactory(userrequest=self.request, is_internal=True)
         response = self._get_comment_list()
         self.assertEqual(status.HTTP_200_OK, response.status_code)
-        response = response.json()
-        self.assertEqual(2, response.get('count'))
+        self.assertEqual(3, response.json().get('count'))
 
-    def test_comment_with_attachment(self):
-        tmp_file = StringIO('I\'ll be back\n')
-        tmp_file.name = 'terminator.txt'
+    def test_comment_creation_with_attachment(self):
+        tmp_file = StringIO('File content')
+        tmp_file.name = 'filename.txt'
         comment_request = {
             'is_internal': False,
             'properties': json.dumps({
-                'comment': 'lorem',
+                'comment': 'lipsum',
             }),
             'attachment': tmp_file,
         }
-
-        """Post & Permission"""
-        response = self._post_comment(comment_request,
-                                      format='multipart')
-        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
-
-        tmp_file.seek(0)
-        self._set_permissions(['can_comment_requests', ])
-
-        response = self._post_comment(comment_request,
-                                      format='multipart')
+        self._set_permissions([
+            'can_comment_requests',
+        ])
+        response = self._post_comment(comment_request, format='multipart')
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        comment_updated = Comment.objects.get(pk=response.json().get('id'))
+        self.assertEqual('lipsum', comment_updated.properties.get('comment'))
+        self.assertIsNotNone(comment_updated.attachment)
+        self.assertEqual(tmp_file.name, comment_updated.filename)
+        self.assertNotEqual(tmp_file.name, comment_updated.attachment.name)
 
-        response = response.json()
-        comment_id = response.get('id')
-        self.assertTrue(Comment.objects.get(pk=comment_id))
-
-        comment = Comment.objects.get(pk=comment_id)
-        self.assertEqual('lorem', comment.properties.get('comment'))
-        comment_attachment = comment.attachment
-
-        """List"""
-        response = self._get_comment_list()
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        response = response.json()
-        response = list(filter(lambda r: r.get('id', 0) == comment_id,
-                               response.get('results', [])))
-        self.assertEqual(1, len(response))
-        response = response[0]
-        self.assertEqual(
-            reverse('comment-attachment', args=[self.request.pk, comment_id]),
-            response.get('attachment_url'))
-
-        """Patch"""
-        response = self._patch_comment(comment_id,
-                                       {'properties': {'comment': 'lipsum', }})
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        comment = Comment.objects.get(pk=comment_id)
-        self.assertEqual('lipsum', comment.properties.get('comment'))
-        self.assertEqual(comment_attachment, comment.attachment)
-
-        tmp_file = StringIO('I\'m back\n')
-        tmp_file.name = 'terminator2.txt'
-        response = self._patch_comment(comment_id, {'attachment': tmp_file},
-                                       format='multipart')
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        comment = Comment.objects.get(pk=comment_id)
-        self.assertNotEqual(comment_attachment, comment.attachment)
-
-        """Download"""
-        response = self._get_comment_attachment(pk=comment_id)
+    def test_download_comment_attachment(self):
+        tmp_file = SimpleUploadedFile('filename.txt', b'File content')
+        comment = CommentFactory(userrequest=self.request,
+                                 attachment=tmp_file)
+        self._set_permissions([
+            'can_comment_requests',
+        ])
+        response = self._get_comment_attachment(pk=comment.pk)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEquals(f'attachment; filename={tmp_file.name}',
                           response.get('Content-Disposition'))
         self.assertIsNotNone(response.get('X-Accel-Redirect'))
+
+    def test_update_simple_comment_properties(self):
+        comment = CommentFactory(userrequest=self.request,
+                                 attachment=SimpleUploadedFile(
+                                     'filename.txt',
+                                     b'File content'
+                                 ))
+        comment_request = {
+            'properties': {
+                'comment': 'Hello world',
+            },
+        }
+        self._set_permissions([
+            'can_comment_requests',
+        ])
+        response = self._patch_comment(comment.pk, comment_request)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        comment_updated = Comment.objects.get(pk=response.json().get('id'))
+        self.assertNotEqual(comment.properties, comment_updated.properties)
+        self.assertEqual('Hello world',
+                         comment_updated.properties.get('comment'))
+        self.assertEqual('filename.txt', comment_updated.filename)
+
+    def test_update_simple_comment_attachment(self):
+        comment = CommentFactory(userrequest=self.request,
+                                 attachment=SimpleUploadedFile(
+                                     'terminator.txt',
+                                     b'I\'ll be back'
+                                 ))
+        tmp_file = StringIO('I\'m back')
+        tmp_file.name = 'terminator2.txt'
+        comment_request = {
+            'attachment': tmp_file
+        }
+        self._set_permissions([
+            'can_comment_requests',
+        ])
+        response = self._patch_comment(comment.pk,
+                                       comment_request,
+                                       format='multipart')
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        comment_updated = Comment.objects.get(pk=response.json().get('id'))
+        self.assertEqual(comment.properties, comment_updated.properties)
+        self.assertEqual(tmp_file.name, comment_updated.filename)
+
+    def test_attachment_url_value(self):
+        c = CommentFactory(userrequest=self.request,
+                           attachment=SimpleUploadedFile(
+                               'filename.txt',
+                               b'File content'
+                           ))
+        self._set_permissions([
+            'can_comment_requests',
+        ])
+        response = self._get_comment_list()
+        self.assertEqual(1, response.json().get('count'))
+        comment_recovered = list(filter(lambda r: r.get('id', 0) == c.pk,
+                                        response.json().get('results', [])))
+        self.assertEqual(1, len(comment_recovered))
+        response = comment_recovered[0]
+        self.assertEqual(
+            reverse('comment-attachment', args=[self.request.pk, c.pk]),
+            response.get('attachment_url'))
 
     def _get_comment_list(self):
         return self.client.get(
