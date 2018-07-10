@@ -8,6 +8,7 @@ from rest_framework.decorators import list_route
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
+from terracommon.core.filters import JSONFieldOrderingFilter
 from terracommon.events.signals import event
 
 from .models import UserRequest
@@ -17,8 +18,8 @@ from .serializers import CommentSerializer, UserRequestSerializer
 class RequestViewSet(viewsets.ModelViewSet):
     serializer_class = UserRequestSerializer
     permission_classes = [permissions.IsAuthenticated, ]
-    filter_backends = (SearchFilter, )
-    search_fields = ('properties', )
+    filter_backends = (SearchFilter, JSONFieldOrderingFilter)
+    search_fields = ('id', 'properties', )
 
     def get_queryset(self):
         if self.request.user.has_perm('trrequests.can_read_all_requests'):
