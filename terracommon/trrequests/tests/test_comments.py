@@ -117,7 +117,7 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         response = response[0]
         self.assertEqual(
             reverse('comment-attachment', args=[self.request.pk, comment_id]),
-            response.get('attachment'))
+            response.get('attachment_url'))
 
         """Patch"""
         response = self._patch_comment(comment_id,

@@ -67,15 +67,15 @@ class UserRequestSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     owner = TerraUserSerializer(read_only=True)
+    attachment_url = serializers.SerializerMethodField()
 
-    def to_representation(self, obj):
-        repr = super(CommentSerializer, self).to_representation(obj)
-        if repr.get('attachment'):
-            repr['attachment'] = reverse('comment-attachment',
-                                         args=[obj.userrequest_id, obj.pk])
-        return repr
+    def get_attachment_url(self, obj):
+        return reverse('comment-attachment', args=[obj.userrequest_id, obj.pk])
 
     class Meta:
         model = Comment
         fields = '__all__'
         read_only_fields = ('owner', 'userrequest')
+        extra_kwargs = {
+            'attachment': {'write_only': True}
+        }
