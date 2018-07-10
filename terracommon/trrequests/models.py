@@ -61,7 +61,7 @@ class Comment(BaseUpdatableModel):
                                 help_text=_('Initial name of the attachment'))
 
     def save(self, *args, **kwargs):
-        if not self.attachment.name.startswith('uploads/'):
+        if not self.attachment.name.startswith('userrequests/'):
             # Save the name of the new file before upload_to move & rename it
             self.filename = self.attachment.name
         super().save(*args, **kwargs)
