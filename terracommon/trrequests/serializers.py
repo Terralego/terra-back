@@ -5,6 +5,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from terracommon.accounts.serializers import TerraUserSerializer
+from terracommon.events.signals import event
 from terracommon.terra.models import Layer
 from terracommon.terra.serializers import GeoJSONLayerSerializer
 
@@ -35,13 +36,27 @@ class UserRequestSerializer(serializers.ModelSerializer):
             return super().create(validated_data)
 
     def update(self, instance, validated_data):
+        old_state = instance.state
+
         if 'layer' in validated_data:
             geojson = validated_data.pop('layer')
             instance.layer.from_geojson(json.dumps(geojson),
                                         '01-01',
                                         '12-31',
                                         update=True)
-        return super().update(instance, validated_data)
+
+        instance = super().update(instance, validated_data)
+
+        if ('state' in validated_data
+                and old_state != validated_data['state']):
+            event.send(
+                self.__class__,
+                action="USERREQUEST_STATE_CHANGED",
+                user=self.context['request'].user,
+                instance=instance,
+                old_state=old_state)
+
+        return instance
 
     class Meta:
         model = UserRequest

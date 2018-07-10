@@ -1,11 +1,13 @@
+from unittest.mock import MagicMock
+
 from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 
 from terracommon.accounts.tests.factories import TerraUserFactory
+from terracommon.events.signals import event
 from terracommon.trrequests.models import UserRequest
-from terracommon.trrequests.permissions import IsOwnerOrStaff
 from terracommon.trrequests.serializers import UserRequestSerializer
 
 from .factories import UserRequestFactory
@@ -156,20 +158,28 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
         response = self.client.get(reverse('request-schema'))
         self.assertEqual(500, response.status_code)
 
-    def test_object_permission(self):
-        permission = IsOwnerOrStaff  # TODO
-        dir(permission)
-
     def test_request_change_state(self):
         request = UserRequestFactory()
         new_state = 10
         self._set_permissions(['can_read_all_requests', ])
 
-        """Test with the can_change_state_requests permission"""
+        handler = MagicMock()
+        event.connect(handler)
+        # Test with the can_change_state_requests permission
+        # and tests event associated
         response = self.client.patch(
             reverse('request-detail', args=[request.pk]),
             {'state': new_state},
             format='json')
+
+        # handler.assert_called_once()
+        handler.assert_called_once_with(
+            signal=event,
+            action="USERREQUEST_STATE_CHANGED",
+            sender=UserRequestSerializer,
+            user=self.user,
+            instance=request,
+            old_state=request.state)
 
         self.assertEqual(200, response.status_code)
         request.refresh_from_db()
