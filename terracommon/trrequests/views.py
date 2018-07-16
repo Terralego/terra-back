@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.http.response import Http404, HttpResponse, HttpResponseServerError
+from django.http.response import Http404, HttpResponseServerError
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -9,6 +9,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
 from terracommon.events.signals import event
+from terracommon.terra.helpers import get_media_response
 
 from .models import UserRequest
 from .serializers import CommentSerializer, UserRequestSerializer
@@ -93,8 +94,10 @@ class CommentViewSet(viewsets.ModelViewSet):
         comment = self.get_object()
         if not comment.attachment:
             raise Http404('Attachment does not exist')
-        response = HttpResponse()
-        response['Content-Disposition'] = ('attachment;'
-                                           f' filename={comment.filename}')
-        response['X-Accel-Redirect'] = f'{comment.attachment.url}'
+        response = get_media_response(request, comment.attachment.url,
+                                      headers={
+                                          'Content-Disposition': (
+                                              'attachment;'
+                                              f' filename={comment.filename}')
+                                      })
         return response
