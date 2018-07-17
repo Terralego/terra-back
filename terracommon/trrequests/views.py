@@ -1,14 +1,15 @@
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.http.response import HttpResponseServerError
+from django.http.response import Http404, HttpResponseServerError
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
-from rest_framework.decorators import list_route
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
 from terracommon.events.signals import event
+from terracommon.terra.helpers import get_media_response
 
 from .models import UserRequest
 from .serializers import CommentSerializer, UserRequestSerializer
@@ -17,8 +18,8 @@ from .serializers import CommentSerializer, UserRequestSerializer
 class RequestViewSet(viewsets.ModelViewSet):
     serializer_class = UserRequestSerializer
     permission_classes = [permissions.IsAuthenticated, ]
-    filter_backends = (SearchFilter, )
-    search_fields = ('properties', )
+    filter_backends = (SearchFilter,)
+    search_fields = ('properties',)
 
     def get_queryset(self):
         if self.request.user.has_perm('trrequests.can_read_all_requests'):
@@ -27,7 +28,7 @@ class RequestViewSet(viewsets.ModelViewSet):
             return UserRequest.objects.filter(
                 Q(owner=self.request.user)
                 | Q(reviewers__in=[self.request.user, ])
-                )
+            )
         return UserRequest.objects.none()
 
     def create(self, request, *args, **kwargs):
@@ -47,7 +48,7 @@ class RequestViewSet(viewsets.ModelViewSet):
     def patch(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
 
-    @list_route(methods=['get'], url_path='schema')
+    @list_route(methods=['get'])
     def schema(self, request):
         if isinstance(settings.REQUEST_SCHEMA, dict):
             return Response(settings.REQUEST_SCHEMA)
@@ -87,3 +88,16 @@ class CommentViewSet(viewsets.ModelViewSet):
             auto_datas['is_internal'] = False
 
         serializer.save(**auto_datas)
+
+    @detail_route(methods=['get'])
+    def attachment(self, request, request_pk=None, pk=None):
+        comment = self.get_object()
+        if not comment.attachment:
+            raise Http404('Attachment does not exist')
+        response = get_media_response(request, comment.attachment.url,
+                                      headers={
+                                          'Content-Disposition': (
+                                              'attachment;'
+                                              f' filename={comment.filename}')
+                                      })
+        return response
