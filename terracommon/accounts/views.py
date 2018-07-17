@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.db.utils import IntegrityError
 from rest_framework import status
-from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -23,7 +23,7 @@ class UserProfileView(RetrieveUpdateAPIView):
         return get_user_model().objects.none()
 
 
-class UserRegisterView(GenericAPIView):
+class UserRegisterView(APIView):
     permission_classes = (AllowAny, )
 
     def post(self, request):
@@ -58,7 +58,7 @@ class UserRegisterView(GenericAPIView):
             return Response(status=status.HTTP_409_CONFLICT)
 
 
-class UserSetPasswordView(GenericAPIView):
+class UserSetPasswordView(APIView):
     permission_classes = (AllowAny, )
 
     def post(self, request, uidb64, token):
