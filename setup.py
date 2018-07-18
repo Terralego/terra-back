@@ -22,7 +22,7 @@ setup(
                  'terracommon.project.*',
                  '*.tests']
                  ),
-
+    include_package_data=True,
     long_description=read('README.md'),
     classifiers=[
         "Programming Language :: Python",
