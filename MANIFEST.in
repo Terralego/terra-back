@@ -1,0 +1,1 @@
+recursive-include terracommon/accounts/templates/registration/ *
