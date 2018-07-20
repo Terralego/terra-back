@@ -2,6 +2,7 @@ import json
 import uuid
 
 from django.db import transaction
+from django.urls import reverse
 from rest_framework import serializers
 
 from terracommon.accounts.serializers import TerraUserSerializer
@@ -20,15 +21,15 @@ class UserRequestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         with transaction.atomic():
             layer = Layer.objects.create(
-                    name=uuid.uuid4(),
-                    schema={},
-                )
+                name=uuid.uuid4(),
+                schema={},
+            )
 
             layer.from_geojson(
                 json.dumps(validated_data.pop('layer')),
                 '01-01',
                 '12-01'
-                )
+            )
             validated_data.update({
                 'layer': layer,
             })
@@ -60,14 +61,21 @@ class UserRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserRequest
-        exclude = ('layer', )
-        read_only_fields = ('owner', )
+        exclude = ('layer',)
+        read_only_fields = ('owner',)
 
 
 class CommentSerializer(serializers.ModelSerializer):
     owner = TerraUserSerializer(read_only=True)
+    attachment_url = serializers.SerializerMethodField()
+
+    def get_attachment_url(self, obj):
+        return reverse('comment-attachment', args=[obj.userrequest_id, obj.pk])
 
     class Meta:
         model = Comment
         fields = '__all__'
-        read_only_fields = ('owner', 'userrequest',)
+        read_only_fields = ('owner', 'userrequest')
+        extra_kwargs = {
+            'attachment': {'write_only': True}
+        }
