@@ -28,6 +28,11 @@ class RegistrationTestCase(TestCase):
             })
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(mail.outbox))
+        self.assertEqual('application/json', response['Content-Type'])
+        self.assertIn(b'id', response.content)
+        self.assertIn(b'email', response.content)
+        self.assertIn(b'uuid', response.content)
+        self.assertIn(b'group', response.content)
 
     def test_reset_password(self):
         user = TerraUserFactory()
