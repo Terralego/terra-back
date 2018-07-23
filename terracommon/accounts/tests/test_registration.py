@@ -21,6 +21,15 @@ class RegistrationTestCase(TestCase):
             })
         self.assertEqual(400, response.status_code)
 
+        # Testing email is empty
+        response = self.client.post(
+            reverse('accounts:register'),
+            {
+                'email': '',
+            }
+        )
+        self.assertEqual(400, response.status_code)
+
         response = self.client.post(
             reverse('accounts:register'),
             {
@@ -28,6 +37,15 @@ class RegistrationTestCase(TestCase):
             })
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(mail.outbox))
+
+        # Testing duplicate email
+        response = self.client.post(
+            reverse('accounts:register'),
+            {
+                'email': 'toto@terra.com',
+            }
+        )
+        self.assertEqual(200, response.status_code)
 
     def test_reset_password(self):
         user = TerraUserFactory()
