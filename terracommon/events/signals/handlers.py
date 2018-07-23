@@ -1,4 +1,5 @@
 import types
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -12,7 +13,7 @@ from . import funcs
 
 class AbstractHandler(object):
     settings = {
-        'condition': True,
+        'condition': 'True',
     }
 
     def __init__(self, event, settings, **kwargs):
@@ -115,3 +116,23 @@ class SendEmailHandler(AbstractHandler):
             }
         except TerraUser.DoesNotExist:
             return None
+
+
+class UpdateRequestExpiryDateHandler(AbstractHandler):
+    '''Update the expiration date of an userrequest, the userrequest
+    must be provided in the instance event args.
+    In the settings `daysdelta` is an integer day count relative  to the
+    event type.
+    '''
+
+    settings = {
+        'condition': 'True',
+        'daysdelta': 0,
+    }
+
+    def __call__(self):
+        self.args['instance'].expiry = datetime.today() + self._get_timedelta()
+        self.args['instance'].save()
+
+    def _get_timedelta(self):
+        return timedelta(days=int(self.settings['daysdelta']))

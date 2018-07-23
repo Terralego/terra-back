@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -5,6 +7,8 @@ from rest_framework.test import APIClient
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.events.models import EventHandler
 from terracommon.events.signals import event
+from terracommon.events.signals.handlers import UpdateRequestExpiryDateHandler
+from terracommon.trrequests.tests.factories import UserRequestFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin
 
 
@@ -43,3 +47,32 @@ class EventsTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(201, response.status_code)
         self.assertTrue(self.signal_was_called)
         event.disconnect(handler)
+
+
+class ExpiryDateHandlerTestCase(TestCase):
+
+    def setUp(self):
+        self.userrequest = UserRequestFactory()
+
+    def test_handler(self):
+        daysdelta = '20'
+
+        args = {
+            'instance': self.userrequest,
+            'user': self.userrequest.owner,
+        }
+
+        executor = UpdateRequestExpiryDateHandler(
+            'USERREQUEST_CREATED',
+            {'daysdelta': daysdelta},
+            **args)
+
+        if executor.valid_condition():
+            executor()
+
+        self.userrequest.refresh_from_db()
+
+        self.assertEqual(
+            self.userrequest.expiry,
+            date.today() + timedelta(days=int(daysdelta))
+            )
