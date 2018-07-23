@@ -9,7 +9,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .forms import PasswordSetAndResetForm
-from .serializers import PasswordResetSerializer, UserProfileSerializer
+from .serializers import (PasswordResetSerializer, TerraUserSerializer,
+                          UserProfileSerializer)
 
 
 class UserProfileView(RetrieveUpdateAPIView):
@@ -50,7 +51,9 @@ class UserRegisterView(APIView):
                         'registration/registration_email.html',
                 }
                 form.save(**opts)
-                return Response(status=status.HTTP_200_OK)
+
+                serializer = TerraUserSerializer(user)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(data=form.errors,
                                 status=status.HTTP_400_BAD_REQUEST)
