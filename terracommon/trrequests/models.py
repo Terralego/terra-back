@@ -3,7 +3,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from terracommon.terra.models import Feature, Layer
+from terracommon.terra.models import Layer
 
 from .helpers import rename_comment_attachment
 

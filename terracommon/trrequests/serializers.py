@@ -68,9 +68,31 @@ class UserRequestSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     owner = TerraUserSerializer(read_only=True)
     attachment_url = serializers.SerializerMethodField()
+    geojson = GeoJSONLayerSerializer(source='layer', required=False)
 
     def get_attachment_url(self, obj):
         return reverse('comment-attachment', args=[obj.userrequest_id, obj.pk])
+
+    def create(self, validated_data):
+
+        with transaction.atomic():
+            if 'layer' in validated_data:
+                layer = Layer.objects.create(
+                    name=uuid.uuid4(),
+                    schema={},
+                )
+
+                layer.from_geojson(
+                    json.dumps(validated_data.pop('layer')),
+                    '01-01',
+                    '12-01'
+                )
+
+                validated_data.update({
+                    'layer': layer,
+                })
+
+            return super().create(validated_data)
 
     class Meta:
         model = Comment
