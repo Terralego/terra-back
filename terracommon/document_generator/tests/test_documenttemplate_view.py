@@ -40,7 +40,7 @@ class DocumentTemplateViewTestCase(TestCase):
                                                       b'Well I think it is.')
 
         # Calling the Api with good params
-        response = self.client.post(reverse('document-pdf-creator',
+        response = self.client.post(reverse('document-pdf',
                                             kwargs={
                                              'request_pk': fake_userrequest.pk,
                                              'pk': myodt.pk
@@ -56,7 +56,7 @@ class DocumentTemplateViewTestCase(TestCase):
         self.assertIn(b'PDF', pdf_header)
 
         # Testing bad request_pk
-        response_404 = self.client.post(reverse('document-pdf-creator',
+        response_404 = self.client.post(reverse('document-pdf',
                                                 kwargs={
                                                     'request_pk': 9999,
                                                     'pk': myodt.pk
@@ -67,7 +67,7 @@ class DocumentTemplateViewTestCase(TestCase):
 
         # Testing bad pk
         userreq_pk = fake_userrequest.pk  # for linting purpose
-        response_404 = self.client.post(reverse('document-pdf-creator',
+        response_404 = self.client.post(reverse('document-pdf',
                                                 kwargs={
                                                     'request_pk': userreq_pk,
                                                     'pk': 9999

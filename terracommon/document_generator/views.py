@@ -12,8 +12,8 @@ from .models import DocumentTemplate
 
 class DocumentTemplateViewSets(viewsets.ViewSet):
     @detail_route(methods=['POST'],
-                  url_name='pdf-creator',
-                  url_path='pdf_creator/(?P<request_pk>[^/.]+)')
+                  url_name='pdf',
+                  url_path='pdf/(?P<request_pk>[^/.]+)')
     def pdf_creator(self, request, pk=None, request_pk=None):
         try:
             userrequest = UserRequest.objects.get(pk=request_pk)
