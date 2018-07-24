@@ -1,9 +1,11 @@
 from rest_framework import routers
 
-from .views import OdtViewSets
+from .views import DocumentTemplateViewSets
 
 router = routers.SimpleRouter()
 
-router.register(r'odtfile', OdtViewSets, base_name='odtfile')
+router.register(r'document-template',
+                DocumentTemplateViewSets,
+                base_name='document')
 
 urlpatterns = router.urls

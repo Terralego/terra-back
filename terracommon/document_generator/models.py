@@ -1,6 +1,12 @@
+from datetime import datetime
+
 from django.db import models
 
+date = datetime.now()
 
-class OdtFile(models.Model):
+
+class DocumentTemplate(models.Model):
     name = models.CharField(max_length=50)
-    odt = models.FileField(upload_to='odt-files/')
+    template = models.FileField(upload_to=('template-'
+                                           f'{date.month}-'
+                                           f'{date.year}/'))
