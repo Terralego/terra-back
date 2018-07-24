@@ -7,7 +7,7 @@ from rest_framework.test import APIClient
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.events.models import EventHandler
 from terracommon.events.signals import event
-from terracommon.events.signals.handlers import UpdateRequestExpiryDateHandler
+from terracommon.events.signals.handlers import TimeDeltaHandler
 from terracommon.trrequests.tests.factories import UserRequestFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin
 
@@ -49,7 +49,7 @@ class EventsTestCase(TestCase, TestPermissionsMixin):
         event.disconnect(handler)
 
 
-class ExpiryDateHandlerTestCase(TestCase):
+class TimeDeltaHandlerTestCase(TestCase):
 
     def setUp(self):
         self.userrequest = UserRequestFactory()
@@ -62,9 +62,26 @@ class ExpiryDateHandlerTestCase(TestCase):
             'user': self.userrequest.owner,
         }
 
-        executor = UpdateRequestExpiryDateHandler(
+        # test with nested values
+        executor = TimeDeltaHandler(
             'USERREQUEST_CREATED',
-            {'daysdelta': daysdelta},
+            {'daysdelta': daysdelta, 'field': 'properties.name.attribute'},
+            **args)
+
+        if executor.valid_condition():
+            executor()
+
+        self.userrequest.refresh_from_db()
+
+        self.assertEqual(
+            self.userrequest.properties['name']['attribute'],
+            str(date.today() + timedelta(days=int(daysdelta)))
+            )
+
+        # test with expiry field
+        executor = TimeDeltaHandler(
+            'USERREQUEST_CREATED',
+            {'daysdelta': daysdelta, 'field': 'expiry'},
             **args)
 
         if executor.valid_condition():
