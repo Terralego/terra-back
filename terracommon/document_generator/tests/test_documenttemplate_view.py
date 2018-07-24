@@ -61,9 +61,7 @@ class DocumentTemplateViewTestCase(TestCase):
                                                     'request_pk': 9999,
                                                     'pk': myodt.pk
                                                 }))
-        json_404 = response_404.json()
         self.assertEqual(404, response_404.status_code)
-        self.assertEqual('user request not found', json_404['errors'])
 
         # Testing bad pk
         userreq_pk = fake_userrequest.pk  # for linting purpose
@@ -72,6 +70,4 @@ class DocumentTemplateViewTestCase(TestCase):
                                                     'request_pk': userreq_pk,
                                                     'pk': 9999
                                                 }))
-        json_404 = response_404.json()
         self.assertEqual(404, response_404.status_code)
-        self.assertEqual('template not found', json_404['errors'])
