@@ -1,6 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.http.response import HttpResponse
-
 from rest_framework import status, viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
