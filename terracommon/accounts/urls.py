@@ -4,7 +4,7 @@ from django.urls import path
 from .views import (SettingsView, UserProfileView, UserRegisterView,
                     UserSetPasswordView)
 
-app_name = 'terracommon.accounts'
+app_name = 'accounts'
 
 urlpatterns = [
     path(r'settings/', SettingsView.as_view(), name='settings'),
