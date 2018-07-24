@@ -1,7 +1,8 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.http.response import HttpResponse
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import detail_route
-
+from rest_framework.response import Response
 from terracommon.trrequests.models import UserRequest
 
 from .helpers import DocumentGenerator
@@ -13,9 +14,19 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
                   url_name='pdf-creator',
                   url_path='pdf_creator/(?P<request_pk>[^/.]+)')
     def pdf_creator(self, request, pk=None, request_pk=None):
-        userrequest = UserRequest.objects.get(pk=request_pk)
+        try:
+            userrequest = UserRequest.objects.get(pk=request_pk)
+        except ObjectDoesNotExist:
+            return Response(data={'errors': 'user request not found'},
+                            content_type='application/json',
+                            status=status.HTTP_404_NOT_FOUND)
+        try:
+            myodt = DocumentTemplate.objects.get(pk=pk)
+        except ObjectDoesNotExist:
+            return Response(data={'errors': 'template not found'},
+                            content_type='application/json',
+                            status=status.HTTP_404_NOT_FOUND)
 
-        myodt = DocumentTemplate.objects.get(pk=pk)
         myodt_path = str(myodt.template)
 
         pdf_generator = DocumentGenerator(myodt_path)

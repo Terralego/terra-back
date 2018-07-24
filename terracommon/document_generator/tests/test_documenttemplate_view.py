@@ -54,3 +54,24 @@ class DocumentTemplateViewTestCase(TestCase):
 
         pdf_header = response.content.split(b'\n')[0]
         self.assertIn(b'PDF', pdf_header)
+
+        # Testing bad request_pk
+        response_404 = self.client.post(reverse('document-pdf-creator',
+                                                kwargs={
+                                                    'request_pk': 9999,
+                                                    'pk': myodt.pk
+                                                }))
+        json_404 = response_404.json()
+        self.assertEqual(404, response_404.status_code)
+        self.assertEqual('user request not found', json_404['errors'])
+
+        # Testing bad pk
+        userreq_pk = fake_userrequest.pk  # for linting purpose
+        response_404 = self.client.post(reverse('document-pdf-creator',
+                                                kwargs={
+                                                    'request_pk': userreq_pk,
+                                                    'pk': 9999
+                                                }))
+        json_404 = response_404.json()
+        self.assertEqual(404, response_404.status_code)
+        self.assertEqual('template not found', json_404['errors'])
