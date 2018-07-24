@@ -7,11 +7,11 @@ from rest_framework.test import APIClient
 
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.document_generator.helpers import DocumentGenerator
-from terracommon.document_generator.models import OdtFile
+from terracommon.document_generator.models import DocumentTemplate
 from terracommon.trrequests.tests.factories import UserRequestFactory
 
 
-class OdtViewTestCase(TestCase):
+class DocumentTemplateViewTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = TerraUserFactory()
@@ -24,27 +24,25 @@ class OdtViewTestCase(TestCase):
         tmp_odt = os.path.join(*odt_dirname, odt_name)
 
         # Store it in the database
-        myodt = OdtFile(name='testodt', odt=tmp_odt)
-        myodt.save()
+        myodt = DocumentTemplate.objects.create(name='testodt',
+                                                template=tmp_odt)
 
         # Create a fake UserRequest
-        fake_userrequest = UserRequestFactory()
-        fake_userrequest.properties = {
+        fake_userrequest = UserRequestFactory(properties={
             'from': '01/01/2018',
             'to': '31/12/2018',
             'registration': 'AS-AS-AA-AS-AS',
             'authorization': 'okay'
-        }
-        fake_userrequest.save()
+        })
 
         # Mock?
         DocumentGenerator.get_pdf = Mock(return_value=b'this is a PDF-1.4\n'
                                                       b'Well I think it is.')
 
         # Calling the Api with good params
-        response = self.client.post(reverse('odtfile-pdf-creator',
+        response = self.client.post(reverse('document-pdf-creator',
                                             kwargs={
-                                             'userreq_id': fake_userrequest.pk,
+                                             'request_pk': fake_userrequest.pk,
                                              'pk': myodt.pk
                                             }))
 
@@ -55,4 +53,4 @@ class OdtViewTestCase(TestCase):
             fake_userrequest.properties)
 
         pdf_header = response.content.split(b'\n')[0]
-        self.assertIs(True, b'PDF' in pdf_header)
+        self.assertIn(b'PDF', pdf_header)
