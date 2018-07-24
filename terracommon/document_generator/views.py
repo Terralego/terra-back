@@ -21,15 +21,13 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
         mytemplate_path = str(mytemplate.template)
         mytemplate_name = str(mytemplate.name)
 
-        pdf_generator = DocumentGenerator(mytemplate_path)
-        pdf = pdf_generator.get_pdf(userrequest.properties)
+        pdf = cache.get(mytemplate_name)
+        if not pdf:
+            pdf_generator = DocumentGenerator(mytemplate_path)
+            pdf = pdf_generator.get_pdf(userrequest.properties)
+            cache.set(mytemplate_name, pdf)
 
-        cached_pdf = cache.get(mytemplate_name)
-        if not cached_pdf:
-            cache.set(mytemplate_name, pdf, 30)
-            cached_pdf = cache.get(mytemplate_name)
-
-        response = HttpResponse(cached_pdf)
+        response = HttpResponse(pdf)
         response['Content-Type'] = 'application/pdf'
         response['Content-disposition'] = f'attachment; filename=macaron.pdf'
         return response
