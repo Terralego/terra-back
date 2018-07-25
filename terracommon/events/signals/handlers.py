@@ -1,4 +1,5 @@
 import types
+from datetime import date, timedelta
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -12,7 +13,7 @@ from . import funcs
 
 class AbstractHandler(object):
     settings = {
-        'condition': True,
+        'condition': 'True',
     }
 
     def __init__(self, event, settings, **kwargs):
@@ -115,3 +116,50 @@ class SendEmailHandler(AbstractHandler):
             }
         except TerraUser.DoesNotExist:
             return None
+
+
+class TimeDeltaHandler(AbstractHandler):
+    '''Set the ```field``` element of the instance as a timedelta from today.
+    It's possible to set a field content, as it's possible to set a property
+    content.
+    Available field from UserRequest are ```['expiry', 'properties', ]```
+    '''
+
+    settings = {
+        'condition': 'True',
+        'daysdelta': 0,
+        'field': 'expiry',
+    }
+
+    def __call__(self):
+        field_path = self.settings['field'].split('.')
+
+        if field_path[0] not in ['expiry', 'properties']:
+            return
+
+        self._set_value(field_path, self.args['instance'])
+        self.args['instance'].save()
+
+    def _set_value(self, field_path, attr):
+        if len(field_path) > 1:
+            field_name = field_path.pop(0)
+
+            modified_attr = getattr(attr, field_name, {})
+            modified_attr = self._set_value(field_path, modified_attr)
+
+            self._setattr(attr, field_name, modified_attr)
+
+        else:
+            self._setattr(attr, field_path.pop(),
+                          str(date.today() + self._get_timedelta()))
+
+        return attr
+
+    def _setattr(self, attr, key, value):
+        try:
+            setattr(attr, key, value)
+        except AttributeError:
+            attr[key] = value
+
+    def _get_timedelta(self):
+        return timedelta(days=int(self.settings['daysdelta']))

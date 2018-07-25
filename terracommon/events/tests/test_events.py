@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -5,6 +7,8 @@ from rest_framework.test import APIClient
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.events.models import EventHandler
 from terracommon.events.signals import event
+from terracommon.events.signals.handlers import TimeDeltaHandler
+from terracommon.trrequests.tests.factories import UserRequestFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin
 
 
@@ -43,3 +47,49 @@ class EventsTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(201, response.status_code)
         self.assertTrue(self.signal_was_called)
         event.disconnect(handler)
+
+
+class TimeDeltaHandlerTestCase(TestCase):
+
+    def setUp(self):
+        self.userrequest = UserRequestFactory()
+
+    def test_handler(self):
+        daysdelta = '20'
+
+        args = {
+            'instance': self.userrequest,
+            'user': self.userrequest.owner,
+        }
+
+        # test with nested values
+        executor = TimeDeltaHandler(
+            'USERREQUEST_CREATED',
+            {'daysdelta': daysdelta, 'field': 'properties.name.attribute'},
+            **args)
+
+        if executor.valid_condition():
+            executor()
+
+        self.userrequest.refresh_from_db()
+
+        self.assertEqual(
+            self.userrequest.properties['name']['attribute'],
+            str(date.today() + timedelta(days=int(daysdelta)))
+            )
+
+        # test with expiry field
+        executor = TimeDeltaHandler(
+            'USERREQUEST_CREATED',
+            {'daysdelta': daysdelta, 'field': 'expiry'},
+            **args)
+
+        if executor.valid_condition():
+            executor()
+
+        self.userrequest.refresh_from_db()
+
+        self.assertEqual(
+            self.userrequest.expiry,
+            date.today() + timedelta(days=int(daysdelta))
+            )

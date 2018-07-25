@@ -23,6 +23,7 @@ class UserRequest(BaseUpdatableModel):
     layer = models.ForeignKey(Layer,
                               on_delete=models.PROTECT,
                               related_name='userrequests')
+    expiry = models.DateField(default=None, null=True)
     state = models.IntegerField(default=settings.STATES.DRAFT)
     reviewers = models.ManyToManyField(settings.AUTH_USER_MODEL,
                                        blank=True,
