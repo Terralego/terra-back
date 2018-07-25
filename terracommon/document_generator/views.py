@@ -3,19 +3,25 @@ from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route
+from rest_framework.permissions import IsAuthenticated
 
 from terracommon.trrequests.models import UserRequest
+from terracommon.trrequests.permissions import IsOwnerOrStaff
 
 from .helpers import DocumentGenerator
 from .models import DocumentTemplate
 
 
 class DocumentTemplateViewSets(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated, IsOwnerOrStaff,)
+
     @detail_route(methods=['POST'],
                   url_name='pdf',
                   url_path='pdf/(?P<request_pk>[^/.]+)')
     def pdf_creator(self, request, pk=None, request_pk=None):
         userrequest = get_object_or_404(UserRequest, pk=request_pk)
+        self.check_object_permissions(self.request, userrequest)
+
         mytemplate = get_object_or_404(DocumentTemplate, pk=pk)
 
         mytemplate_path = str(mytemplate.template)
