@@ -115,6 +115,42 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(3, response.json().get('count'))
 
+    def test_comment_with_geojson(self):
+        comment_request = {
+            'properties': {},
+            'geojson': {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "properties": {},
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates": [
+                                [
+                                    2.30712890625,
+                                    48.83579746243093
+                                ],
+                                [
+                                    1.42822265625,
+                                    43.628123412124616
+                                ]
+                            ]
+                        }
+                    },
+                ]
+            }
+        }
+
+        self._set_permissions([
+            'can_comment_requests',
+        ])
+        response = self._post_comment(comment_request)
+
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        response = response.json()
+        self.assertIsNotNone(response.get('geojson'))
+
     def test_comment_creation_with_attachment(self):
         tmp_file = StringIO('File content')
         tmp_file.name = 'filename.txt'

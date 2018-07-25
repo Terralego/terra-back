@@ -3,7 +3,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from terracommon.terra.models import Feature, Layer
+from terracommon.terra.models import Layer
 
 from .helpers import rename_comment_attachment
 
@@ -49,9 +49,9 @@ class Comment(BaseUpdatableModel):
     userrequest = models.ForeignKey(UserRequest,
                                     on_delete=models.PROTECT,
                                     related_name="comments")
-    feature = models.ForeignKey(Feature,
-                                null=True,
-                                on_delete=models.PROTECT)
+    layer = models.ForeignKey(Layer,
+                              null=True,
+                              on_delete=models.PROTECT)
     properties = JSONField(default=dict, blank=True)
     is_internal = models.BooleanField(default=False)
     attachment = models.FileField(upload_to=rename_comment_attachment,
