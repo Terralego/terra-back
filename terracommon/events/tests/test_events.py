@@ -7,7 +7,8 @@ from rest_framework.test import APIClient
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.events.models import EventHandler
 from terracommon.events.signals import event
-from terracommon.events.signals.handlers import TimeDeltaHandler
+from terracommon.events.signals.handlers import (SendNotificationHandler,
+                                                 TimeDeltaHandler)
 from terracommon.trrequests.tests.factories import UserRequestFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin
 
@@ -93,3 +94,40 @@ class TimeDeltaHandlerTestCase(TestCase):
             self.userrequest.expiry,
             date.today() + timedelta(days=int(daysdelta))
             )
+
+
+class UserNotificationHandlerTestCase(TestCase):
+
+    def setUp(self):
+        self.userrequest = UserRequestFactory()
+
+    def test_handler(self):
+        args = {
+            'instance': self.userrequest,
+            'user': self.userrequest.owner,
+        }
+
+        settings = {
+            'level': 'DEBUG',
+            'message': 'notification {event} {user}',
+            'event_code': 'test_notification',
+        }
+
+        event = 'USERREQUEST_CREATED'
+        # test with nested values
+        executor = SendNotificationHandler(
+            event,
+            settings,
+            **args)
+
+        if executor.valid_condition():
+            executor()
+
+        self.assertEqual(1, self.userrequest.owner.notifications.count())
+        notification = self.userrequest.owner.notifications.first()
+
+        self.assertFalse(notification.read)
+        self.assertEqual(
+            notification.message,
+            f'notification {event} {self.userrequest.owner.email}')
+        self.assertEqual(notification.event_code, 'test_notification')
