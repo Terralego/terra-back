@@ -22,6 +22,7 @@ class UserNotifications(models.Model):
     read = models.BooleanField(default=False)
     level = models.CharField(choices=LEVELS, max_length=255, blank=False)
     event_code = models.CharField(max_length=255)
+    message = models.TextField(blank=True)
     identifier = models.IntegerField()
     uuid = models.UUIDField(null=True)
 
