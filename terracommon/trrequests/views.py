@@ -1,10 +1,10 @@
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http.response import Http404, HttpResponseServerError
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
@@ -63,32 +63,42 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self, *args, **kwargs):
         request_pk = self.kwargs.get('request_pk')
-        if self.request.user.has_perm(
+
+        query = get_object_or_404(UserRequest, pk=request_pk).comments.all()
+        filter = Q()
+
+        # exclude comments if the user have no permission
+        if not self.request.user.has_perm(
                 'trrequests.can_internal_comment_requests'):
-            request = get_object_or_404(UserRequest, pk=request_pk)
-            return request.comments.all()
-        elif self.request.user.has_perm('trrequests.can_comment_requests'):
-            return self.request.user.userrequests.get(
-                pk=request_pk).comments.filter(is_internal=False)
-        return []
+            filter |= Q(is_internal=True)
+
+        if not self.request.user.has_perm('trrequests.can_comment_requests'):
+            filter |= Q(is_internal=False)
+
+        return query.exclude(filter)
 
     def perform_create(self, serializer):
-        if not (self.request.user.has_perm('trrequests.can_comment_requests')
-                or self.request.user.has_perm(
-                    'trrequests.can_internal_comment_requests')):
-            raise PermissionDenied
 
-        auto_datas = {
+        if 'is_internal' in serializer.validated_data:
+            if (serializer.validated_data['is_internal'] is True
+                and not self.request.user.has_perm(
+                    'trrequests.can_internal_comment_requests')):
+                raise PermissionDenied(
+                    'Permission missing to create internal comment')
+
+            elif (serializer.validated_data['is_internal'] is False
+                  and not self.request.user.has_perm(
+                      'trrequests.can_comment_requests')):
+                raise PermissionDenied(
+                    'Permission missing to create public comment')
+
+        auto_data = {
             'owner': self.request.user,
             'userrequest': get_object_or_404(UserRequest,
                                              pk=self.kwargs.get('request_pk'))
         }
 
-        if not self.request.user.has_perm(
-                'trrequests.can_internal_comment_requests'):
-            auto_datas['is_internal'] = False
-
-        serializer.save(**auto_datas)
+        return serializer.save(**auto_data)
 
     @detail_route(methods=['get'])
     def attachment(self, request, request_pk=None, pk=None):

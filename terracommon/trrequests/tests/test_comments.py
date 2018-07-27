@@ -61,11 +61,13 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
         self.assertFalse(response.json().get('is_internal'))
 
+        # with can_comment permission, user is forbidden to create internal
+        # comments
         self._set_permissions([
             'can_comment_requests',
         ])
         response = self._post_comment(comment_request)
-        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
         self.assertFalse(response.json().get('is_internal'))
 
     def test_internal_comment_creation_with_internal_permission(self):
@@ -76,7 +78,6 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
             }
         }
         self._set_permissions([
-            'can_comment_requests',
             'can_internal_comment_requests',
         ])
         response = self._post_comment(comment_request)
