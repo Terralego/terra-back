@@ -1,24 +1,32 @@
-from django.core.cache import cache
-from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
 
+from terracommon.terra.helpers import get_media_response
 from terracommon.trrequests.models import UserRequest
 from terracommon.trrequests.permissions import IsOwnerOrStaff
 
-from .helpers import DocumentGenerator
+from .helpers import CachedDocument, DocumentGenerator
 from .models import DocumentTemplate
 
 
 class DocumentTemplateViewSets(viewsets.ViewSet):
+    """
+    pdf_creator:
+    Create a new pdf document from a template link to a user request.
+    """
     permission_classes = (IsAuthenticated, IsOwnerOrStaff,)
 
     @detail_route(methods=['POST'],
                   url_name='pdf',
                   url_path='pdf/(?P<request_pk>[^/.]+)')
     def pdf_creator(self, request, pk=None, request_pk=None):
+        """ Insert data from user request into a template & convert it to pdf
+
+        <pk>: template's id
+        <request_pk>: user request's id
+        """
         userrequest = get_object_or_404(UserRequest, pk=request_pk)
         self.check_object_permissions(self.request, userrequest)
 
@@ -27,13 +35,20 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
         mytemplate_path = str(mytemplate.template)
         mytemplate_name = str(mytemplate.name)
 
-        pdf = cache.get(mytemplate_name)
-        if not pdf:
+        cache_name = mytemplate_path + mytemplate_name + '.pdf'
+        template_cache = CachedDocument(cache_name)
+
+        if not template_cache.is_cached():
             pdf_generator = DocumentGenerator(mytemplate_path)
             pdf = pdf_generator.get_pdf(userrequest.properties)
-            cache.set(mytemplate_name, pdf)
+            template_cache.create_cache(pdf, 'wb')
 
-        response = HttpResponse(pdf)
-        response['Content-Type'] = 'application/pdf'
-        response['Content-disposition'] = f'attachment; filename=macaron.pdf'
+        response = get_media_response(request,
+                                      template_cache.path,
+                                      headers={
+                                        'Content-Type': 'application/pdf',
+                                        'Content-disposition': (
+                                            'attachment;'
+                                            f'filename={cache_name}')
+                                        })
         return response
