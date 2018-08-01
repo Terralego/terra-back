@@ -201,34 +201,22 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
             'can_comment_requests',
         ])
         response = self._patch_comment(comment.pk, comment_request)
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        comment_updated = Comment.objects.get(pk=response.json().get('id'))
-        self.assertNotEqual(comment.properties, comment_updated.properties)
-        self.assertEqual('Hello world',
-                         comment_updated.properties.get('comment'))
-        self.assertEqual('filename.txt', comment_updated.filename)
+        # Update is forbidden for all users
+        self.assertEqual(status.HTTP_405_METHOD_NOT_ALLOWED,
+                         response.status_code)
 
-    def test_update_simple_comment_attachment(self):
-        comment = CommentFactory(userrequest=self.request,
-                                 attachment=SimpleUploadedFile(
-                                     'terminator.txt',
-                                     b'I\'ll be back'
-                                 ))
-        tmp_file = StringIO('I\'m back')
-        tmp_file.name = 'terminator2.txt'
-        comment_request = {
-            'attachment': tmp_file
-        }
+    def test_delete_comment(self):
+        comment = CommentFactory(userrequest=self.request)
         self._set_permissions([
             'can_comment_requests',
+            'can_internal_comment_requests',
         ])
-        response = self._patch_comment(comment.pk,
-                                       comment_request,
-                                       format='multipart')
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        comment_updated = Comment.objects.get(pk=response.json().get('id'))
-        self.assertEqual(comment.properties, comment_updated.properties)
-        self.assertEqual(tmp_file.name, comment_updated.filename)
+        response = self.client.delete(
+            reverse('comment-detail', args=[self.request.pk, comment.pk]),
+            format=format)
+        # Delete a comment is forbidden
+        self.assertEqual(status.HTTP_405_METHOD_NOT_ALLOWED,
+                         response.status_code)
 
     def test_attachment_url_value(self):
         c = CommentFactory(userrequest=self.request,
