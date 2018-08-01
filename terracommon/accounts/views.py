@@ -8,6 +8,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from terracommon.events.signals import event
+
 from .forms import PasswordSetAndResetForm
 from .serializers import (PasswordResetSerializer, TerraUserSerializer,
                           UserProfileSerializer)
@@ -53,6 +55,12 @@ class UserRegisterView(APIView):
                 form.save(**opts)
 
                 serializer = TerraUserSerializer(user)
+                event.send(
+                    self.__class__,
+                    action="USER_CREATED",
+                    user=user,
+                    instance=user
+                )
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(data=form.errors,

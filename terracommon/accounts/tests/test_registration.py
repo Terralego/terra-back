@@ -1,3 +1,6 @@
+from unittest.mock import MagicMock
+
+from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.test import TestCase
@@ -5,6 +8,9 @@ from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+
+from terracommon.accounts.views import UserRegisterView
+from terracommon.events.signals import event
 
 from .factories import TerraUserFactory
 
@@ -30,11 +36,25 @@ class RegistrationTestCase(TestCase):
         )
         self.assertEqual(400, response.status_code)
 
+        # Testing with good email
+        handler = MagicMock()
+        event.connect(handler)
+
         response = self.client.post(
             reverse('accounts:register'),
             {
                 'email': 'toto@terra.com',
             })
+
+        user = get_user_model().objects.get(email='toto@terra.com')
+        handler.assert_called_once_with(
+            signal=event,
+            action='USER_CREATED',
+            sender=UserRegisterView,
+            user=user,
+            instance=user
+        )
+
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(mail.outbox))
         self.assertEqual('application/json', response['Content-Type'])
