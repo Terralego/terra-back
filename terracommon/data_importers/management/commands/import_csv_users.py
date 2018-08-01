@@ -53,7 +53,7 @@ class Command(BaseCommand):
                             )
         parser.add_argument('-g', '--group',
                             required=False,
-                            action='store',
+                            action='append',
                             dest='group',
                             help=_("Default group of newly created users")
                             )
@@ -71,6 +71,8 @@ class Command(BaseCommand):
                   for fieldname in reader.fieldnames
                   if fieldname not in ['', username, password]]
 
+        groups = Group.objects.filter(name__in=options.get('group'))
+
         for row in reader:
             user = UserModel.objects.create(
                 **{
@@ -83,6 +85,4 @@ class Command(BaseCommand):
             else:
                 user.set_unusable_password()
 
-            if options.get('group'):
-                group = Group.objects.get(name=options.get('group'))
-                user.groups.add(group)
+            user.groups.add(*groups)
