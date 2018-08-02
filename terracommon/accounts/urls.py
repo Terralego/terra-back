@@ -1,8 +1,8 @@
 from django.conf.urls import url
 from django.urls import path
 
-from .views import (SettingsView, UserInformationsView, UserProfileView,
-                    UserRegisterView, UserSetPasswordView)
+from .views import (SettingsView, UserChangePasswordView, UserInformationsView,
+                    UserProfileView, UserRegisterView, UserSetPasswordView)
 
 app_name = 'accounts'
 
@@ -14,4 +14,6 @@ urlpatterns = [
     url((r'^accounts/change-password/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/'
          r'(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$'),
         UserSetPasswordView.as_view(), name='reset-password'),
+    url(r'^accounts/change-password/reset/',
+        UserChangePasswordView.as_view(), name='new-password'),
 ]

@@ -8,6 +8,39 @@ from rest_framework.serializers import ValidationError
 UserModel = get_user_model()
 
 
+class PasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(max_length=128, required=False)
+    new_password1 = serializers.CharField(max_length=128)
+    new_password2 = serializers.CharField(max_length=128)
+
+    set_password_form_class = SetPasswordForm
+
+    def __init__(self, user, **kwargs):
+        self.user = user
+        super().__init__(**kwargs)
+
+    def validate_old_password(self, value):
+        if (self.user.has_usable_password()
+                and not self.user.check_password(value)):
+            raise ValidationError('Invalid password')
+        return value
+
+    def validate(self, attrs):
+        if not self.user:
+            raise ValidationError({'User': ['Invalid user']})
+
+        self.set_password_form = self.set_password_form_class(
+            user=self.user, data=attrs
+        )
+
+        if not self.set_password_form.is_valid():
+            raise ValidationError(self.set_password_form.errors)
+        return attrs
+
+    def save(self):
+        return self.set_password_form.save()
+
+
 class PasswordResetSerializer(serializers.Serializer):
     old_password = serializers.CharField(max_length=128, required=False)
     new_password1 = serializers.CharField(max_length=128)
