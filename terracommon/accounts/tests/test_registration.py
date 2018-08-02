@@ -8,6 +8,7 @@ from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from rest_framework import status
 
 from terracommon.accounts.views import UserRegisterView
 from terracommon.events.signals import event
@@ -25,7 +26,7 @@ class RegistrationTestCase(TestCase):
             {
                 'email': 'toto@terra.',
             })
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
         # Testing email is empty
         response = self.client.post(
@@ -34,7 +35,7 @@ class RegistrationTestCase(TestCase):
                 'email': '',
             }
         )
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
         # Testing with good email
         handler = MagicMock()
@@ -55,7 +56,7 @@ class RegistrationTestCase(TestCase):
             instance=user
         )
 
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(1, len(mail.outbox))
         self.assertEqual('application/json', response['Content-Type'])
         self.assertIn(b'id', response.content)
@@ -70,7 +71,7 @@ class RegistrationTestCase(TestCase):
                 'email': 'toto@terra.com',
             }
         )
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
 
     def test_reset_password(self):
         user = TerraUserFactory()
@@ -86,7 +87,7 @@ class RegistrationTestCase(TestCase):
                 'new_password2': 'pass1false',
             }
         )
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
         # Good password and
         new_password = "azerty"
@@ -100,5 +101,5 @@ class RegistrationTestCase(TestCase):
         )
 
         user.refresh_from_db()
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertTrue(user.check_password(new_password))
