@@ -7,7 +7,7 @@ from django.utils.log import DEFAULT_LOGGING
 
 from terracommon.terra.helpers import Choices
 
-PROJECT_DIR = os.path.abspath(os.environ.get('PROJECT_DIR'))
+PROJECT_DIR = os.path.abspath('.')
 SRC_DIR = os.path.dirname(PROJECT_DIR)
 BASE_DIR = os.path.dirname(SRC_DIR)
 PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
