@@ -35,7 +35,7 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
         mytemplate_path = str(mytemplate.template)
         mytemplate_name = str(mytemplate.name)
 
-        cache_name = mytemplate_path + mytemplate_name + '.pdf'
+        cache_name = f'{mytemplate_path}{mytemplate_name}.pdf'
         template_cache = CachedDocument(cache_name)
 
         if not template_cache.is_cached():
