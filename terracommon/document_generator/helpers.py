@@ -26,10 +26,10 @@ class DocumentGenerator:
 
 class CachedDocument:
     """ Manage document caching through filesystem """
-    cache_root = settings.MEDIA_ROOT + 'cache/'
+    cache_root = os.path.join(settings.MEDIA_ROOT, 'cache/')
 
     def __init__(self, path):
-        self.path = self.cache_root + path
+        self.path = os.path.join(self.cache_root, path)
 
     def create_cache(self, content, writing_mode):
         """ Create a file cache for a given content
