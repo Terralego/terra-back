@@ -95,3 +95,9 @@ class SettingsView(APIView):
         terra_settings.update(settings.TERRA_APPLIANCE_SETTINGS)
 
         return Response(terra_settings)
+
+
+class UserInformationsView(APIView):
+    def get(self, request):
+        user = self.request.user
+        return Response(TerraUserSerializer(user).data)
