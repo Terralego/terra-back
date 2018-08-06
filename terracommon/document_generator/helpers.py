@@ -37,6 +37,9 @@ class CachedDocument:
         content: data to store in cache file
         file_type: 'wb' or 'w' for binary or text.
         """
+        allowed_mode = ['w', 'wb']
+        if writing_mode not in allowed_mode:
+            raise ValueError("writting mode should be 'w' or 'wb'")
 
         cache_dir = os.path.dirname(self.path)
         if not os.path.isdir(cache_dir):
