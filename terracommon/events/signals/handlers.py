@@ -2,6 +2,7 @@ import types
 from datetime import date, timedelta
 
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.core.mail import send_mail
 from django.utils.functional import cached_property
 from simpleeval import EvalWithCompoundTypes, simple_eval
@@ -163,3 +164,15 @@ class TimeDeltaHandler(AbstractHandler):
 
     def _get_timedelta(self):
         return timedelta(days=int(self.settings['daysdelta']))
+
+
+class SetGroupHandler(AbstractHandler):
+    settings = {
+        'condition': 'True',
+        'group': None,
+        'userfield': None,
+    }
+
+    def __call__(self):
+        group = Group.objects.get(name=self.settings['group'])
+        self.args[self.settings['userfield']].groups.add(group)
