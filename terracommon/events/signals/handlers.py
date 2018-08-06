@@ -175,6 +175,29 @@ class TimeDeltaHandler(AbstractHandler):
         return timedelta(days=int(self.settings['daysdelta']))
 
 
+class SendNotificationHandler(AbstractHandler):
+
+    settings = {
+        'condition': 'True',
+        'level': 'info',
+        'message': "New notifications received",
+        'event_code': 'default_notification',
+    }
+
+    def __call__(self):
+        message = self.settings['message'].format(**self.vars)
+        uuid = (self.args['instance'].uuid
+                if hasattr(self.args['instance'], 'uuid') else None)
+
+        self.args['user'].notifications.create(
+            level=self.settings.get('level'),
+            message=message,
+            event_code=self.settings.get('event_code'),
+            identifier=self.args['instance'].pk,
+            uuid=uuid,
+        )
+
+
 class SetGroupHandler(AbstractHandler):
     settings = {
         'condition': 'True',

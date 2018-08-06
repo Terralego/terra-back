@@ -15,6 +15,7 @@ CUSTOM_APPS = (
     'terracommon.terra',
     'terracommon.trrequests',
     'terracommon.accounts',
+    'terracommon.notifications',
     'terracommon.data_importers',
     'terracommon.events',
     'terracommon.document_generator',
