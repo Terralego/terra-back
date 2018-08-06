@@ -49,11 +49,20 @@ class AbstractHandler(object):
 
     @cached_property
     def functions(self):
-        return {
+        functions = {
             f: getattr(funcs, f)
             for f in dir(funcs)
             if isinstance(getattr(funcs, f), types.FunctionType)
         }
+
+        functions.update({
+            'min': min,
+            'max': max,
+            'any': any,
+            'all': all,
+        })
+
+        return functions
 
     def __call__(self):
         raise NotImplementedError
