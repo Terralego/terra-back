@@ -24,6 +24,7 @@ services:
       - docker.env
     environment:
       - DJANGO_SETTINGS_MODULE=terracommon.project.settings.dev
+      - PROJECT_PACKAGE=terracommon.project
     depends_on:
       - db
       - convertit
