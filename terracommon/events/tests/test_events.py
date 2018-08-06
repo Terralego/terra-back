@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 
+from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -8,6 +9,7 @@ from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.events.models import EventHandler
 from terracommon.events.signals import event
 from terracommon.events.signals.handlers import (SendNotificationHandler,
+                                                 SetGroupHandler,
                                                  TimeDeltaHandler)
 from terracommon.trrequests.tests.factories import UserRequestFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin
@@ -131,3 +133,32 @@ class UserNotificationHandlerTestCase(TestCase):
             notification.message,
             f'notification {event} {self.userrequest.owner.email}')
         self.assertEqual(notification.event_code, 'test_notification')
+
+
+class SetGroupHandlerTestCase(TestCase):
+
+    def setUp(self):
+        self.user = TerraUserFactory()
+        self.group = Group.objects.create(name="testgroup")
+
+    def test_handler(self):
+        args = {
+            'instance': self.user,
+            'user': self.user,
+        }
+
+        # test with nested values
+        executor = SetGroupHandler(
+            'USER_CREATED',
+            {'userfield': 'user', 'group': self.group.name},
+            **args)
+
+        if executor.valid_condition():
+            executor()
+
+        self.user.refresh_from_db()
+
+        self.assertEqual(
+            self.user.groups.first(),
+            self.group
+            )
