@@ -1,3 +1,6 @@
+from unittest.mock import MagicMock
+
+from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.test import TestCase
@@ -5,6 +8,10 @@ from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from rest_framework import status
+
+from terracommon.accounts.views import UserRegisterView
+from terracommon.events.signals import event
 
 from .factories import TerraUserFactory
 
@@ -19,7 +26,7 @@ class RegistrationTestCase(TestCase):
             {
                 'email': 'toto@terra.',
             })
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
         # Testing email is empty
         response = self.client.post(
@@ -28,14 +35,28 @@ class RegistrationTestCase(TestCase):
                 'email': '',
             }
         )
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+
+        # Testing with good email
+        handler = MagicMock()
+        event.connect(handler)
 
         response = self.client.post(
             reverse('accounts:register'),
             {
                 'email': 'toto@terra.com',
             })
-        self.assertEqual(200, response.status_code)
+
+        user = get_user_model().objects.get(email='toto@terra.com')
+        handler.assert_called_once_with(
+            signal=event,
+            action='USER_CREATED',
+            sender=UserRegisterView,
+            user=user,
+            instance=user
+        )
+
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(1, len(mail.outbox))
         self.assertEqual('application/json', response['Content-Type'])
         self.assertIn(b'id', response.content)
@@ -50,7 +71,7 @@ class RegistrationTestCase(TestCase):
                 'email': 'toto@terra.com',
             }
         )
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
 
     def test_reset_password(self):
         user = TerraUserFactory()
@@ -66,7 +87,7 @@ class RegistrationTestCase(TestCase):
                 'new_password2': 'pass1false',
             }
         )
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
         # Good password and
         new_password = "azerty"
@@ -80,5 +101,5 @@ class RegistrationTestCase(TestCase):
         )
 
         user.refresh_from_db()
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertTrue(user.check_password(new_password))

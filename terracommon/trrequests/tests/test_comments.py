@@ -49,6 +49,7 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(self.request.owner.pk,
                          response.get('owner').get('id'))
         self.assertEqual('lipsum', response.get('properties').get('comment'))
+        self.assertIsNone(response.get('properties').get('attachment_url'))
 
     def test_internal_comment_creation_without_internal_permission(self):
         comment_request = {
