@@ -71,6 +71,8 @@ class CommentSerializer(serializers.ModelSerializer):
     geojson = GeoJSONLayerSerializer(source='layer', required=False)
 
     def get_attachment_url(self, obj):
+        if not obj.attachment:
+            return None
         return reverse('comment-attachment', args=[obj.userrequest_id, obj.pk])
 
     def create(self, validated_data):
