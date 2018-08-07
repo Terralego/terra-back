@@ -41,12 +41,13 @@ class AbstractHandler(object):
 
     @cached_property
     def vars(self):
-        attrs = {
+        attrs = {k: str(v) for k, v in self.args.items()}
+        attrs.update({
             'settings': self.settings,
             'event': self.event,
-        }
-        attrs.update({k: str(v) for k, v in self.args.items()})
-        attrs['instance'] = self.serialized_instance
+            'instance': self.serialized_instance,
+        })
+
         return attrs
 
     @cached_property
@@ -116,12 +117,14 @@ class SendEmailHandler(AbstractHandler):
 
     @cached_property
     def vars(self):
-        return {
+        vars = super().vars
+        vars.update({
             'user': {
                 'email': self.args['user'].email,
                 'properties': self.args['user'].properties
             },
-        }
+        })
+        return vars
 
     def _get_recipient_data(self, email):
         try:
