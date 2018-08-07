@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.mail import send_mail
+from django.forms.models import model_to_dict
 from django.utils.functional import cached_property
 from simpleeval import EvalWithCompoundTypes, simple_eval
 
@@ -45,7 +46,12 @@ class AbstractHandler(object):
             'event': self.event,
         }
         attrs.update({k: str(v) for k, v in self.args.items()})
+        attrs['instance'] = self.serialized_instance
         return attrs
+
+    @cached_property
+    def serialized_instance(self):
+        return model_to_dict(self.args['instance'])
 
     @cached_property
     def functions(self):
