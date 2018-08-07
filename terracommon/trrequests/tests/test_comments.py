@@ -1,3 +1,4 @@
+import datetime
 import json
 from io import StringIO
 
@@ -171,8 +172,43 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         comment_updated = Comment.objects.get(pk=response.json().get('id'))
         self.assertEqual('lipsum', comment_updated.properties.get('comment'))
         self.assertIsNotNone(comment_updated.attachment)
+        self.assertIn(f'comment_{datetime.date.today():%d}',
+                      comment_updated.attachment.url)
         self.assertEqual(tmp_file.name, comment_updated.filename)
         self.assertNotEqual(tmp_file.name, comment_updated.attachment.name)
+
+    def test_comment_creations_with_same_filename(self):
+        tmp_file = StringIO('File content')
+        tmp_file.name = 'filename.txt'
+        comment_request = {
+            'is_internal': False,
+            'attachment': tmp_file,
+        }
+        self._set_permissions([
+            'can_comment_requests',
+        ])
+        # Comment 1
+        comment1_request = comment_request.copy()
+        comment1_request['properties'] = json.dumps({
+            'comment': 'lorem',
+        })
+        response1 = self._post_comment(comment1_request, format='multipart')
+        self.assertEqual(status.HTTP_201_CREATED, response1.status_code)
+        comment1_updated = Comment.objects.get(pk=response1.json().get('id'))
+        self.assertIsNotNone(comment1_updated.attachment)
+        # Comment 2
+        tmp_file.seek(0)
+        comment2_request = comment_request.copy()
+        comment2_request['properties'] = json.dumps({
+            'comment': 'lorem',
+        })
+        response2 = self._post_comment(comment2_request, format='multipart')
+        self.assertEqual(status.HTTP_201_CREATED, response2.status_code)
+        comment2_updated = Comment.objects.get(pk=response2.json().get('id'))
+        self.assertIsNotNone(comment2_updated.attachment)
+
+        self.assertNotEqual(comment1_updated.attachment.url,
+                            comment2_updated.attachment.url)
 
     def test_download_comment_attachment(self):
         tmp_file = SimpleUploadedFile('filename.txt', b'File content')
