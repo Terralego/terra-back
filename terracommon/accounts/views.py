@@ -11,8 +11,8 @@ from rest_framework.views import APIView
 from terracommon.events.signals import event
 
 from .forms import PasswordSetAndResetForm
-from .serializers import (PasswordResetSerializer, TerraUserSerializer,
-                          UserProfileSerializer)
+from .serializers import (PasswordChangeSerializer, PasswordResetSerializer,
+                          TerraUserSerializer, UserProfileSerializer)
 
 
 class UserProfileView(RetrieveUpdateAPIView):
@@ -74,6 +74,18 @@ class UserSetPasswordView(APIView):
 
     def post(self, request, uidb64, token):
         serializer = PasswordResetSerializer(uidb64, token, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response({'detail': 'Password has been changed'})
+
+
+class UserChangePasswordView(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def post(self, request):
+        serializer = PasswordChangeSerializer(request.user, data=request.data)
         serializer.is_valid(raise_exception=True)
 
         serializer.save()
