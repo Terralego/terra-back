@@ -10,10 +10,9 @@ class ChangePasswordTestCase(TestCase):
     def setUp(self):
         self.user = TerraUserFactory()
         self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
+        self.client.login(email=self.user.email, password='123456')
 
     def test_change_password(self):
-        old_pass = self.user.password
         response = self.client.post(
             reverse('accounts:new-password'),
             {
@@ -23,10 +22,11 @@ class ChangePasswordTestCase(TestCase):
             }
         )
         self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertNotEqual(old_pass, self.user.password)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.check_password('123456'))
+        self.assertTrue(self.user.check_password('654321'))
 
     def test_change_password_not_same(self):
-        old_pass = self.user.password
         response = self.client.post(
             reverse('accounts:new-password'),
             {
@@ -36,7 +36,10 @@ class ChangePasswordTestCase(TestCase):
             }
         )
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
-        self.assertEqual(old_pass, self.user.password)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.check_password('654321'))
+        self.assertFalse(self.user.check_password('654123'))
+        self.assertTrue(self.user.check_password('123456'))
 
     def test_change_password_wrong_old_password(self):
         response = self.client.post(
@@ -47,12 +50,12 @@ class ChangePasswordTestCase(TestCase):
                 'new_password2': 'whocares',
             }
         )
-        old_pass = self.user.password
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
-        self.assertEqual(old_pass, self.user.password)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.check_password('654321'))
+        self.assertFalse(self.user.check_password('whocares'))
 
     def test_change_password_missing_confirmation_password(self):
-        old_pass = self.user.password
         response = self.client.post(
             reverse('accounts:new-password'),
             {
@@ -61,11 +64,12 @@ class ChangePasswordTestCase(TestCase):
             }
         )
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
-        self.assertEqual(old_pass, self.user.password)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.check_password('654321'))
+        self.assertTrue(self.user.check_password('123456'))
 
     def test_change_password_without_authentication(self):
-        old_pass = self.user.password
-        self.client.force_authenticate(user=None)
+        self.client.logout()
         response = self.client.post(
             reverse('accounts:new-password'),
             {
@@ -75,4 +79,6 @@ class ChangePasswordTestCase(TestCase):
             }
         )
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
-        self.assertEqual(old_pass, self.user.password)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.check_password('654321'))
+        self.assertTrue(self.user.check_password('123456'))
