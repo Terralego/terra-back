@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.http.response import Http404, HttpResponseServerError
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, permissions, viewsets
+from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter
@@ -55,6 +55,11 @@ class RequestViewSet(viewsets.ModelViewSet):
             return Response(settings.REQUEST_SCHEMA)
         else:
             return HttpResponseServerError()
+
+    @detail_route(methods=['get'])
+    def read(self, request, pk):
+        self.get_object().user_read(request.user)
+        return Response(status=status.HTTP_200_OK)
 
 
 class CommentViewSet(mixins.CreateModelMixin,

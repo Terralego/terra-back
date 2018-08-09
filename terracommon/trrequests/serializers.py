@@ -3,8 +3,11 @@ import uuid
 
 from django.db import transaction
 from django.urls import reverse
+from django.utils.functional import cached_property
 from rest_framework import serializers
+from rest_framework.fields import CurrentUserDefault
 
+from terracommon.accounts.models import ReadModel
 from terracommon.accounts.serializers import TerraUserSerializer
 from terracommon.events.signals import event
 from terracommon.terra.models import Layer
@@ -17,6 +20,8 @@ class UserRequestSerializer(serializers.ModelSerializer):
     owner = TerraUserSerializer(read_only=True)
     geojson = GeoJSONLayerSerializer(source='layer')
     reviewers = TerraUserSerializer(read_only=True, many=True)
+    has_new_comments = serializers.SerializerMethodField()
+    has_new_changes = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -58,6 +63,23 @@ class UserRequestSerializer(serializers.ModelSerializer):
                 old_state=old_state)
 
         return instance
+
+    @cached_property
+    def current_user(self):
+        return self.context['request'].user
+
+    def get_has_new_comments(self, obj):
+        read = obj.get_user_read(self.current_user)
+        last_comment = obj.comments.all().order_by('-updated_at').first()
+        if read is None and last_comment is not None:
+            return True
+
+        return last_comment is not None and (read.last_read < last_comment.updated_at)
+
+    def get_has_new_changes(self, obj):
+        read = obj.get_user_read(self.current_user)
+
+        return read is None or (read.last_read < obj.updated_at)
 
     class Meta:
         model = UserRequest
