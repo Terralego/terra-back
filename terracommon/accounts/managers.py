@@ -44,7 +44,7 @@ class ReadModelManager(Manager):
                         user=user,
                         contenttype=contenttype,
                         identifier=obj.pk)
-        
+
         if not is_new:
             read.read_instance()
 

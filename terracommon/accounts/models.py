@@ -40,6 +40,7 @@ class TerraUser(AbstractBaseUser, PermissionsMixin):
 
     objects = TerraUserManager()
 
+
 UserModel = get_user_model()
 
 

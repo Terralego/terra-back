@@ -17,7 +17,6 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
         self._set_permissions(['can_read_self_requests', ])
         self.client.force_authenticate(user=self.user)
 
-
     def test_nocomment_and_unread(self):
         userrequest = UserRequestFactory(owner=self.user)
         response = self.client.get(

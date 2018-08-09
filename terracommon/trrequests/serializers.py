@@ -5,9 +5,7 @@ from django.db import transaction
 from django.urls import reverse
 from django.utils.functional import cached_property
 from rest_framework import serializers
-from rest_framework.fields import CurrentUserDefault
 
-from terracommon.accounts.models import ReadModel
 from terracommon.accounts.serializers import TerraUserSerializer
 from terracommon.events.signals import event
 from terracommon.terra.models import Layer
@@ -39,7 +37,9 @@ class UserRequestSerializer(serializers.ModelSerializer):
                 'layer': layer,
             })
 
-            return super().create(validated_data)
+            instance = super().create(validated_data)
+            instance.user_read(self.current_user)
+            return instance
 
     def update(self, instance, validated_data):
         old_state = instance.state
@@ -62,11 +62,13 @@ class UserRequestSerializer(serializers.ModelSerializer):
                 instance=instance,
                 old_state=old_state)
 
+        instance.user_read(self.current_user)
         return instance
 
     @cached_property
     def current_user(self):
-        return self.context['request'].user
+        return (self.context['request'].user
+                if 'request' in self.context else None)
 
     def get_has_new_comments(self, obj):
         read = obj.get_user_read(self.current_user)
@@ -74,7 +76,8 @@ class UserRequestSerializer(serializers.ModelSerializer):
         if read is None and last_comment is not None:
             return True
 
-        return last_comment is not None and (read.last_read < last_comment.updated_at)
+        return (last_comment is not None
+                and (read.last_read < last_comment.updated_at))
 
     def get_has_new_changes(self, obj):
         read = obj.get_user_read(self.current_user)
@@ -116,7 +119,9 @@ class CommentSerializer(serializers.ModelSerializer):
                     'layer': layer,
                 })
 
-            return super().create(validated_data)
+            instance = super().create(validated_data)
+            instance.userrequest.user_read(self.context['request'].user)
+            return instance
 
     class Meta:
         model = Comment
