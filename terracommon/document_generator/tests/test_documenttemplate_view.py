@@ -1,8 +1,10 @@
 import os
 from unittest.mock import Mock
 
+from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
+from rest_framework import status
 from rest_framework.test import APIClient
 
 from terracommon.accounts.tests.factories import TerraUserFactory
@@ -16,6 +18,9 @@ class DocumentTemplateViewTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = TerraUserFactory()
+        self.permission = Permission.objects.get(
+            codename='can_create_documenttemplate')
+        self.user.user_permissions.add(self.permission)
         self.client.force_authenticate(user=self.user)
 
         # get testing template
@@ -56,7 +61,7 @@ class DocumentTemplateViewTestCase(TestCase):
         pks = {'request_pk': fake_userrequest.pk, 'pk': myodt.pk}
         response = self.client.post(reverse(self.pdf_url, kwargs=pks))
 
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual('application/pdf', response['Content-Type'])
         self.assertEqual(f'attachment;filename={cache_filename}',
                          response['Content-Disposition'])
@@ -71,7 +76,7 @@ class DocumentTemplateViewTestCase(TestCase):
         # Testing bad request_pk
         pks = {'request_pk': 999, 'pk': myodt.pk}
         response = self.client.post(reverse(self.pdf_url, kwargs=pks))
-        self.assertEqual(404, response.status_code)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
     def test_pdf_creator_with_bad_pk(self):
         fake_userrequest = UserRequestFactory(owner=self.user,
@@ -79,9 +84,9 @@ class DocumentTemplateViewTestCase(TestCase):
         # Testing bad pk
         pks = {'request_pk': fake_userrequest.pk, 'pk': 9999}
         response = self.client.post(reverse(self.pdf_url, kwargs=pks))
-        self.assertEqual(404, response.status_code)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
-    def test_pdf_creator_without_permission(self):
+    def test_pdf_creator_without_owner_permission(self):
         myodt = DocumentTemplate.objects.get(name='testodt')
 
         # Testing authenticated user without permissions
@@ -89,7 +94,19 @@ class DocumentTemplateViewTestCase(TestCase):
         pks = {'request_pk': userrequest.pk, 'pk': myodt.pk}
 
         response = self.client.post(reverse(self.pdf_url, kwargs=pks))
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+
+    def test_pdf_creator_without_create_documenttemplate_permissions(self):
+        # removing user permissions to create document templage
+        self.user.user_permissions.remove(self.permission)
+
+        myodt = DocumentTemplate.objects.get(name='testodt')
+        userrequest = UserRequestFactory(owner=self.user,
+                                         properties=self.properties)
+        pks = {'request_pk': userrequest.pk, 'pk': myodt.pk}
+        response = self.client.post(reverse(self.pdf_url, kwargs=pks))
+
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
     def test_pdf_creator_with_authentication(self):
         myodt = DocumentTemplate.objects.get(name='testodt')
@@ -101,4 +118,4 @@ class DocumentTemplateViewTestCase(TestCase):
         self.client.force_authenticate(user=None)
         pks = {'request_pk': fake_userrequest.pk, 'pk': myodt.pk}
         response = self.client.post(reverse(self.pdf_url, kwargs=pks))
-        self.assertEqual(401, response.status_code)
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
