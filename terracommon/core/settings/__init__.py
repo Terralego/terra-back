@@ -8,9 +8,7 @@ from django.utils.log import DEFAULT_LOGGING
 from terracommon.terra.helpers import Choices
 
 PROJECT_DIR = os.path.abspath('.')
-SRC_DIR = os.path.dirname(PROJECT_DIR)
-BASE_DIR = os.path.dirname(SRC_DIR)
-PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
+PUBLIC_DIR = os.path.join(PROJECT_DIR, 'public')
 PROJECT_NAME = os.environ.get('PROJECT_PACKAGE')
 
 # Quick-start development settings - unsuitable for production
