@@ -87,7 +87,7 @@ class UserRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserRequest
         exclude = ('layer',)
-        read_only_fields = ('owner',)
+        read_only_fields = ('owner', 'expiry')
 
 
 class CommentSerializer(serializers.ModelSerializer):

@@ -39,6 +39,8 @@ class UserRequest(BaseUpdatableModel, ReadableModelMixin):
             ('can_comment_requests', 'Is able to comment an user request'),
             ('can_internal_comment_requests',
              'Is able to add comments not visible by users'),
+            ('can_read_comment_requests',
+             'Is allowed to read only non-internal comments'),
             ('can_change_state_requests',
              'Is authorized to change the request state'),
         )
