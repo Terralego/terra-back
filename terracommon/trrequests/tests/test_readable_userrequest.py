@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from terracommon.accounts.tests.factories import TerraUserFactory
+from terracommon.trrequests.models import UserRequest
 
 from .factories import CommentFactory, UserRequestFactory
 from .mixins import TestPermissionsMixin
@@ -70,3 +71,48 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
             reverse('request-detail', args=[userrequest.pk, ])).json()
 
         self.assertTrue(response['has_new_changes'])
+
+    def test_userrequest_and_comment_creation_read(self):
+        request = {
+            'properties': {
+                'myproperty': 'myvalue',
+            },
+            'geojson': {},
+        }
+
+        self._set_permissions(['can_create_requests', ])
+        response = self.client.post(reverse('request-list'),
+                                    request,
+                                    format='json')
+        ur = UserRequest.objects.get(pk=response.json()['id'])
+        read_object = ur.get_user_read(self.user)
+        self.assertIsNotNone(read_object)
+        read_object.delete()
+
+        # test update
+        response = self.client.patch(
+                    reverse('request-detail', args=[ur.pk, ]),
+                    request,
+                    format='json')
+        read_object = ur.get_user_read(self.user)
+        self.assertIsNotNone(read_object)
+        read_object.delete()
+
+        # test comment
+        comment_request = {
+            'is_internal': False,
+            'properties': {
+                'comment': 'lipsum',
+            }
+        }
+        self._set_permissions([
+            'can_comment_requests',
+        ])
+        response = self.client.post(reverse('comment-list',
+                                    args=[ur.pk, ]),
+                                    comment_request,
+                                    format='json')
+
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        read_object = ur.get_user_read(self.user)
+        self.assertIsNotNone(read_object)
