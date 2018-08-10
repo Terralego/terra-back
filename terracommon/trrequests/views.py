@@ -75,7 +75,9 @@ class CommentViewSet(mixins.CreateModelMixin,
                 'trrequests.can_internal_comment_requests'):
             filter |= Q(is_internal=True)
 
-        if not self.request.user.has_perm('trrequests.can_comment_requests'):
+        if (not self.request.user.has_perm('trrequests.can_comment_requests')
+            and not self.request.user.has_perm(
+                        'trrequests.can_read_comment_requests')):
             filter |= Q(is_internal=False)
 
         return query.exclude(filter)
