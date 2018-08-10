@@ -1,6 +1,6 @@
 import json
-import uuid
 import logging
+import uuid
 
 from django.db import transaction
 from django.urls import reverse
@@ -13,7 +13,6 @@ from terracommon.terra.models import Layer
 from terracommon.terra.serializers import GeoJSONLayerSerializer
 
 from .models import Comment, UserRequest
-
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +44,8 @@ class UserRequestSerializer(serializers.ModelSerializer):
             try:
                 instance.user_read(self.current_user)
             except AttributeError:
-                logger.info('Cannot set object read since current_user is unknown')
+                logger.info('Cannot set object read since current_user is '
+                            'unknown')
             return instance
 
     def update(self, instance, validated_data):
@@ -72,7 +72,8 @@ class UserRequestSerializer(serializers.ModelSerializer):
         try:
             instance.user_read(self.current_user)
         except AttributeError:
-            logger.info('Cannot set object read since current_user is unknown')
+            logger.info('Cannot set object read since current_user is '
+                        'unknown')
         return instance
 
     @cached_property
@@ -133,7 +134,8 @@ class CommentSerializer(serializers.ModelSerializer):
             try:
                 instance.userrequest.user_read(self.context['request'].user)
             except AttributeError:
-                logger.info('Cannot set object read since current_user is unknown')
+                logger.info('Cannot set object read since current_user is '
+                            'unknown')
             return instance
 
     class Meta:
