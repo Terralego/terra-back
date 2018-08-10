@@ -17,7 +17,7 @@ django-debug-toolbar>=1.9,<1.10
 django-extensions>=2.0,<2.1
 
 # testing
-tox
+tox>=3.2,<3.3
 coverage
 isort
 pylama
