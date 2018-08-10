@@ -37,7 +37,7 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
 
         mytemplate = get_object_or_404(DocumentTemplate, pk=pk)
 
-        mytemplate_path = str(mytemplate.template)
+        mytemplate_path = str(mytemplate.documenttemplate)
         mytemplate_name = str(mytemplate.name)
 
         cache_name = f'{mytemplate_path}{mytemplate_name}.pdf'
