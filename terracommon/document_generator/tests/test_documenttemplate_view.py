@@ -30,7 +30,7 @@ class DocumentTemplateViewTestCase(TestCase):
 
         # Store it in the database
         DocumentTemplate.objects.create(name='testodt',
-                                        template=tmp_odt)
+                                        documenttemplate=tmp_odt)
 
         # Create a fake UserRequest
         self.properties = {
@@ -45,7 +45,7 @@ class DocumentTemplateViewTestCase(TestCase):
         myodt = DocumentTemplate.objects.get(name='testodt')
 
         # Remove cache if cached
-        cache_filename = f'{myodt.template}{myodt.name}.pdf'
+        cache_filename = f'{myodt.documenttemplate}{myodt.name}.pdf'
         cache_doc = CachedDocument(cache_filename)
         if cache_doc.is_cached():
             cache_doc.delete_cache()
