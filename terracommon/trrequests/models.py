@@ -63,8 +63,8 @@ class UserRequest(BaseUpdatableModel, ReadableModelMixin):
              'Is allowed to read only non-internal comments'),
             ('can_change_state_requests',
              'Is authorized to change the request state'),
-            ('can_create_documenttemplate',
-             'Is able to create a new document template')
+            ('can_download_pdf',
+             'Is able to download a pdf document')
         )
 
 
