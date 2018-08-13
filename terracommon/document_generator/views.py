@@ -1,12 +1,11 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 
 from terracommon.terra.helpers import get_media_response
 from terracommon.trrequests.models import UserRequest
-from terracommon.trrequests.permissions import IsOwnerOrStaff
+from terracommon.trrequests.permissions import CanDownloadPdf
 
 from .helpers import CachedDocument, DocumentGenerator
 from .models import DocumentTemplate
@@ -17,7 +16,7 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
     pdf_creator:
     Create a new pdf document from a template link to a user request.
     """
-    permission_classes = (IsAuthenticated, IsOwnerOrStaff, )
+    permission_classes = (IsAuthenticated, CanDownloadPdf, )
 
     @detail_route(methods=['POST'],
                   url_name='pdf',
@@ -31,9 +30,6 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
 
         userrequest = get_object_or_404(UserRequest, pk=request_pk)
         self.check_object_permissions(self.request, userrequest)
-
-        if not request.user.has_perm('trrequests.can_create_documenttemplate'):
-            return Response(status=status.HTTP_403_FORBIDDEN)
 
         mytemplate = get_object_or_404(DocumentTemplate, pk=pk)
 

@@ -19,7 +19,7 @@ class DocumentTemplateViewTestCase(TestCase):
         self.client = APIClient()
         self.user = TerraUserFactory()
         self.permission = Permission.objects.get(
-            codename='can_create_documenttemplate')
+            codename='can_download_pdf')
         self.user.user_permissions.add(self.permission)
         self.client.force_authenticate(user=self.user)
 
@@ -86,7 +86,7 @@ class DocumentTemplateViewTestCase(TestCase):
         response = self.client.post(reverse(self.pdf_url, kwargs=pks))
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
-    def test_pdf_creator_without_owner_permission(self):
+    def test_pdf_creator_not_owner_but_download_permission(self):
         myodt = DocumentTemplate.objects.get(name='testodt')
 
         # Testing authenticated user without permissions
@@ -94,15 +94,14 @@ class DocumentTemplateViewTestCase(TestCase):
         pks = {'request_pk': userrequest.pk, 'pk': myodt.pk}
 
         response = self.client.post(reverse(self.pdf_url, kwargs=pks))
-        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
 
-    def test_pdf_creator_without_create_documenttemplate_permissions(self):
-        # removing user permissions to create document templage
+    def test_pdf_creator_without_download_pdf_permissions(self):
+        # removing user permissions to create document template
         self.user.user_permissions.remove(self.permission)
 
         myodt = DocumentTemplate.objects.get(name='testodt')
-        userrequest = UserRequestFactory(owner=self.user,
-                                         properties=self.properties)
+        userrequest = UserRequestFactory(properties=self.properties)
         pks = {'request_pk': userrequest.pk, 'pk': myodt.pk}
         response = self.client.post(reverse(self.pdf_url, kwargs=pks))
 
