@@ -10,7 +10,7 @@ from terracommon.terra.serializers import LayerSerializer
 factory = APIRequestFactory()
 
 
-class JSONOrderingTestCache(TestCase):
+class JSONOrderingTestCase(TestCase):
 
     def setUp(self):
         for idx in range(3):
@@ -29,7 +29,6 @@ class JSONOrderingTestCache(TestCase):
             queryset = Layer.objects.all()
             serializer_class = LayerSerializer
             filter_backends = (JSONFieldOrderingFilter, )
-            ordering = ['name', ]
             ordering_fields = ['schema', ]
 
         view = OrderingListView.as_view()

@@ -5,8 +5,8 @@ from rest_framework.filters import OrderingFilter
 class JSONFieldOrderingFilter(OrderingFilter):
 
     def get_ordering(self, request, queryset, view):
-        # ordering = super().get_ordering(request, queryset, view)
-        ordering = None
+        ordering = super().get_ordering(request, queryset, view)
+
         params = request.query_params.get(self.ordering_param)
         if params:
             fields = [param.strip() for param in params.split(',')]
