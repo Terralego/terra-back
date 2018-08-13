@@ -132,6 +132,17 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(2, response.json().get('count'))
 
+    def test_comment_retrieval_with_only_internal_permission(self):
+        self._set_permissions([
+            'can_internal_comment_requests',
+        ])
+        for _ in range(2):
+            CommentFactory(userrequest=self.request)
+        CommentFactory(userrequest=self.request, is_internal=True)
+        response = self._get_comment_list()
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(1, response.json().get('count'))
+
     def test_comment_with_geojson(self):
         comment_request = {
             'properties': {},
