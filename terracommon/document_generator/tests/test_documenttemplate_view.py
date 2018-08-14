@@ -100,6 +100,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
     def test_pdf_creator_with_all_pdf_permission(self):
         self._set_permissions(['can_download_all_pdf', ])
+        DocumentGenerator.get_pdf = Mock(return_value=b'this is a PDF-1.4\n'
+                                                      b'Well I think it is.')
 
         userrequest = UserRequestFactory(properties=self.properties)
         pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
