@@ -132,6 +132,17 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(2, response.json().get('count'))
 
+    def test_comment_retrieval_with_only_internal_permission(self):
+        self._set_permissions([
+            'can_internal_comment_requests',
+        ])
+        for _ in range(2):
+            CommentFactory(userrequest=self.request)
+        CommentFactory(userrequest=self.request, is_internal=True)
+        response = self._get_comment_list()
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(1, response.json().get('count'))
+
     def test_comment_with_geojson(self):
         comment_request = {
             'properties': {},
@@ -224,7 +235,7 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         self.assertNotEqual(comment1_updated.attachment.url,
                             comment2_updated.attachment.url)
 
-    def test_download_comment_attachment(self):
+    def test_download_comment_attachment_without_accel_redirect(self):
         tmp_file = SimpleUploadedFile('filename.txt', b'File content')
         comment = CommentFactory(userrequest=self.request,
                                  attachment=tmp_file)
@@ -233,9 +244,25 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         ])
         response = self._get_comment_attachment(pk=comment.pk)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEquals(f'attachment; filename={tmp_file.name}',
-                          response.get('Content-Disposition'))
-        self.assertIsNotNone(response.get('X-Accel-Redirect'))
+        self.assertEqual(f'attachment; filename={tmp_file.name}',
+                         response.get('Content-Disposition'))
+        tmp_file.seek(0)
+        self.assertEqual(response.content, tmp_file.read())
+
+    def test_download_comment_attachment_with_accel_redirect(self):
+        tmp_file = SimpleUploadedFile('filename.txt', b'File content')
+        comment = CommentFactory(userrequest=self.request,
+                                 attachment=tmp_file)
+        self._set_permissions([
+            'can_comment_requests',
+        ])
+        with self.settings(MEDIA_ACCEL_REDIRECT=True):
+            response = self._get_comment_attachment(pk=comment.pk)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(f'attachment; filename={tmp_file.name}',
+                         response.get('Content-Disposition'))
+        self.assertEqual(response.get('X-Accel-Redirect'),
+                         comment.attachment.url)
 
     def test_update_simple_comment_properties(self):
         comment = CommentFactory(userrequest=self.request,

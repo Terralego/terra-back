@@ -110,7 +110,7 @@ class CommentViewSet(mixins.CreateModelMixin,
         comment = self.get_object()
         if not comment.attachment:
             raise Http404('Attachment does not exist')
-        response = get_media_response(request, comment.attachment.url,
+        response = get_media_response(request, comment.attachment,
                                       headers={
                                           'Content-Disposition': (
                                               'attachment;'
