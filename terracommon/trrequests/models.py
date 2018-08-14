@@ -3,6 +3,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from terracommon.accounts.mixins import ReadableModelMixin
 from terracommon.terra.models import Layer
 
 from .helpers import rename_comment_attachment
@@ -16,7 +17,7 @@ class BaseUpdatableModel(models.Model):
         abstract = True
 
 
-class UserRequest(BaseUpdatableModel):
+class UserRequest(BaseUpdatableModel, ReadableModelMixin):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.PROTECT,
                               related_name='userrequests')

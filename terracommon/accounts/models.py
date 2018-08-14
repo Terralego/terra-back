@@ -1,12 +1,15 @@
 import uuid
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from .managers import TerraUserManager
+from .managers import ReadModelManager, TerraUserManager
 
 
 class TerraUser(AbstractBaseUser, PermissionsMixin):
@@ -37,3 +40,19 @@ class TerraUser(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
 
     objects = TerraUserManager()
+
+
+UserModel = get_user_model()
+
+
+class ReadModel(models.Model):
+    user = models.ForeignKey(UserModel, on_delete=models.PROTECT)
+    contenttype = models.ForeignKey(ContentType, on_delete=models.PROTECT)
+    identifier = models.PositiveIntegerField()
+    model_object = GenericForeignKey('contenttype', 'identifier')
+    last_read = models.DateTimeField(auto_now=True)
+
+    objects = ReadModelManager()
+
+    def read_instance(self):
+        self.save()

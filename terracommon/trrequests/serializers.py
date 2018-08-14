@@ -1,8 +1,10 @@
 import json
+import logging
 import uuid
 
 from django.db import transaction
 from django.urls import reverse
+from django.utils.functional import cached_property
 from rest_framework import serializers
 
 from terracommon.accounts.serializers import TerraUserSerializer
@@ -12,11 +14,15 @@ from terracommon.terra.serializers import GeoJSONLayerSerializer
 
 from .models import Comment, UserRequest
 
+logger = logging.getLogger(__name__)
+
 
 class UserRequestSerializer(serializers.ModelSerializer):
     owner = TerraUserSerializer(read_only=True)
     geojson = GeoJSONLayerSerializer(source='layer')
     reviewers = TerraUserSerializer(read_only=True, many=True)
+    has_new_comments = serializers.SerializerMethodField()
+    has_new_changes = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -34,7 +40,13 @@ class UserRequestSerializer(serializers.ModelSerializer):
                 'layer': layer,
             })
 
-            return super().create(validated_data)
+            instance = super().create(validated_data)
+            try:
+                instance.user_read(self.current_user)
+            except AttributeError:
+                logger.info('Cannot set object read since current_user is '
+                            'unknown')
+            return instance
 
     def update(self, instance, validated_data):
         old_state = instance.state
@@ -57,7 +69,31 @@ class UserRequestSerializer(serializers.ModelSerializer):
                 instance=instance,
                 old_state=old_state)
 
+        try:
+            instance.user_read(self.current_user)
+        except AttributeError:
+            logger.info('Cannot set object read since current_user is '
+                        'unknown')
         return instance
+
+    @cached_property
+    def current_user(self):
+        return (self.context['request'].user
+                if 'request' in self.context else None)
+
+    def get_has_new_comments(self, obj):
+        read = obj.get_user_read(self.current_user)
+        last_comment = obj.comments.all().order_by('-updated_at').first()
+        if read is None and last_comment is not None:
+            return True
+
+        return (last_comment is not None
+                and (read.last_read < last_comment.updated_at))
+
+    def get_has_new_changes(self, obj):
+        read = obj.get_user_read(self.current_user)
+
+        return read is None or (read.last_read < obj.updated_at)
 
     class Meta:
         model = UserRequest
@@ -94,7 +130,13 @@ class CommentSerializer(serializers.ModelSerializer):
                     'layer': layer,
                 })
 
-            return super().create(validated_data)
+            instance = super().create(validated_data)
+            try:
+                instance.userrequest.user_read(self.context['request'].user)
+            except AttributeError:
+                logger.info('Cannot set object read since current_user is '
+                            'unknown')
+            return instance
 
     class Meta:
         model = Comment
