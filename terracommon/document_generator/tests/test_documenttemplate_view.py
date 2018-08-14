@@ -42,18 +42,19 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
     def test_pdf_creator_method(self):
         myodt = self.myodt
-        # Remove cache if cached
-        cache_filename = f'{myodt.documenttemplate}{myodt.name}.pdf'
-        cache_doc = CachedDocument(cache_filename)
-        if cache_doc.is_cached():
-            cache_doc.delete_cache()
-
         fake_userrequest = UserRequestFactory(properties=self.properties)
         DownloadableDocument.objects.create(
             user=self.user,
             document=self.myodt,
             linked_object=fake_userrequest
         )
+
+        # Remove cache if cached
+        cache_filename = (f'{myodt.documenttemplate}'
+                          f'{myodt.name}_{fake_userrequest.pk}.pdf')
+        cache_doc = CachedDocument(cache_filename)
+        if cache_doc.is_cached():
+            cache_doc.delete_cache()
 
         # Mock?
         DocumentGenerator.get_pdf = Mock(return_value=b'this is a PDF-1.4\n'

@@ -49,7 +49,9 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
         mytemplate_path = str(mytemplate.documenttemplate)
         mytemplate_name = str(mytemplate.name)
 
-        cache_name = f'{mytemplate_path}{mytemplate_name}.pdf'
+        # Cache_name is of the form
+        # <templatepath>/<templatename>_<pk>.pdf
+        cache_name = f'{mytemplate_path}{mytemplate_name}_{userrequest.pk}.pdf'
         template_cache = CachedDocument(cache_name)
 
         if not template_cache.is_cached():
