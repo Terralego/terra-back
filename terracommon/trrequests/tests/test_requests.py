@@ -140,14 +140,6 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(self.user.userrequests.all().count() + 1,
                          response.json().get('count'))
 
-        # Test that join query is correctly deduplicated,
-        # must return same result as previously
-        self.user.userrequests.first().reviewers.add(self.user)
-        response = self.client.get(reverse('request-list'))
-        self.assertEqual(200, response.status_code)
-        self.assertEqual(self.user.userrequests.all().count() + 1,
-                         response.json().get('count'))
-
         """Check the detail view return also the same geojson data"""
         response = self.client.get(
             reverse('request-detail', args=[request.pk]),)
@@ -156,6 +148,17 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
         layer_geojson = response.data.get('geojson')
         self.assertDictEqual(layer_geojson, request.layer.to_geojson())
 
+        self._clean_permissions()
+
+    def test_results_must_not_duplicate(self):
+        self._set_permissions(['can_read_self_requests', ])
+        request_to_review = UserRequestFactory(owner=self.user)
+        request_to_review.reviewers.add(TerraUserFactory())
+        request_to_review.reviewers.add(TerraUserFactory())
+
+        response = self.client.get(reverse('request-list'))
+        self.assertEqual(self.user.userrequests.all().count(),
+                         response.json().get('count'))
         self._clean_permissions()
 
     def test_schema(self):
