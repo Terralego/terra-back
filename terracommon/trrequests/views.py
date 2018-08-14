@@ -29,7 +29,7 @@ class RequestViewSet(viewsets.ModelViewSet):
             return UserRequest.objects.filter(
                 Q(owner=self.request.user)
                 | Q(reviewers__in=[self.request.user, ])
-            )
+            ).distinct('id')
         return UserRequest.objects.none()
 
     def create(self, request, *args, **kwargs):

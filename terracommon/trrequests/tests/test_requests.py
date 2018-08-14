@@ -150,6 +150,17 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
 
         self._clean_permissions()
 
+    def test_results_must_not_duplicate(self):
+        self._set_permissions(['can_read_self_requests', ])
+        request_to_review = UserRequestFactory(owner=self.user)
+        request_to_review.reviewers.add(TerraUserFactory())
+        request_to_review.reviewers.add(TerraUserFactory())
+
+        response = self.client.get(reverse('request-list'))
+        self.assertEqual(self.user.userrequests.all().count(),
+                         response.json().get('count'))
+        self._clean_permissions()
+
     def test_schema(self):
         response = self.client.get(reverse('request-schema'))
         self.assertDictEqual(settings.REQUEST_SCHEMA, response.json())
