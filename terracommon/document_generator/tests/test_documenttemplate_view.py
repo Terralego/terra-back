@@ -50,8 +50,9 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         )
 
         # Remove cache if cached
-        cache_filename = (f'{myodt.documenttemplate}'
-                          f'{myodt.name}_{fake_userrequest.pk}.pdf')
+        cache_filename = (f'{myodt.documenttemplate}{myodt.name}_'
+                          f'{fake_userrequest.__class__.__name__}_'
+                          f'{fake_userrequest.pk}.pdf')
         cache_doc = CachedDocument(cache_filename)
         if cache_doc.is_cached():
             cache_doc.delete_cache()
