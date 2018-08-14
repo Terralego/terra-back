@@ -22,9 +22,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self.client.force_authenticate(user=self.user)
 
         # get testing template
-        odt_dirname = ['terracommon', 'document_generator', 'tests']
-        odt_name = 'test_template.odt'
-        tmp_odt = os.path.join(*odt_dirname, odt_name)
+        tmp_odt = os.path.join(*['terracommon', 'document_generator', 'tests'],
+                               'test_template.odt')
 
         # Store it in the database
         DocumentTemplate.objects.create(name='testodt',
