@@ -54,8 +54,6 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                           f'{fake_userrequest.__class__.__name__}_'
                           f'{fake_userrequest.pk}.pdf')
         cache_doc = CachedDocument(cache_filename)
-        if cache_doc.is_cached():
-            cache_doc.delete_cache()
 
         # Mock?
         DocumentGenerator.get_pdf = Mock(return_value=b'this is a PDF-1.4\n'
@@ -73,6 +71,9 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
         DocumentGenerator.get_pdf.assert_called_with(
             fake_userrequest.properties)
+
+        # Clearing cache
+        cache_doc.delete_cache()
 
     def test_pdf_creator_with_bad_requestpk(self):
         # Testing bad request_pk
