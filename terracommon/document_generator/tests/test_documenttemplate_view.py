@@ -1,7 +1,6 @@
 import os
 from unittest.mock import Mock
 
-from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -10,17 +9,16 @@ from rest_framework.test import APIClient
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.document_generator.helpers import (CachedDocument,
                                                     DocumentGenerator)
-from terracommon.document_generator.models import DocumentTemplate
+from terracommon.document_generator.models import (DocumentTemplate,
+                                                   DownloadableDocument)
 from terracommon.trrequests.tests.factories import UserRequestFactory
+from terracommon.trrequests.tests.mixins import TestPermissionsMixin
 
 
-class DocumentTemplateViewTestCase(TestCase):
+class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
     def setUp(self):
         self.client = APIClient()
         self.user = TerraUserFactory()
-        self.permission = Permission.objects.get(
-            codename='can_download_pdf')
-        self.user.user_permissions.add(self.permission)
         self.client.force_authenticate(user=self.user)
 
         # get testing template
@@ -31,6 +29,7 @@ class DocumentTemplateViewTestCase(TestCase):
         # Store it in the database
         DocumentTemplate.objects.create(name='testodt',
                                         documenttemplate=tmp_odt)
+        self.myodt = DocumentTemplate.objects.get(name='testodt')
 
         # Create a fake UserRequest
         self.properties = {
@@ -42,16 +41,19 @@ class DocumentTemplateViewTestCase(TestCase):
         self.pdf_url = 'document-pdf'
 
     def test_pdf_creator_method(self):
-        myodt = DocumentTemplate.objects.get(name='testodt')
-
+        myodt = self.myodt
         # Remove cache if cached
         cache_filename = f'{myodt.documenttemplate}{myodt.name}.pdf'
         cache_doc = CachedDocument(cache_filename)
         if cache_doc.is_cached():
             cache_doc.delete_cache()
 
-        fake_userrequest = UserRequestFactory(owner=self.user,
-                                              properties=self.properties)
+        fake_userrequest = UserRequestFactory(properties=self.properties)
+        DownloadableDocument.objects.create(
+            user=self.user,
+            document=self.myodt,
+            linked_object=fake_userrequest
+        )
 
         # Mock?
         DocumentGenerator.get_pdf = Mock(return_value=b'this is a PDF-1.4\n'
@@ -71,50 +73,44 @@ class DocumentTemplateViewTestCase(TestCase):
             fake_userrequest.properties)
 
     def test_pdf_creator_with_bad_requestpk(self):
-        myodt = DocumentTemplate.objects.get(name='testodt')
-
         # Testing bad request_pk
-        pks = {'request_pk': 999, 'pk': myodt.pk}
+        pks = {'request_pk': 999, 'pk': self.myodt.pk}
         response = self.client.post(reverse(self.pdf_url, kwargs=pks))
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
     def test_pdf_creator_with_bad_pk(self):
-        fake_userrequest = UserRequestFactory(owner=self.user,
-                                              properties=self.properties)
+        fake_userrequest = UserRequestFactory(properties=self.properties)
+        DownloadableDocument.objects.create(
+            user=self.user,
+            document=self.myodt,
+            linked_object=fake_userrequest
+        )
         # Testing bad pk
         pks = {'request_pk': fake_userrequest.pk, 'pk': 9999}
         response = self.client.post(reverse(self.pdf_url, kwargs=pks))
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
-    def test_pdf_creator_not_owner_but_download_permission(self):
-        myodt = DocumentTemplate.objects.get(name='testodt')
-
-        # Testing authenticated user without permissions
-        userrequest = UserRequestFactory(properties=self.properties)
-        pks = {'request_pk': userrequest.pk, 'pk': myodt.pk}
-
-        response = self.client.post(reverse(self.pdf_url, kwargs=pks))
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-
     def test_pdf_creator_without_download_pdf_permissions(self):
-        # removing user permissions to create document template
-        self.user.user_permissions.remove(self.permission)
-
-        myodt = DocumentTemplate.objects.get(name='testodt')
         userrequest = UserRequestFactory(properties=self.properties)
-        pks = {'request_pk': userrequest.pk, 'pk': myodt.pk}
+        pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
         response = self.client.post(reverse(self.pdf_url, kwargs=pks))
 
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
-    def test_pdf_creator_with_authentication(self):
-        myodt = DocumentTemplate.objects.get(name='testodt')
+    def test_pdf_creator_with_all_pdf_permission(self):
+        self._set_permissions(['can_download_all_pdf', ])
 
-        fake_userrequest = UserRequestFactory(owner=self.user,
-                                              properties=self.properties)
+        userrequest = UserRequestFactory(properties=self.properties)
+        pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
+        response = self.client.post(reverse(self.pdf_url, kwargs=pks))
+
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+    def test_pdf_creator_with_authentication(self):
+        fake_userrequest = UserRequestFactory(properties=self.properties)
 
         # Testing unauthenticated user
         self.client.force_authenticate(user=None)
-        pks = {'request_pk': fake_userrequest.pk, 'pk': myodt.pk}
+        pks = {'request_pk': fake_userrequest.pk, 'pk': self.myodt.pk}
         response = self.client.post(reverse(self.pdf_url, kwargs=pks))
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)

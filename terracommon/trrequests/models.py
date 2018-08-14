@@ -1,10 +1,12 @@
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from terracommon.accounts.mixins import ReadableModelMixin
+from terracommon.document_generator.models import DownloadableDocument
 from terracommon.terra.models import Layer
 
 from .helpers import rename_comment_attachment
@@ -31,6 +33,7 @@ class UserRequest(BaseUpdatableModel, ReadableModelMixin):
                                        blank=True,
                                        related_name='to_review')
     properties = JSONField(default=dict, blank=True)
+    downloadable = GenericRelation(DownloadableDocument)
 
     def get_comments_for_user(self, user):
         query = self.comments.all()
@@ -63,7 +66,7 @@ class UserRequest(BaseUpdatableModel, ReadableModelMixin):
              'Is allowed to read only non-internal comments'),
             ('can_change_state_requests',
              'Is authorized to change the request state'),
-            ('can_download_pdf',
+            ('can_download_all_pdf',
              'Is able to download a pdf document')
         )
 
