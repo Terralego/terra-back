@@ -25,11 +25,8 @@ class TerraUserManager(BaseUserManager):
 
 
 class ReadModelManager(Manager):
-    def get_object_content_type(self, obj):
-        return ContentType.objects.get_for_model(obj.__class__)
-
     def get_user_read(self, user, obj):
-        contenttype = self.get_object_content_type(obj)
+        contenttype = ContentType.objects.get_for_model(obj.__class__)
         try:
             return self.get(
                 user=user,
@@ -39,13 +36,13 @@ class ReadModelManager(Manager):
             return None
 
     def read_object(self, user, obj):
-        contenttype = self.get_object_content_type(obj)
-        read, is_new = self.get_or_create(
-                        user=user,
-                        contenttype=contenttype,
-                        identifier=obj.pk)
-
-        if not is_new:
+        read = self.get_user_read(user, obj)
+        if read:
             read.read_instance()
+        else:
+            read = self.create(
+                user=user,
+                model_object=obj
+            )
 
         return read

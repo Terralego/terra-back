@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
@@ -47,7 +48,8 @@ UserModel = get_user_model()
 class ReadModel(models.Model):
     user = models.ForeignKey(UserModel, on_delete=models.PROTECT)
     contenttype = models.ForeignKey(ContentType, on_delete=models.PROTECT)
-    identifier = models.IntegerField()
+    identifier = models.PositiveIntegerField()
+    model_object = GenericForeignKey('contenttype', 'identifier')
     last_read = models.DateTimeField(auto_now=True)
 
     objects = ReadModelManager()
