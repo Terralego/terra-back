@@ -83,7 +83,9 @@ class UserRequestSerializer(serializers.ModelSerializer):
 
     def get_has_new_comments(self, obj):
         read = obj.get_user_read(self.current_user)
-        last_comment = obj.comments.all().order_by('-updated_at').first()
+        last_comment = obj.get_comments_for_user(
+            self.current_user).order_by('-updated_at').first()
+
         if read is None and last_comment is not None:
             return True
 

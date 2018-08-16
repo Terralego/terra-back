@@ -27,11 +27,13 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
         self.assertTrue(response['has_new_changes'])
 
     def test_unread_comments(self):
+        self._set_permissions(['can_read_comment_requests', ])
+
         userrequest = UserRequestFactory(owner=self.user)
         CommentFactory(userrequest=userrequest)
         userrequest.user_read(self.user)
 
-        # one comment but new changes to userrequest
+        # one comment but no changes to userrequest
         response = self.client.get(
             reverse('request-detail', args=[userrequest.pk, ])).json()
 
@@ -46,6 +48,17 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
 
         self.assertTrue(response['has_new_comments'])
         self.assertFalse(response['has_new_changes'])
+
+        # new internal comment but no rights
+        userrequest.user_read(self.user)
+        CommentFactory(userrequest=userrequest, is_internal=True)
+        response = self.client.get(
+            reverse('request-detail', args=[userrequest.pk, ])).json()
+
+        self.assertFalse(response['has_new_comments'])
+        self.assertFalse(response['has_new_changes'])
+
+        self._clean_permissions()
 
     def test_new_changes(self):
         # new userrequest, never read

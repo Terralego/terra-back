@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from terracommon.accounts.mixins import ReadableModelMixin
@@ -30,6 +31,23 @@ class UserRequest(BaseUpdatableModel, ReadableModelMixin):
                                        blank=True,
                                        related_name='to_review')
     properties = JSONField(default=dict, blank=True)
+
+    def get_comments_for_user(self, user):
+
+        query = self.comments.all()
+        filter = Q()
+
+        # exclude comments if the user have no permission
+        if not user.has_perm(
+                'trrequests.can_internal_comment_requests'):
+            filter |= Q(is_internal=True)
+
+        if (not user.has_perm('trrequests.can_comment_requests')
+            and not user.has_perm(
+                        'trrequests.can_read_comment_requests')):
+            filter |= Q(is_internal=False)
+
+        return query.exclude(filter)
 
     class Meta:
         permissions = (
