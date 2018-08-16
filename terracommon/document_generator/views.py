@@ -63,7 +63,7 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
             template_cache.create_cache(pdf, 'wb')
 
         response = get_media_response(request,
-                                      template_cache.path,
+                                      template_cache,
                                       headers={
                                         'Content-Type': 'application/pdf',
                                         'Content-disposition': (
