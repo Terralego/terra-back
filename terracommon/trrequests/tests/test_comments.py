@@ -264,6 +264,26 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(response.get('X-Accel-Redirect'),
                          comment.attachment.url)
 
+    def test_comment_attachment_fake_token(self):
+        tmp_file = SimpleUploadedFile('filename.txt', b'File content')
+        comment = CommentFactory(userrequest=self.request,
+                                 attachment=tmp_file)
+
+        self._set_permissions([
+            'can_comment_requests',
+        ])
+
+        url = "{}?token=aaa&uidb64=zzzzz".format(
+            reverse('comment-attachment', args=[self.request.pk, comment.pk]))
+
+        self.assertEqual(
+            self.client.get(url).status_code,
+            status.HTTP_403_FORBIDDEN
+        )
+
+    def test_token_expiration(self):
+        pass
+
     def test_update_simple_comment_properties(self):
         comment = CommentFactory(userrequest=self.request,
                                  attachment=SimpleUploadedFile(
@@ -311,7 +331,7 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
                                         response.json().get('results', [])))
         self.assertEqual(1, len(comment_recovered))
         response = comment_recovered[0]
-        self.assertEqual(
+        self.assertIn(
             reverse('comment-attachment', args=[self.request.pk, c.pk]),
             response.get('attachment_url'))
 
@@ -332,5 +352,9 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
                                  format=format)
 
     def _get_comment_attachment(self, pk):
-        return self.client.get(reverse('comment-attachment',
-                                       args=[self.request.pk, pk]))
+        return self.client.get(self._get_comment_attachment_url(pk))
+
+    def _get_comment_attachment_url(self, pk):
+        response = self.client.get(reverse('comment-detail',
+                                   args=[self.request.pk, pk]))
+        return response.json()['attachment_url']

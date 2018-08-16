@@ -8,6 +8,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
+from terracommon.accounts.permissions import TokenBasedPermission
 from terracommon.core.filters import JSONFieldOrderingFilter
 from terracommon.events.signals import event
 from terracommon.terra.helpers import get_media_response
@@ -99,7 +100,7 @@ class CommentViewSet(mixins.CreateModelMixin,
 
         return serializer.save(**auto_data)
 
-    @detail_route(methods=['get'])
+    @detail_route(methods=['get'], permission_classes=(TokenBasedPermission, ))
     def attachment(self, request, request_pk=None, pk=None):
         comment = self.get_object()
         if not comment.attachment:

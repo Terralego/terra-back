@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 from rest_framework import serializers
 
+from terracommon.accounts.mixins import UserTokenGeneratorMixin
 from terracommon.accounts.serializers import TerraUserSerializer
 from terracommon.events.signals import event
 from terracommon.terra.models import Layer
@@ -103,15 +104,22 @@ class UserRequestSerializer(serializers.ModelSerializer):
         read_only_fields = ('owner', 'expiry')
 
 
-class CommentSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer,
+                        UserTokenGeneratorMixin):
     owner = TerraUserSerializer(read_only=True)
     attachment_url = serializers.SerializerMethodField()
     geojson = GeoJSONLayerSerializer(source='layer', required=False)
 
     def get_attachment_url(self, obj):
+        uidb64, token = self.get_uidb64_token_for_user(self.current_user)
+
         if not obj.attachment:
             return None
-        return reverse('comment-attachment', args=[obj.userrequest_id, obj.pk])
+
+        return "{}?uidb64={}&token={}".format(
+            reverse('comment-attachment', args=[obj.userrequest_id, obj.pk]),
+            uidb64,
+            token)
 
     def create(self, validated_data):
 
@@ -139,6 +147,11 @@ class CommentSerializer(serializers.ModelSerializer):
                 logger.info('Cannot set object read since current_user is '
                             'unknown')
             return instance
+
+    @cached_property
+    def current_user(self):
+        return (self.context['request'].user
+                if 'request' in self.context else None)
 
     class Meta:
         model = Comment
