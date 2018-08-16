@@ -37,7 +37,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             'registration': 'AS-AS-AA-AS-AS',
             'authorization': 'okay'
         }
-        self.pdf_url = 'document-pdf'
+        self.pdfcreator_urlname = 'document-pdf'
 
     def test_pdf_creator_method(self):
         myodt = self.myodt
@@ -60,7 +60,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         pks = {'request_pk': fake_userrequest.pk, 'pk': myodt.pk}
 
         # Testing with no MEDIA_ACCEL_REDIRECT
-        response = self.client.post(reverse(self.pdf_url, kwargs=pks))
+        response = self.client.post(reverse(self.pdfcreator_urlname,
+                                            kwargs=pks))
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual('application/pdf', response['Content-Type'])
         self.assertEqual(f'attachment;filename={cache_filename}',
@@ -74,7 +75,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
         # Testing with MEDIA_ACCEL_REDIRECT
         with self.settings(MEDIA_ACCEL_REDIRECT=True):
-            response = self.client.post(reverse(self.pdf_url, kwargs=pks))
+            response = self.client.post(reverse(self.pdfcreator_urlname,
+                                                kwargs=pks))
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual('application/pdf', response['Content-Type'])
@@ -92,7 +94,9 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
     def test_pdf_creator_with_bad_requestpk(self):
         # Testing bad request_pk
         pks = {'request_pk': 999, 'pk': self.myodt.pk}
-        response = self.client.post(reverse(self.pdf_url, kwargs=pks))
+
+        response = self.client.post(reverse(self.pdfcreator_urlname,
+                                            kwargs=pks))
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
     def test_pdf_creator_with_bad_pk(self):
@@ -104,13 +108,17 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         )
         # Testing bad pk
         pks = {'request_pk': fake_userrequest.pk, 'pk': 9999}
-        response = self.client.post(reverse(self.pdf_url, kwargs=pks))
+
+        response = self.client.post(reverse(self.pdfcreator_urlname,
+                                            kwargs=pks))
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
     def test_pdf_creator_without_download_pdf_permissions(self):
         userrequest = UserRequestFactory(properties=self.properties)
         pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
-        response = self.client.post(reverse(self.pdf_url, kwargs=pks))
+
+        response = self.client.post(reverse(self.pdfcreator_urlname,
+                                            kwargs=pks))
 
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
@@ -121,7 +129,9 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
         userrequest = UserRequestFactory(properties=self.properties)
         pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
-        response = self.client.post(reverse(self.pdf_url, kwargs=pks))
+
+        response = self.client.post(reverse(self.pdfcreator_urlname,
+                                            kwargs=pks))
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
@@ -138,5 +148,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         # Testing unauthenticated user
         self.client.force_authenticate(user=None)
         pks = {'request_pk': fake_userrequest.pk, 'pk': self.myodt.pk}
-        response = self.client.post(reverse(self.pdf_url, kwargs=pks))
+
+        response = self.client.post(reverse(self.pdfcreator_urlname,
+                                            kwargs=pks))
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
