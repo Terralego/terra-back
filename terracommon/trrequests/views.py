@@ -72,20 +72,9 @@ class CommentViewSet(mixins.CreateModelMixin,
     def get_queryset(self, *args, **kwargs):
         request_pk = self.kwargs.get('request_pk')
 
-        query = get_object_or_404(UserRequest, pk=request_pk).comments.all()
-        filter = Q()
-
-        # exclude comments if the user have no permission
-        if not self.request.user.has_perm(
-                'trrequests.can_internal_comment_requests'):
-            filter |= Q(is_internal=True)
-
-        if (not self.request.user.has_perm('trrequests.can_comment_requests')
-            and not self.request.user.has_perm(
-                        'trrequests.can_read_comment_requests')):
-            filter |= Q(is_internal=False)
-
-        return query.exclude(filter)
+        return get_object_or_404(
+            UserRequest,
+            pk=request_pk).get_comments_for_user(self.request.user)
 
     def perform_create(self, serializer):
 
