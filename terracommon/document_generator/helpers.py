@@ -27,12 +27,15 @@ class DocumentGenerator:
 class CachedDocument:
     """ Manage document caching through filesystem """
     cache_root = os.path.join(settings.MEDIA_ROOT, 'cache/')
-    # Works when file are store on the same filesytem
-    root_url = os.path.join(settings.MEDIA_URL, 'cache/')
+
+    # Works when file is store on the same filesytem
+    cache_url = os.path.join(settings.MEDIA_URL, 'cache/')
 
     def __init__(self, path):
         self.path = os.path.join(self.cache_root, path)
-        self.url = os.path.join(self.root_url, path)
+        self.is_path_valid()
+
+        self.url = os.path.join(self.cache_url, path)
 
     def create_cache(self, content, writing_mode):
         """ Create a file cache for a given content
@@ -58,3 +61,8 @@ class CachedDocument:
     def is_cached(self):
         """ check if the file exist """
         return os.path.isfile(self.path)
+
+    def is_path_valid(self):
+        """ raise a ValueError if a path is not valid under media_root """
+        if settings.MEDIA_ROOT not in os.path.abspath(self.path):
+            raise ValueError('Unvalid path. Should be under media_root')
