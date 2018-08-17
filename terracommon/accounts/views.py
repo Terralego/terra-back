@@ -31,16 +31,16 @@ class UserRegisterView(APIView):
 
     def post(self, request):
         try:
-            user = get_user_model().objects.create(
-                **{
-                    get_user_model().EMAIL_FIELD: request.data['email'],
-                    'is_active': True,
-                })
-            user.set_unusable_password()
-            user.save()
-
             form = PasswordSetAndResetForm(data=request.data)
             if form.is_valid():
+                user = get_user_model().objects.create(
+                    **{
+                        get_user_model().EMAIL_FIELD: request.data['email'],
+                        'is_active': True,
+                    })
+                user.set_unusable_password()
+                user.save()
+
                 opts = {
                     'token_generator': default_token_generator,
                     'from_email': settings.DEFAULT_FROM_EMAIL,
