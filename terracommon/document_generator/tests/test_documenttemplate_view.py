@@ -23,7 +23,9 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self.client.force_authenticate(user=self.user)
 
         # get testing template
-        tmp_odt = os.path.join(*['terracommon', 'document_generator', 'tests'],
+        tmp_odt = os.path.join('terracommon',
+                               'document_generator',
+                               'tests',
                                'test_template.odt')
 
         # Store it in the database
@@ -102,22 +104,22 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         with self.settings(MEDIA_ACCEL_REDIRECT=True):
             response = self.client.post(reverse(self.pdfcreator_urlname,
                                                 kwargs=pks))
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual('application/pdf', response['Content-Type'])
-        self.assertEqual(f'attachment;filename={cache_filename}',
-                         response['Content-Disposition'])
+            self.assertEqual(status.HTTP_200_OK, response.status_code)
+            self.assertEqual('application/pdf', response['Content-Type'])
+            self.assertEqual(f'attachment;filename={cache_filename}',
+                             response['Content-Disposition'])
 
-        DocumentGenerator.get_pdf.assert_called_with(
-            userrequest.properties
-        )
-        self.assertTrue(os.path.isfile(cache_filename))
+            DocumentGenerator.get_pdf.assert_called_with(
+                userrequest.properties
+            )
+            self.assertTrue(os.path.isfile(cache_filename))
 
-        cached_doc = CachedDocument(open(cache_filename))
-        self.assertEqual(response.get('X-Accel-Redirect'),
-                         cached_doc.url)
-        cached_doc.close()
-        cached_doc.remove()
-        self.assertFalse(os.path.isfile(cache_filename))
+            cached_doc = CachedDocument(open(cache_filename))
+            self.assertEqual(response.get('X-Accel-Redirect'),
+                             cached_doc.url)
+            cached_doc.close()
+            cached_doc.remove()
+            self.assertFalse(os.path.isfile(cache_filename))
 
     def test_pdf_creator_method_with_existing_cache(self):
         userrequest = UserRequestFactory(properties=self.properties)
@@ -189,7 +191,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         response = self.client.post(reverse(self.pdfcreator_urlname,
                                             kwargs=pks))
 
-        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
     def test_pdf_creator_with_all_pdf_permission(self):
         self._set_permissions(['can_download_all_pdf', ])
