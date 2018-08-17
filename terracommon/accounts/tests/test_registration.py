@@ -21,22 +21,6 @@ class RegistrationTestCase(TestCase):
     @override_settings(
         EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
     def test_registration_view(self):
-        response = self.client.post(
-            reverse('accounts:register'),
-            {
-                'email': 'toto@terra.',
-            })
-        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
-
-        # Testing email is empty
-        response = self.client.post(
-            reverse('accounts:register'),
-            {
-                'email': '',
-            }
-        )
-        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
-
         # Testing with good email
         handler = MagicMock()
         event.connect(handler)
@@ -103,3 +87,38 @@ class RegistrationTestCase(TestCase):
         user.refresh_from_db()
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertTrue(user.check_password(new_password))
+
+    def test_invalid_email(self):
+        response = self.client.post(
+            reverse('accounts:register'),
+            {
+                'email': 'toto@terra.',
+            })
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+
+        # Testing email is empty
+        response = self.client.post(
+            reverse('accounts:register'),
+            {
+                'email': '',
+            }
+        )
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+
+    def test_already_existing_email_registration(self):
+        test_email = 'test@test.com'
+        TerraUserFactory(email=test_email)
+
+        response = self.client.post(
+            reverse('accounts:register'),
+            {
+                'email': test_email,
+            }
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+            )
+
+        self.assertEqual({}, response.json())

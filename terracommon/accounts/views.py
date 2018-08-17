@@ -66,7 +66,7 @@ class UserRegisterView(APIView):
                 return Response(data=form.errors,
                                 status=status.HTTP_400_BAD_REQUEST)
         except IntegrityError:
-            return Response(status=status.HTTP_200_OK)
+            return Response({}, status=status.HTTP_200_OK)
 
 
 class UserSetPasswordView(APIView):
