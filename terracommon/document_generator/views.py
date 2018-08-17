@@ -1,3 +1,5 @@
+import os
+
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
@@ -50,17 +52,24 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
         mytemplate_name = str(mytemplate.name)
 
         # Cache_name is of the form
-        # <templatepath>/<templatename>_<pk>.pdf
-        userrequest_clsname = userrequest.__class__.__name__
-        cache_name = (f'{mytemplate_path}{mytemplate_name}_'
-                      f'{userrequest_clsname}_'
+        # <template path>/<template name>_<class name>_<pk>.pdf
+        cache_name = (f'cache/{mytemplate_path}'
+                      f'{mytemplate_name}_'
+                      f'{userrequest.__class__.__name__}_'
                       f'{userrequest.pk}.pdf')
-        template_cache = CachedDocument(cache_name)
 
-        if not template_cache.is_cached():
+        template_cache = None
+        if not os.path.isfile(cache_name):
             pdf_generator = DocumentGenerator(mytemplate_path)
-            pdf = pdf_generator.get_pdf(userrequest.properties)
-            template_cache.create_cache(pdf, 'wb')
+            pdf_file = pdf_generator.get_pdf(userrequest.properties)
+
+            os.makedirs(os.path.dirname(cache_name), exist_ok=True)
+            template_cache = CachedDocument(open(cache_name, 'wb+'))
+            pdf = pdf_file.open()
+            template_cache.write(pdf.read())
+
+        else:
+            template_cache = CachedDocument(open(cache_name))
 
         response = get_media_response(request,
                                       template_cache,
