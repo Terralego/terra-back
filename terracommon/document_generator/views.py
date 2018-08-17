@@ -46,7 +46,7 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
                     object_id=userrequest.pk
                 )
             except DownloadableDocument.DoesNotExist:
-                return Response(status=status.HTTP_403_FORBIDDEN)
+                return Response(status=status.HTTP_404_NOT_FOUND)
 
         mytemplate_path = str(mytemplate.documenttemplate)
         mytemplate_name = str(mytemplate.name)
