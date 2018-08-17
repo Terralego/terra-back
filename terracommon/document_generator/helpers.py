@@ -2,6 +2,7 @@ import os
 
 import requests
 from django.conf import settings
+from django.core.files import File
 from secretary import Renderer
 
 
@@ -24,45 +25,10 @@ class DocumentGenerator:
         return response.content
 
 
-class CachedDocument:
-    """ Manage document caching through filesystem """
-    cache_root = os.path.join(settings.MEDIA_ROOT, 'cache/')
+class CachedDocument(File):
+    def __init__(self, file, name=None):
+        super().__init__(file, name=name)
+        self.url = f'{settings.MEDIA_URL}{self.name}'
 
-    # Works when file is store on the same filesytem
-    cache_url = os.path.join(settings.MEDIA_URL, 'cache/')
-
-    def __init__(self, path):
-        self.path = os.path.join(self.cache_root, path)
-        self.is_path_valid()
-
-        self.url = os.path.join(self.cache_url, path)
-
-    def create_cache(self, content, writing_mode):
-        """ Create a file cache for a given content
-
-        content: data to store in cache file
-        file_type: 'wb' or 'w' for binary or text.
-        """
-        allowed_mode = ['w', 'wb']
-        if writing_mode not in allowed_mode:
-            raise ValueError("writting mode should be 'w' or 'wb'")
-
-        cache_dir = os.path.dirname(self.path)
-        if not os.path.isdir(cache_dir):
-            os.makedirs(cache_dir)
-
-        with open(self.path, writing_mode) as f:
-            f.write(content)
-
-    def delete_cache(self):
-        """ Remove a cache file """
-        os.remove(self.path)
-
-    def is_cached(self):
-        """ check if the file exist """
-        return os.path.isfile(self.path)
-
-    def is_path_valid(self):
-        """ raise a ValueError if a path is not valid under media_root """
-        if settings.MEDIA_ROOT not in os.path.abspath(self.path):
-            raise ValueError('Unvalid path. Should be under media_root')
+    def remove(self):
+        os.remove(self.name)
