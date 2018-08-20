@@ -68,7 +68,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                                            kwargs=pks))
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual('application/pdf', response['Content-Type'])
-        self.assertEqual(f'attachment;filename={cache_filename}',
+        self.assertEqual(f'attachment;filename={fake_pdf.name}',
                          response['Content-Disposition'])
 
         DocumentGenerator.get_pdf.assert_called_with(
@@ -105,7 +105,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                                                kwargs=pks))
             self.assertEqual(status.HTTP_200_OK, response.status_code)
             self.assertEqual('application/pdf', response['Content-Type'])
-            self.assertEqual(f'attachment;filename={cache_filename}',
+            self.assertEqual(f'attachment;filename={fake_pdf.name}',
                              response['Content-Disposition'])
 
             DocumentGenerator.get_pdf.assert_called_with(
