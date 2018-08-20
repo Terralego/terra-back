@@ -34,19 +34,19 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
         userrequest = get_object_or_404(UserRequest, pk=request_pk)
         mytemplate = get_object_or_404(DocumentTemplate, pk=pk)
 
-        if not (request.user.is_superuser or
-                request.user.has_perm('trrequests.can_download_all_pdf')):
-            try:
-                userrequest_type = ContentType.objects.get_for_model(
-                                                            userrequest)
-                DownloadableDocument.objects.get(
-                    user=request.user,
-                    document=mytemplate,
-                    content_type=userrequest_type,
-                    object_id=userrequest.pk
-                )
-            except DownloadableDocument.DoesNotExist:
-                return Response(status=status.HTTP_404_NOT_FOUND)
+        userrequest_type = ContentType.objects.get_for_model(
+                                                        userrequest)
+        downloadable_properties = {
+            'user': request.user,
+            'document': mytemplate,
+            'content_type': userrequest_type,
+            'object_id': userrequest.pk,
+        }
+        if not ((request.user.is_superuser
+                 or request.user.has_perm('trrequests.can_download_all_pdf')
+                or DownloadableDocument.objects.filter(
+                    **downloadable_properties).exists())):
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         mytemplate_path = str(mytemplate.documenttemplate)
         mytemplate_name = str(mytemplate.name)
