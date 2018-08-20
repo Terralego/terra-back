@@ -60,7 +60,13 @@ class RequestViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['get'])
     def read(self, request, pk):
         self.get_object().user_read(request.user)
-        return Response(status=status.HTTP_200_OK)
+        userrequest = UserRequestSerializer(
+            self.get_object(),
+            context={'request': self.request})
+
+        return Response(
+            userrequest.data,
+            status=status.HTTP_200_OK)
 
 
 class CommentViewSet(mixins.CreateModelMixin,
