@@ -63,8 +63,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         DocumentGenerator.get_pdf = Mock(return_value=fake_pdf)
 
         # Testing with no MEDIA_ACCEL_REDIRECT
-        response = self.client.post(reverse(self.pdfcreator_urlname,
-                                            kwargs=pks))
+        response = self.client.get(reverse(self.pdfcreator_urlname,
+                                           kwargs=pks))
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual('application/pdf', response['Content-Type'])
         self.assertEqual(f'attachment;filename={cache_filename}',
@@ -102,8 +102,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         DocumentGenerator.get_pdf = Mock(return_value=fake_pdf)
 
         with self.settings(MEDIA_ACCEL_REDIRECT=True):
-            response = self.client.post(reverse(self.pdfcreator_urlname,
-                                                kwargs=pks))
+            response = self.client.get(reverse(self.pdfcreator_urlname,
+                                               kwargs=pks))
             self.assertEqual(status.HTTP_200_OK, response.status_code)
             self.assertEqual('application/pdf', response['Content-Type'])
             self.assertEqual(f'attachment;filename={cache_filename}',
@@ -148,8 +148,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         fake_cache.close()
 
         # Calling API and asserting Response
-        response = self.client.post(reverse(self.pdfcreator_urlname,
-                                            kwargs=pks))
+        response = self.client.get(reverse(self.pdfcreator_urlname,
+                                           kwargs=pks))
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
         # Asserting DocumentGenerator.get_pdf was not call
@@ -166,8 +166,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         # Testing bad request_pk
         pks = {'request_pk': 999, 'pk': self.myodt.pk}
 
-        response = self.client.post(reverse(self.pdfcreator_urlname,
-                                            kwargs=pks))
+        response = self.client.get(reverse(self.pdfcreator_urlname,
+                                           kwargs=pks))
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
     def test_pdf_creator_with_bad_pk(self):
@@ -180,16 +180,16 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         # Testing bad pk
         pks = {'request_pk': fake_userrequest.pk, 'pk': 9999}
 
-        response = self.client.post(reverse(self.pdfcreator_urlname,
-                                            kwargs=pks))
+        response = self.client.get(reverse(self.pdfcreator_urlname,
+                                           kwargs=pks))
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
     def test_pdf_creator_without_download_pdf_permissions(self):
         userrequest = UserRequestFactory(properties=self.properties)
         pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
 
-        response = self.client.post(reverse(self.pdfcreator_urlname,
-                                            kwargs=pks))
+        response = self.client.get(reverse(self.pdfcreator_urlname,
+                                           kwargs=pks))
 
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
@@ -203,8 +203,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         userrequest = UserRequestFactory(properties=self.properties)
         pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
 
-        response = self.client.post(reverse(self.pdfcreator_urlname,
-                                            kwargs=pks))
+        response = self.client.get(reverse(self.pdfcreator_urlname,
+                                           kwargs=pks))
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
@@ -225,6 +225,6 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self.client.force_authenticate(user=None)
         pks = {'request_pk': fake_userrequest.pk, 'pk': self.myodt.pk}
 
-        response = self.client.post(reverse(self.pdfcreator_urlname,
-                                            kwargs=pks))
+        response = self.client.get(reverse(self.pdfcreator_urlname,
+                                           kwargs=pks))
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)

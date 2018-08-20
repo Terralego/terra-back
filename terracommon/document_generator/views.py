@@ -21,7 +21,7 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
     """
     permission_classes = (IsAuthenticated, )
 
-    @detail_route(methods=['POST'],
+    @detail_route(methods=['get'],
                   url_name='pdf',
                   url_path='pdf/(?P<request_pk>[^/.]+)')
     def pdf_creator(self, request, pk=None, request_pk=None):
