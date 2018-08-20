@@ -11,7 +11,7 @@ from terracommon.terra.helpers import get_media_response
 from terracommon.trrequests.models import UserRequest
 
 from .helpers import CachedDocument, DocumentGenerator
-from .models import DocumentTemplate, DownloadableDocument
+from .models import DocumentTemplate
 
 
 class DocumentTemplateViewSets(viewsets.ViewSet):
@@ -37,14 +37,13 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
         userrequest_type = ContentType.objects.get_for_model(
                                                         userrequest)
         downloadable_properties = {
-            'user': request.user,
             'document': mytemplate,
             'content_type': userrequest_type,
             'object_id': userrequest.pk,
         }
         if not ((request.user.is_superuser
                  or request.user.has_perm('trrequests.can_download_all_pdf')
-                or DownloadableDocument.objects.filter(
+                or request.user.downloadabledocument_set.filter(
                     **downloadable_properties).exists())):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
