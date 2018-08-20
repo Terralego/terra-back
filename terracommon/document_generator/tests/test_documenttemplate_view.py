@@ -1,7 +1,7 @@
 import os
+from tempfile import NamedTemporaryFile
 from unittest.mock import Mock
 
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -58,9 +58,9 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                           f'{fake_userrequest.pk}.pdf')
 
         # Mocking
-        fake_pdf = SimpleUploadedFile('mypdf.pdf',
-                                      b'Header PDF-1.4\nsome line.')
-        DocumentGenerator.get_pdf = Mock(return_value=fake_pdf)
+        fake_pdf = NamedTemporaryFile(mode='wb+', delete=False)
+        fake_pdf.write(b'Header PDF-1.4\nsome line.')
+        DocumentGenerator.get_pdf = Mock(return_value=CachedDocument(fake_pdf))
 
         # Testing with no MEDIA_ACCEL_REDIRECT
         response = self.client.get(reverse(self.pdfcreator_urlname,
@@ -70,17 +70,14 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(f'attachment;filename={cache_filename}',
                          response['Content-Disposition'])
 
-        self.assertTrue(os.path.isfile(cache_filename))
-
-        fake_pdf.seek(0)
-        self.assertEqual(response.content, fake_pdf.read())
-
         DocumentGenerator.get_pdf.assert_called_with(
-            fake_userrequest.properties
+            data=fake_userrequest.properties,
+            filename=cache_filename
         )
+        with open(fake_pdf.name, 'rb') as pdf:
+            self.assertEqual(response.content, pdf.read())
 
-        os.remove(cache_filename)
-        self.assertFalse(os.path.isfile(cache_filename))
+        os.remove(fake_pdf.name)
 
     def test_pdf_creator_method_with_prod_settings(self):
         userrequest = UserRequestFactory(properties=self.properties)
@@ -97,9 +94,9 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                           f'{userrequest.__class__.__name__}_'
                           f'{userrequest.pk}.pdf')
 
-        fake_pdf = SimpleUploadedFile('mypdf.pdf',
-                                      b'Header PDF-1.4\nsome line.')
-        DocumentGenerator.get_pdf = Mock(return_value=fake_pdf)
+        fake_pdf = NamedTemporaryFile(mode='wb+', delete=False)
+        fake_pdf.write(b'Header PDF-1.4\nsome line.')
+        DocumentGenerator.get_pdf = Mock(return_value=CachedDocument(fake_pdf))
 
         with self.settings(MEDIA_ACCEL_REDIRECT=True):
             response = self.client.get(reverse(self.pdfcreator_urlname,
@@ -110,57 +107,16 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                              response['Content-Disposition'])
 
             DocumentGenerator.get_pdf.assert_called_with(
-                userrequest.properties
+                data=userrequest.properties,
+                filename=cache_filename
             )
-            self.assertTrue(os.path.isfile(cache_filename))
 
-            cached_doc = CachedDocument(open(cache_filename))
+            cached_doc = CachedDocument(open(fake_pdf.name))
             self.assertEqual(response.get('X-Accel-Redirect'),
                              cached_doc.url)
             cached_doc.close()
             cached_doc.remove()
-            self.assertFalse(os.path.isfile(cache_filename))
-
-    def test_pdf_creator_method_with_existing_cache(self):
-        userrequest = UserRequestFactory(properties=self.properties)
-        pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
-
-        # Creating user permission
-        DownloadableDocument.objects.create(
-            user=self.user,
-            document=self.myodt,
-            linked_object=userrequest
-        )
-
-        # Mocking get_pdf method using convertit
-        DocumentGenerator.get_pdf = Mock()
-
-        # Creating a `cache file`
-        cache_filename = (f'cache/{self.myodt.documenttemplate}'
-                          f'{self.myodt.name}_'
-                          f'{userrequest.__class__.__name__}_'
-                          f'{userrequest.pk}.pdf')
-
-        # Create subdirs if need some and they do not exist yet.
-        os.makedirs(os.path.dirname(cache_filename), exist_ok=True)
-        fake_cache = CachedDocument(open(cache_filename, 'wb'))
-        fake_cache.write(b'Header PDF-1.4\nSome line.\n')
-        fake_cache.close()
-
-        # Calling API and asserting Response
-        response = self.client.get(reverse(self.pdfcreator_urlname,
-                                           kwargs=pks))
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-
-        # Asserting DocumentGenerator.get_pdf was not call
-        # Because cache already existed
-        DocumentGenerator.get_pdf.assert_not_called()
-
-        # Checking and clearing Cache
-        self.assertTrue(os.path.isfile(cache_filename))
-
-        fake_cache.remove()
-        self.assertFalse(os.path.isfile(cache_filename))
+            self.assertFalse(os.path.isfile(cached_doc.name))
 
     def test_pdf_creator_with_bad_requestpk(self):
         # Testing bad request_pk
@@ -196,27 +152,30 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
     def test_pdf_creator_with_all_pdf_permission(self):
         self._set_permissions(['can_download_all_pdf', ])
 
-        fake_pdf = SimpleUploadedFile('mypdf.pdf',
-                                      b'Header PDF-1.4\nsome line.')
-        DocumentGenerator.get_pdf = Mock(return_value=fake_pdf)
+        fake_pdf = NamedTemporaryFile(mode='wb+',
+                                      delete=False)
+        fake_pdf.write(b'Header PDF-1.4\nsome line.')
+        DocumentGenerator.get_pdf = Mock(return_value=CachedDocument(fake_pdf))
 
         userrequest = UserRequestFactory(properties=self.properties)
         pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
+
+        cache_filename = (f'cache/{self.myodt.documenttemplate}'
+                          f'{self.myodt.name}_'
+                          f'{userrequest.__class__.__name__}_'
+                          f'{userrequest.pk}.pdf')
 
         response = self.client.get(reverse(self.pdfcreator_urlname,
                                            kwargs=pks))
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
-        # Checking and Clearing Cache
-        cache_filename = (f'cache/{self.myodt.documenttemplate}'
-                          f'{self.myodt.name}_'
-                          f'{userrequest.__class__.__name__}_'
-                          f'{userrequest.pk}.pdf')
-        self.assertTrue(os.path.isfile(cache_filename))
+        DocumentGenerator.get_pdf.assert_called_with(
+            data=userrequest.properties,
+            filename=cache_filename
+        )
 
-        os.remove(cache_filename)
-        self.assertFalse(os.path.isfile(cache_filename))
+        os.remove(fake_pdf.name)
 
     def test_pdf_creator_with_authentication(self):
         fake_userrequest = UserRequestFactory(properties=self.properties)
