@@ -60,7 +60,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         # Mocking
         fake_pdf = NamedTemporaryFile(mode='wb+', delete=False)
         fake_pdf.write(b'Header PDF-1.4\nsome line.')
-        DocumentGenerator.get_pdf = Mock(return_value=CachedDocument(fake_pdf))
+        DocumentGenerator.get_pdf = Mock(
+            return_value=CachedDocument(fake_pdf.name))
 
         # Testing with no MEDIA_ACCEL_REDIRECT
         response = self.client.get(reverse(self.pdfcreator_urlname,
@@ -96,7 +97,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
         fake_pdf = NamedTemporaryFile(mode='wb+', delete=False)
         fake_pdf.write(b'Header PDF-1.4\nsome line.')
-        DocumentGenerator.get_pdf = Mock(return_value=CachedDocument(fake_pdf))
+        DocumentGenerator.get_pdf = Mock(
+            return_value=CachedDocument(fake_pdf.name))
 
         with self.settings(MEDIA_ACCEL_REDIRECT=True):
             response = self.client.get(reverse(self.pdfcreator_urlname,
@@ -111,7 +113,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                 filename=cache_filename
             )
 
-            cached_doc = CachedDocument(open(fake_pdf.name))
+            cached_doc = CachedDocument(fake_pdf.name)
             self.assertEqual(response.get('X-Accel-Redirect'),
                              cached_doc.url)
             cached_doc.close()
@@ -155,7 +157,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         fake_pdf = NamedTemporaryFile(mode='wb+',
                                       delete=False)
         fake_pdf.write(b'Header PDF-1.4\nsome line.')
-        DocumentGenerator.get_pdf = Mock(return_value=CachedDocument(fake_pdf))
+        DocumentGenerator.get_pdf = Mock(
+            return_value=CachedDocument(fake_pdf.name))
 
         userrequest = UserRequestFactory(properties=self.properties)
         pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}

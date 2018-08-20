@@ -23,22 +23,29 @@ class DocumentGenerator:
                 data={'to': 'application/pdf', }
             )
             response.raise_for_status()
+
             if filename is None:
                 return response.content
             else:
-                os.makedirs(os.path.dirname(filename), exist_ok=True)
-                cached_pdf = CachedDocument(open(filename, 'wb+'))
+                # Caching the pdf document
+                cached_pdf = CachedDocument(filename, mode='wb+')
                 pdf = response.content.open()
                 cached_pdf.write(pdf.read())
                 return cached_pdf
         else:
-            cached_pdf = CachedDocument(open(filename))
+            cached_pdf = CachedDocument(filename)
             return cached_pdf
 
 
 class CachedDocument(File):
-    def __init__(self, file, name=None):
-        super().__init__(file, name=name)
+    def __init__(self, filename, mode='wb'):
+        if not os.path.isfile(filename):
+            if os.path.dirname(filename) != '':
+                os.makedirs(os.path.dirname(filename), exist_ok=True)
+            super().__init__(open(filename, mode='wb'), name=filename)
+        else:
+            super().__init__(open(filename))
+
         self.url = f'{settings.MEDIA_URL}{self.name}'
 
     def remove(self):
