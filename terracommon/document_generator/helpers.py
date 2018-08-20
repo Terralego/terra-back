@@ -26,8 +26,9 @@ class DocumentGenerator:
             if filename is None:
                 return response.content
             else:
-                pdf = response.content.open()
+                os.makedirs(os.path.dirname(filename), exist_ok=True)
                 cached_pdf = CachedDocument(open(filename, 'wb+'))
+                pdf = response.content.open()
                 cached_pdf.write(pdf.read())
                 return cached_pdf
         else:
