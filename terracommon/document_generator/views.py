@@ -1,5 +1,3 @@
-import os
-
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
@@ -10,7 +8,7 @@ from rest_framework.response import Response
 from terracommon.terra.helpers import get_media_response
 from terracommon.trrequests.models import UserRequest
 
-from .helpers import CachedDocument, DocumentGenerator
+from .helpers import DocumentGenerator
 from .models import DocumentTemplate
 
 
@@ -57,21 +55,12 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
                       f'{userrequest.__class__.__name__}_'
                       f'{userrequest.pk}.pdf')
 
-        template_cache = None
-        if not os.path.isfile(cache_name):
-            pdf_generator = DocumentGenerator(mytemplate_path)
-            pdf_file = pdf_generator.get_pdf(userrequest.properties)
-
-            os.makedirs(os.path.dirname(cache_name), exist_ok=True)
-            template_cache = CachedDocument(open(cache_name, 'wb+'))
-            pdf = pdf_file.open()
-            template_cache.write(pdf.read())
-
-        else:
-            template_cache = CachedDocument(open(cache_name))
+        pdf_generator = DocumentGenerator(mytemplate_path)
+        pdf_file = pdf_generator.get_pdf(data=userrequest.properties,
+                                         filename=cache_name)
 
         response = get_media_response(request,
-                                      template_cache,
+                                      pdf_file,
                                       headers={
                                         'Content-Type': 'application/pdf',
                                         'Content-disposition': (
