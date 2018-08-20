@@ -65,6 +65,6 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
                                         'Content-Type': 'application/pdf',
                                         'Content-disposition': (
                                             'attachment;'
-                                            f'filename={cache_name}')
+                                            f'filename={pdf_file.name}')
                                         })
         return response
