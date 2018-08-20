@@ -33,8 +33,10 @@ class UserRequest(BaseUpdatableModel, ReadableModelMixin):
     properties = JSONField(default=dict, blank=True)
 
     def get_comments_for_user(self, user):
-
         query = self.comments.all()
+        if not user:
+            return query.none()
+
         filter = Q()
 
         # exclude comments if the user have no permission

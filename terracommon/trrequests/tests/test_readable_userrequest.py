@@ -72,6 +72,7 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
         response = self.client.get(
             reverse('request-read', args=[userrequest.pk, ]))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json().get('id'), userrequest.pk)
 
         response = self.client.get(
             reverse('request-detail', args=[userrequest.pk, ])).json()
