@@ -49,7 +49,7 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
         mytemplate_name = str(mytemplate.name)
 
         # Cache_name is of the form
-        # <template path>/<template name>_<class name>_<pk>.pdf
+        # <template path>/<template name>_<userrequest class name>_<pk>.pdf
         cache_name = (f'cache/{mytemplate_path}'
                       f'{mytemplate_name}_'
                       f'{userrequest.__class__.__name__}_'
@@ -57,7 +57,7 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
 
         pdf_generator = DocumentGenerator(mytemplate_path)
         pdf_file = pdf_generator.get_pdf(data=userrequest.properties,
-                                         filename=cache_name)
+                                         cachename=cache_name)
 
         response = get_media_response(request,
                                       pdf_file,
