@@ -46,18 +46,17 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         mytemplate_path = str(mytemplate.documenttemplate)
-        mytemplate_name = str(mytemplate.name)
+        # mytemplate_name = str(mytemplate.name)
 
         # Cache_name is of the form
         # <template path>/<template name>_<userrequest class name>_<pk>.pdf
-        cache_name = (f'cache/{mytemplate_path}'
-                      f'{mytemplate_name}_'
-                      f'{userrequest.__class__.__name__}_'
-                      f'{userrequest.pk}.pdf')
+        # cache_name = (f'{mytemplate_path}'
+        #               f'{mytemplate_name}_'
+        #               f'{userrequest.__class__.__name__}_'
+        #               f'{userrequest.pk}.pdf')
 
         pdf_generator = DocumentGenerator(mytemplate_path)
-        pdf_file = pdf_generator.get_pdf(data=userrequest.properties,
-                                         cachename=cache_name)
+        pdf_file = pdf_generator.get_pdf(data=userrequest)
 
         response = get_media_response(request,
                                       pdf_file,

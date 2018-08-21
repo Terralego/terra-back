@@ -52,10 +52,6 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             document=self.myodt,
             linked_object=fake_userrequest
         )
-        cache_filename = (f'cache/{self.myodt.documenttemplate}'
-                          f'{self.myodt.name}_'
-                          f'{fake_userrequest.__class__.__name__}_'
-                          f'{fake_userrequest.pk}.pdf')
 
         # Mocking
         fake_pdf = NamedTemporaryFile(mode='wb+', delete=False)
@@ -72,9 +68,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                          response['Content-Disposition'])
 
         DocumentGenerator.get_pdf.assert_called_with(
-            data=fake_userrequest.properties,
-            cachename=cache_filename
-        )
+            data=fake_userrequest)
+
         with open(fake_pdf.name, 'rb') as pdf:
             self.assertEqual(response.content, pdf.read())
 
@@ -90,10 +85,6 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             document=self.myodt,
             linked_object=userrequest
         )
-        cache_filename = (f'cache/{self.myodt.documenttemplate}'
-                          f'{self.myodt.name}_'
-                          f'{userrequest.__class__.__name__}_'
-                          f'{userrequest.pk}.pdf')
 
         fake_pdf = NamedTemporaryFile(mode='wb+', delete=False)
         fake_pdf.write(b'Header PDF-1.4\nsome line.')
@@ -109,9 +100,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                              response['Content-Disposition'])
 
             DocumentGenerator.get_pdf.assert_called_with(
-                data=userrequest.properties,
-                cachename=cache_filename
-            )
+                data=userrequest)
 
             cached_doc = CachedDocument(fake_pdf.name)
             self.assertEqual(response.get('X-Accel-Redirect'),
@@ -163,20 +152,13 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         userrequest = UserRequestFactory(properties=self.properties)
         pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
 
-        cache_filename = (f'cache/{self.myodt.documenttemplate}'
-                          f'{self.myodt.name}_'
-                          f'{userrequest.__class__.__name__}_'
-                          f'{userrequest.pk}.pdf')
-
         response = self.client.get(reverse(self.pdfcreator_urlname,
                                            kwargs=pks))
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
         DocumentGenerator.get_pdf.assert_called_with(
-            data=userrequest.properties,
-            cachename=cache_filename
-        )
+            data=userrequest)
 
         os.remove(fake_pdf.name)
 
