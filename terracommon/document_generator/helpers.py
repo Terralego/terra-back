@@ -14,8 +14,8 @@ class DocumentGenerator:
         engine = Renderer()
         return engine.render(self.template, data=data)
 
-    def get_pdf(self, data=None, filename=None):
-        if filename is None or not os.path.isfile(filename):
+    def get_pdf(self, data=None, cachename=None):
+        if cachename is None or not os.path.isfile(cachename):
             odt = self.get_odt(data=data)
             response = requests.post(
                 url=settings.CONVERTIT_URL,
@@ -24,25 +24,25 @@ class DocumentGenerator:
             )
             response.raise_for_status()
 
-            if filename is None:
+            if cachename is None:
                 return response.content
             else:
                 # Caching the pdf document
-                cached_pdf = CachedDocument(filename, mode='wb+')
+                cached_pdf = CachedDocument(cachename)
                 pdf = response.content.open()
                 cached_pdf.write(pdf.read())
                 return cached_pdf
         else:
-            cached_pdf = CachedDocument(filename)
+            cached_pdf = CachedDocument(cachename)
             return cached_pdf
 
 
 class CachedDocument(File):
-    def __init__(self, filename, mode='wb'):
+    def __init__(self, filename, mode='xb+'):
         if not os.path.isfile(filename):
             if os.path.dirname(filename) != '':
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
-            super().__init__(open(filename, mode='wb'), name=filename)
+            super().__init__(open(filename, mode=mode), name=filename)
         else:
             super().__init__(open(filename))
 

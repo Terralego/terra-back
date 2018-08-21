@@ -73,7 +73,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
         DocumentGenerator.get_pdf.assert_called_with(
             data=fake_userrequest.properties,
-            filename=cache_filename
+            cachename=cache_filename
         )
         with open(fake_pdf.name, 'rb') as pdf:
             self.assertEqual(response.content, pdf.read())
@@ -110,7 +110,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
             DocumentGenerator.get_pdf.assert_called_with(
                 data=userrequest.properties,
-                filename=cache_filename
+                cachename=cache_filename
             )
 
             cached_doc = CachedDocument(fake_pdf.name)
@@ -175,7 +175,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
         DocumentGenerator.get_pdf.assert_called_with(
             data=userrequest.properties,
-            filename=cache_filename
+            cachename=cache_filename
         )
 
         os.remove(fake_pdf.name)
