@@ -18,7 +18,7 @@ class DocumentGenerator:
     def get_pdf(self, data=None):
         cache = None
         if isinstance(data, Model):
-            cachepath = f'{data.__class__.__name__}_{data.pk}'
+            cachepath = f'{data.__class__.__name__}_{data.pk}.pdf'
             cache = CachedDocument(cachepath)
 
         if cache and cache.exist:
@@ -50,6 +50,7 @@ class CachedDocument(File):
         if not os.path.isfile(self.pathname):
             self.exist = False
 
+            # dirname is not current dir
             if os.path.dirname(self.pathname) != '':
                 os.makedirs(os.path.dirname(self.pathname), exist_ok=True)
 
