@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth.models import Group
 from django.test import TestCase
@@ -8,7 +9,8 @@ from rest_framework.test import APIClient
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.events.models import EventHandler
 from terracommon.events.signals import event
-from terracommon.events.signals.handlers import (SendNotificationHandler,
+from terracommon.events.signals.handlers import (ModelValueHandler,
+                                                 SendNotificationHandler,
                                                  SetGroupHandler,
                                                  TimeDeltaHandler)
 from terracommon.trrequests.tests.factories import UserRequestFactory
@@ -162,3 +164,82 @@ class SetGroupHandlerTestCase(TestCase):
             self.user.groups.first(),
             self.group
             )
+
+
+class ModelValueHandlerTestCase(TestCase):
+
+    def setUp(self):
+        UserRequestFactory(
+            expiry=date.today(),
+        )
+        self.userrequest = UserRequestFactory(
+            expiry=date.today() + timedelta(days=2),
+        )
+        UserRequestFactory(
+            expiry=date.today() + timedelta(days=3),
+        )
+
+        self.handler_settings = {
+            'model': 'terracommon.trrequests.models.UserRequest',
+            'query': {
+                'expiry': 'date.today() + timedelta(days=2)',
+            },
+            'actions': [
+                {'action': 'USERREQUEST_IMPENDING_EXPIRY',
+                 'kwargs': {
+                     'user': '{instance.reviewers}',
+                 }, },
+                {'action': 'FAKE_ACTION',
+                 'kwargs': {
+                     'user': '{instance.reviewers}',
+                 }, },
+            ]
+        }
+
+        self.executor = ModelValueHandler(
+            event="EVERY_DAY",
+            settings=self.handler_settings,
+        )
+
+    def test_event_proxy_calls_by_handler(self):
+        event_proxy = MagicMock()
+        event.connect(event_proxy)
+
+        if self.executor.valid_condition():
+            self.executor()
+
+        self.assertTrue(event_proxy.called)
+        self.assertEqual(event_proxy.call_count, 2)
+        for i, call in enumerate(event_proxy.call_args_list):
+            _, call_args = call
+            settings_action = self.handler_settings['actions'][i]
+            self.assertEqual(call_args.get('action'),
+                             settings_action.get('action'))
+            self.assertEqual(call_args.get('instance'), self.userrequest)
+            self.assertEqual(call_args.get('sender'), ModelValueHandler)
+            self.assertEqual(call_args.get('user'),
+                             settings_action['kwargs']['user'])
+            self.assertIsNotNone(call_args.get('signal'))  # Not predictable
+
+        event.disconnect(event_proxy)
+
+    def test_actions_are_triggered(self):
+        handler_path = 'terracommon.events.signals.handlers.AbstractHandler'
+
+        EventHandler.objects.create(
+            action='FAKE_ACTION',
+            handler=handler_path,
+        )
+
+        with patch(handler_path) as mocked_handler:
+            if self.executor.valid_condition():
+                self.executor()
+
+        self.assertTrue(mocked_handler.called)
+        self.assertEqual(mocked_handler.call_count, 1)
+        _, call_args = mocked_handler.call_args
+        settings_action = self.handler_settings['actions'][1]  # FAKE_ACTION
+        self.assertEqual(call_args.get('instance'), self.userrequest)
+        self.assertEqual(call_args.get('user'),
+                         settings_action['kwargs']['user'])
+        self.assertIsNotNone(call_args.get('signal'))  # Not predictable
