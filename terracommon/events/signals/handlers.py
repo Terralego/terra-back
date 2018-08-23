@@ -2,13 +2,15 @@ import types
 from datetime import date, timedelta
 
 from django.conf import settings
-from django.contrib.auth.models import Group
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser, Group
 from django.core.mail import send_mail
 from django.forms.models import model_to_dict
 from django.utils.functional import cached_property
+from django.utils.module_loading import import_string
 from simpleeval import EvalWithCompoundTypes, simple_eval
 
-from terracommon.accounts.models import TerraUser
+from terracommon.events.signals import event
 
 from . import funcs
 
@@ -85,7 +87,7 @@ class SendEmailHandler(AbstractHandler):
     settings = {
         'condition': 'True',
         'from_email': settings.DEFAULT_FROM_EMAIL,
-        'recipient_emails': "[user['email'], ]",
+        'recipients': "[user, ]",
         'subject_tpl': "Hello world {user[email]}",
         'body_tpl': "Dear, your properties {user[properties]}"
     }
@@ -95,7 +97,7 @@ class SendEmailHandler(AbstractHandler):
             names=self.vars,
             functions=self.functions
             )
-        recipients = s.eval(self.settings['recipient_emails'])
+        recipients = s.eval(self.settings['recipients'])
 
         for recipient in recipients:
             recipient_data = self._get_recipient_data(recipient)
@@ -106,34 +108,38 @@ class SendEmailHandler(AbstractHandler):
             body = self.settings['body_tpl'].format(
                 recipient=recipient_data,
                 **self.vars,)
+            to_email = getattr(recipient_data, 'email', recipient)
 
             send_mail(
                 subject,
                 body,
                 self.settings['from_email'],
-                [recipient, ],
+                [to_email, ],
                 fail_silently=True,
                 )
 
     @cached_property
     def vars(self):
         vars = super().vars
-        vars.update({
-            'user': {
-                'email': self.args['user'].email,
-                'properties': self.args['user'].properties
-            },
-        })
+        if isinstance(self.args['user'], get_user_model()):
+            vars.update({
+                'user': {
+                    'email': self.args['user'].email,
+                    'properties': self.args['user'].properties
+                },
+            })
         return vars
 
-    def _get_recipient_data(self, email):
+    def _get_recipient_data(self, o):
+        if isinstance(o, get_user_model()):
+            return o
         try:
-            user = TerraUser.objects.get(email=email)
+            user = get_user_model().objects.get(email=o)
             return {
                 'email': user.email,
                 'properties': user.properties,
             }
-        except TerraUser.DoesNotExist:
+        except get_user_model().DoesNotExist:
             return None
 
 
@@ -217,3 +223,52 @@ class SetGroupHandler(AbstractHandler):
     def __call__(self):
         group = Group.objects.get(name=self.settings['group'])
         self.args[self.settings['userfield']].groups.add(group)
+
+
+class ModelValueHandler(AbstractHandler):
+    """
+    Retrieves model records that validates the query.
+    The query values are evaluated before being passed to the ORM.
+    Triggers actions for each recovered record.
+    """
+
+    settings = {
+        'condition': 'True',
+        'model': None,
+        'query': {},
+        'actions': None,
+    }
+
+    def __call__(self):
+        instances = self._get_queryset().all()
+        actions = self.settings['actions']
+        for instance in instances:
+            for action in actions:
+                kwargs = {'user': AnonymousUser()}
+                kwargs.update(**action.get('kwargs', {}))
+                kwargs.update({'action': action['action'],
+                               'instance': instance, })
+                event.send(self.__class__, **kwargs)
+
+    def _get_queryset(self):
+        model = import_string(self.settings['model'])
+        kwargs = {
+            k: simple_eval(v,
+                           names=self.vars,
+                           functions=self.functions, )
+            for k, v in self.settings['query'].items()
+        }
+        return model.objects.filter(**kwargs)
+
+    @cached_property
+    def serialized_instance(self):
+        return None
+
+    @cached_property
+    def functions(self):
+        functions = super().functions
+        functions.update({
+            'date': date,
+            'timedelta': timedelta,
+        })
+        return functions
