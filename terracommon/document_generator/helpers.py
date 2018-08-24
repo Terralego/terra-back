@@ -16,7 +16,7 @@ class DocumentGenerator:
         engine = Renderer()
         return engine.render(self.template, data=data)
 
-    def get_pdf(self, data=None):
+    def get_pdf(self, data=None, reset_cache=False):
         if not isinstance(data, Model):
             raise TypeError("data must be a django Model")
 
@@ -24,7 +24,10 @@ class DocumentGenerator:
         cache = CachedDocument(cachepath)
 
         if cache.exist:
-            return cache
+            if reset_cache:
+                cache.remove()
+            else:
+                return cache
 
         try:
             odt = self.get_odt(data=data)
