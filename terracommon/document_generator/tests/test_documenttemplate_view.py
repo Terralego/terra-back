@@ -70,8 +70,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         DocumentGenerator.get_pdf.assert_called_with(
             data=fake_userrequest)
 
-        with open(fake_pdf.name, 'rb') as pdf:
-            self.assertEqual(response.content, pdf.read())
+        self.assertEqual(response.content, fake_pdf.read())
 
         os.remove(fake_pdf.name)
 
