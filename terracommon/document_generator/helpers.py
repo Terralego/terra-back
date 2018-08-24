@@ -49,6 +49,7 @@ class DocumentGenerator:
             else:
                 cached_pdf = cache.open()
                 cached_pdf.write(response.content.read())
+                cached_pdf.seek(0)
                 return cached_pdf
 
 
