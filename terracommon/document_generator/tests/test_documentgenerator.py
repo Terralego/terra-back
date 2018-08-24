@@ -13,19 +13,32 @@ from terracommon.trrequests.tests.factories import UserRequestFactory
 
 
 class DocumentGeneratorTestCase(TestCase):
+    def setUp(self):
+        self.userrequest = UserRequestFactory()
+
     def test_pdf_is_generated_from_enriched_odt(self):
-        convertit_response = Response()
-        convertit_response.url = settings.CONVERTIT_URL
-        convertit_response.status_code = 200
-        requests.post = MagicMock(return_value=convertit_response)
+        pdf_file = SimpleUploadedFile('fake.pdf', b'some content')
+        pdf_file.seek(0)
 
-        odt_path = os.path.join(os.path.dirname(__file__), 'empty.odt')
-        odt_file = open(odt_path, 'rb')
+        with patch('requests.Response.content',
+                   new_callable=PropertyMock) as mock_content:
+            mock_content.return_value = pdf_file
 
-        dg = DocumentGenerator(odt_file)
-        dg.get_odt = MagicMock(return_value=odt_file)
-        dg.get_pdf({})
-        dg.get_odt.assert_called()
+            convertit_response = Response()
+            convertit_response.url = settings.CONVERTIT_URL
+            convertit_response.status_code = 200
+            requests.post = MagicMock(return_value=convertit_response)
+
+            odt_path = os.path.join(os.path.dirname(__file__), 'empty.odt')
+            odt_file = open(odt_path, 'rb')
+
+            dg = DocumentGenerator(odt_file)
+            dg.get_odt = MagicMock(return_value=odt_file)
+            fake_pdf = dg.get_pdf(self.userrequest)
+            dg.get_odt.assert_called()
+
+            fake_pdf.remove()
+            self.assertFalse(os.path.isfile(fake_pdf.name))
 
     def test_everything_seems_to_work_without_variables(self):
         template_path = os.path.join(os.path.dirname(__file__), 'empty.odt')
@@ -45,7 +58,7 @@ class DocumentGeneratorTestCase(TestCase):
     def test_raises_exception_when_template_is_not_found(self):
         dg = DocumentGenerator('')
         with self.assertRaises(FileNotFoundError):
-            dg.get_pdf({})
+            dg.get_pdf(self.userrequest)
 
     def test_raises_exception_when_convertit_does_not_answer(self):
         mock_response = Response()
@@ -57,7 +70,7 @@ class DocumentGeneratorTestCase(TestCase):
                                 'empty.odt')
         dg = DocumentGenerator(template)
         with self.assertRaises(HTTPError):
-            dg.get_pdf({})
+            dg.get_pdf(self.userrequest)
 
     def test_cache_is_created(self):
         fake_pdf = SimpleUploadedFile('fake.pdf', b'file content')

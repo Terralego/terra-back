@@ -4,6 +4,7 @@ import requests
 from django.conf import settings
 from django.core.files import File
 from django.db.models import Model
+from requests.exceptions import HTTPError
 from secretary import Renderer
 
 
@@ -16,29 +17,39 @@ class DocumentGenerator:
         return engine.render(self.template, data=data)
 
     def get_pdf(self, data=None):
-        cache = None
-        if isinstance(data, Model):
-            cachepath = f'{data.__class__.__name__}_{data.pk}.pdf'
-            cache = CachedDocument(cachepath)
+        if not isinstance(data, Model):
+            raise TypeError("data sould be a django Model")
 
-        if cache and cache.exist:
+        cachepath = f'{data.__class__.__name__}_{data.pk}.pdf'
+        cache = CachedDocument(cachepath)
+
+        if cache.exist:
             return cache
-        else:
+
+        try:
             odt = self.get_odt(data=data)
-            response = requests.post(
-                url=settings.CONVERTIT_URL,
-                files={'file': odt, },
-                data={'to': 'application/pdf', }
-            )
-            response.raise_for_status()
-
-            if cache and not cache.exist:
-                pdf = response.content.open(mode='rb')
+        except FileNotFoundError:
+            # remove newly created file
+            # for caching purpose
+            cache.remove()
+            raise
+        else:
+            try:
+                response = requests.post(
+                    url=settings.CONVERTIT_URL,
+                    files={'file': odt, },
+                    data={'to': 'application/pdf', }
+                )
+                response.raise_for_status()
+            except HTTPError:
+                # remove newly created file
+                # for caching purpose
+                cache.remove()
+                raise
+            else:
                 cached_pdf = cache.open()
-                cached_pdf.write(pdf.read())
+                cached_pdf.write(response.content.read())
                 return cached_pdf
-
-            return response.content
 
 
 class CachedDocument(File):
