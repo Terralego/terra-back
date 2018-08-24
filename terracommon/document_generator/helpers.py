@@ -18,9 +18,9 @@ class DocumentGenerator:
 
     def get_pdf(self, data=None):
         if not isinstance(data, Model):
-            raise TypeError("data sould be a django Model")
+            raise TypeError("data must be a django Model")
 
-        cachepath = f'{data.__class__.__name__}_{data.pk}.pdf'
+        cachepath = os.path.join(data.__class__.__name__, f'{data.pk}.pdf')
         cache = CachedDocument(cachepath)
 
         if cache.exist:
