@@ -38,7 +38,7 @@ class DocumentGenerator:
             # remove newly created file
             # for caching purpose
             cache.remove()
-            logger.error(f"File {self.template} not found.")
+            logger.warning(f"File {self.template} not found.")
             raise
         else:
             try:
@@ -52,7 +52,7 @@ class DocumentGenerator:
                 # remove newly created file
                 # for caching purpose
                 cache.remove()
-                logger.error(f"Http error {response.status_code}")
+                logger.warning(f"Http error {response.status_code}")
                 raise
             else:
                 cached_pdf = cache.open()
