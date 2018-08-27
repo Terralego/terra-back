@@ -60,7 +60,7 @@ class DocumentGeneratorTestCase(TestCase):
         dg = DocumentGenerator('')
         with self.assertRaises(FileNotFoundError):
             dg.get_pdf(self.userrequest)
-            mock_logger.error.assert_called()
+            mock_logger.warning.assert_called()
 
     @patch('terracommon.document_generator.helpers.logger')
     def test_raises_exception_when_convertit_does_not_answer(self,
@@ -75,7 +75,7 @@ class DocumentGeneratorTestCase(TestCase):
         dg = DocumentGenerator(template)
         with self.assertRaises(HTTPError):
             dg.get_pdf(self.userrequest)
-            mock_logger.error.assert_called()
+            mock_logger.warning.assert_called()
 
     def test_cache_is_created(self):
         fake_pdf = SimpleUploadedFile('fake.pdf', b'file content')
