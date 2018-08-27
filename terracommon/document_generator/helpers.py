@@ -1,3 +1,4 @@
+import logging
 import os
 
 import requests
@@ -6,6 +7,8 @@ from django.core.files import File
 from django.db.models import Model
 from requests.exceptions import HTTPError
 from secretary import Renderer
+
+logger = logging.getLogger(__name__)
 
 
 class DocumentGenerator:
@@ -35,6 +38,7 @@ class DocumentGenerator:
             # remove newly created file
             # for caching purpose
             cache.remove()
+            logger.error(f"File {self.template} not found.")
             raise
         else:
             try:
@@ -48,6 +52,7 @@ class DocumentGenerator:
                 # remove newly created file
                 # for caching purpose
                 cache.remove()
+                logger.error(f"Http error {response.status_code}")
                 raise
             else:
                 cached_pdf = cache.open()
