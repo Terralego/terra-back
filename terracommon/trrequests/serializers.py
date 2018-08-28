@@ -9,6 +9,8 @@ from rest_framework import serializers
 
 from terracommon.accounts.mixins import UserTokenGeneratorMixin
 from terracommon.accounts.serializers import TerraUserSerializer
+from terracommon.document_generator.serializers import \
+    DownloadableDocumentSerializer
 from terracommon.events.signals import event
 from terracommon.terra.models import Layer
 from terracommon.terra.serializers import GeoJSONLayerSerializer
@@ -24,6 +26,9 @@ class UserRequestSerializer(serializers.ModelSerializer):
     reviewers = TerraUserSerializer(read_only=True, many=True)
     has_new_comments = serializers.SerializerMethodField()
     has_new_changes = serializers.SerializerMethodField()
+    downloadables = DownloadableDocumentSerializer(read_only=True,
+                                                   many=True,
+                                                   source='downloadable')
 
     def create(self, validated_data):
         with transaction.atomic():
