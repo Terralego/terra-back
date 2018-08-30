@@ -89,8 +89,12 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             linked_object=userrequest
         )
 
+        fake_pdf = NamedTemporaryFile(mode='wb+',
+                                      delete=False,
+                                      dir='./')
+        fake_pdf.write(b'Header PDF-1.4\nsome line.')
         DocumentGenerator.get_pdf = Mock(
-            return_value='fake/path/to/file.pdf')
+            return_value=os.path.basename(fake_pdf.name))  # Dirty hack
 
         # Expected name schema
         pdf_name = f'document_{date.today().__str__()}.pdf'
@@ -105,6 +109,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             DocumentGenerator.get_pdf.assert_called_with(
                 data=userrequest)
             self.assertIn(settings.MEDIA_URL, response.get('X-Accel-Redirect'))
+
+        os.remove(fake_pdf.name)
 
     def test_pdf_creator_with_bad_requestpk(self):
         # Testing bad request_pk
