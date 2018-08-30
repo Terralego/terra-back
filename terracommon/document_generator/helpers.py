@@ -30,7 +30,7 @@ class DocumentGenerator:
             if reset_cache:
                 cache.remove()
             else:
-                return cache
+                return cache.name
 
         try:
             odt = self.get_odt(data=data)
@@ -55,10 +55,9 @@ class DocumentGenerator:
                 logger.warning(f"Http error {response.status_code}")
                 raise
             else:
-                cached_pdf = cache.open()
-                cached_pdf.write(response.content.read())
-                cached_pdf.seek(0)
-                return cached_pdf
+                with cache.open() as cached_pdf:
+                    cached_pdf.write(response.content.read())
+                return cache.name
 
 
 class CachedDocument(File):
@@ -79,7 +78,7 @@ class CachedDocument(File):
             self.exist = True
             super().__init__(open(self.pathname))
 
-        self.url = f'{settings.MEDIA_URL}{self.name}'
+        # self.url = f'{settings.MEDIA_URL}{self.name}'
 
     def remove(self):
         os.remove(self.name)

@@ -1,15 +1,16 @@
 import os
+from datetime import date
 from tempfile import NamedTemporaryFile
 from unittest.mock import Mock
 
+from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from terracommon.accounts.tests.factories import TerraUserFactory
-from terracommon.document_generator.helpers import (CachedDocument,
-                                                    DocumentGenerator)
+from terracommon.document_generator.helpers import DocumentGenerator
 from terracommon.document_generator.models import (DocumentTemplate,
                                                    DownloadableDocument)
 from terracommon.trrequests.tests.factories import UserRequestFactory
@@ -57,14 +58,17 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         fake_pdf = NamedTemporaryFile(mode='wb+', delete=False)
         fake_pdf.write(b'Header PDF-1.4\nsome line.')
         DocumentGenerator.get_pdf = Mock(
-            return_value=CachedDocument(fake_pdf.name))
+            return_value=fake_pdf.name)
+
+        # Expected name schema
+        pdf_name = f'document_{date.today().__str__()}.pdf'
 
         # Testing with no MEDIA_ACCEL_REDIRECT
         response = self.client.get(reverse(self.pdfcreator_urlname,
                                            kwargs=pks))
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual('application/pdf', response['Content-Type'])
-        self.assertEqual(f'attachment;filename={fake_pdf.name}',
+        self.assertEqual(f'attachment;filename={pdf_name}',
                          response['Content-Disposition'])
 
         DocumentGenerator.get_pdf.assert_called_with(
@@ -85,28 +89,22 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             linked_object=userrequest
         )
 
-        fake_pdf = NamedTemporaryFile(mode='wb+', delete=False)
-        fake_pdf.write(b'Header PDF-1.4\nsome line.')
         DocumentGenerator.get_pdf = Mock(
-            return_value=CachedDocument(fake_pdf.name))
+            return_value='fake/path/to/file.pdf')
 
+        # Expected name schema
+        pdf_name = f'document_{date.today().__str__()}.pdf'
         with self.settings(MEDIA_ACCEL_REDIRECT=True):
             response = self.client.get(reverse(self.pdfcreator_urlname,
                                                kwargs=pks))
             self.assertEqual(status.HTTP_200_OK, response.status_code)
             self.assertEqual('application/pdf', response['Content-Type'])
-            self.assertEqual(f'attachment;filename={fake_pdf.name}',
+            self.assertEqual(f'attachment;filename={pdf_name}',
                              response['Content-Disposition'])
 
             DocumentGenerator.get_pdf.assert_called_with(
                 data=userrequest)
-
-            cached_doc = CachedDocument(fake_pdf.name)
-            self.assertEqual(response.get('X-Accel-Redirect'),
-                             cached_doc.url)
-            cached_doc.close()
-            cached_doc.remove()
-            self.assertFalse(os.path.isfile(cached_doc.name))
+            self.assertIn(settings.MEDIA_URL, response.get('X-Accel-Redirect'))
 
     def test_pdf_creator_with_bad_requestpk(self):
         # Testing bad request_pk
@@ -146,7 +144,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                                       delete=False)
         fake_pdf.write(b'Header PDF-1.4\nsome line.')
         DocumentGenerator.get_pdf = Mock(
-            return_value=CachedDocument(fake_pdf.name))
+            return_value=fake_pdf.name)
 
         userrequest = UserRequestFactory(properties=self.properties)
         pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
