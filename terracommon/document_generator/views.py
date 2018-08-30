@@ -1,3 +1,7 @@
+import os
+from datetime import date
+
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
@@ -48,14 +52,16 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
         mytemplate_path = str(mytemplate.documenttemplate)
 
         pdf_generator = DocumentGenerator(mytemplate_path)
-        pdf_file = pdf_generator.get_pdf(data=userrequest)
+        pdf_path = pdf_generator.get_pdf(data=userrequest)
+        pdf_url = os.path.join(settings.MEDIA_URL, pdf_path)
 
+        filename = f'document_{date.today().__str__()}.pdf'
         response = get_media_response(request,
-                                      pdf_file,
+                                      {'path': pdf_path, 'url': pdf_url},
                                       headers={
                                         'Content-Type': 'application/pdf',
                                         'Content-disposition': (
                                             'attachment;'
-                                            f'filename={pdf_file.name}')
+                                            f'filename={filename}')
                                         })
         return response

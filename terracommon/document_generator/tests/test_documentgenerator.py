@@ -7,8 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from requests import HTTPError, Response
 
-from terracommon.document_generator.helpers import (CachedDocument,
-                                                    DocumentGenerator)
+from terracommon.document_generator.helpers import DocumentGenerator
 from terracommon.trrequests.tests.factories import UserRequestFactory
 
 
@@ -34,11 +33,10 @@ class DocumentGeneratorTestCase(TestCase):
 
             dg = DocumentGenerator(odt_file)
             dg.get_odt = MagicMock(return_value=odt_file)
-            fake_pdf = dg.get_pdf(self.userrequest)
+            pdf_path = dg.get_pdf(self.userrequest)
             dg.get_odt.assert_called()
 
-            fake_pdf.remove()
-            self.assertFalse(os.path.isfile(fake_pdf.name))
+            os.remove(pdf_path)
 
     def test_everything_seems_to_work_without_variables(self):
         template_path = os.path.join(os.path.dirname(__file__), 'empty.odt')
@@ -78,28 +76,24 @@ class DocumentGeneratorTestCase(TestCase):
             mock_logger.warning.assert_called()
 
     def test_cache_is_created(self):
-        fake_pdf = SimpleUploadedFile('fake.pdf', b'file content')
-        fake_pdf.seek(0)
+        pdf_file = SimpleUploadedFile('fake.pdf', b'file content')
+        pdf_file.seek(0)
 
         with patch('requests.Response.content',
                    new_callable=PropertyMock) as mock_content:
-            mock_content.return_value = fake_pdf
+            mock_content.return_value = pdf_file
             response_convertit = Response()
             response_convertit.url = settings.CONVERTIT_URL
             response_convertit.status_code = 200
             requests.post = MagicMock(return_value=response_convertit)
 
             odt_path = os.path.join(os.path.dirname(__file__), 'empty.odt')
-            odt_file = open(odt_path, 'rb')
+            with open(odt_path, 'rb') as odt_file:
+                userrequest = UserRequestFactory(properties={'a': 'a'})
 
-            userrequest = UserRequestFactory(properties={'a': 'a'})
+                dg = DocumentGenerator(odt_file)
+                dg.get_odt = MagicMock(return_value=odt_file)
+                pdf_path = dg.get_pdf(userrequest)
 
-            dg = DocumentGenerator(odt_file)
-            dg.get_odt = MagicMock(return_value=odt_file)
-            fake_pdf = dg.get_pdf(userrequest)
-
-            self.assertTrue(isinstance(fake_pdf, CachedDocument))
-            self.assertTrue(os.path.isfile(fake_pdf.name))
-
-            fake_pdf.remove()
-            self.assertFalse(os.path.isfile(fake_pdf.name))
+                self.assertTrue(os.path.isfile(pdf_path))
+                os.remove(pdf_path)
