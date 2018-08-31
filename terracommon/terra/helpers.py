@@ -1,22 +1,33 @@
+import io
+
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
+from django.core.files import File
 from django.http import HttpResponse, HttpResponseForbidden
 
 
-def get_media_response(request, file, permissions=None, headers=None):
+def get_media_response(request, data, permissions=None, headers=None):
+    # For compatibility purpose
+    content, url = None, None
+    if isinstance(data, (io.IOBase, File)):
+        content, url = data, data.url
+    else:
+        # https://docs.djangoproject.com/fr/2.1/ref/request-response/#passing-iterators # noqa
+        content, url = open(data['path']), data['url']
     if isinstance(permissions, list):
         if not set(permissions).intersection(
                 request.user.get_all_permissions()):
             return HttpResponseForbidden()
 
-    response = HttpResponse()
-    if not settings.MEDIA_ACCEL_REDIRECT:
-        response = HttpResponse(file, content_type='application/octet-stream')
+    response = HttpResponse(content_type='application/octet-stream')
     if isinstance(headers, dict):
         for header, value in headers.items():
             response[header] = value
+
     if settings.MEDIA_ACCEL_REDIRECT:
-        response['X-Accel-Redirect'] = f'{file.url}'
+        response['X-Accel-Redirect'] = f'{url}'
+    else:
+        response.content = content
 
     return response
 
