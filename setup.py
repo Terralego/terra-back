@@ -39,6 +39,5 @@ setup(
                       'secretary>=0.2,<0.3',
                       'requests>=2.19,<2.20',
                       'mercantile>=1.0,<1.1',
-                      'shapely<1.7',
     ],
 )
