@@ -10,7 +10,7 @@ variables:
   POSTGRES_USER: user
   POSTGRES_DB: db
   POSTGRES_PASSWORD: password
-  POSTGRES_HOST: mdillon__postgis
+  POSTGRES_HOST: starefossen__pgrouting
 
 cache:
   paths:
