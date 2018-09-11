@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status
 from rest_framework.decorators import detail_route
 from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -123,6 +124,7 @@ class UserInformationsView(APIView):
 
 class UserViewSet(ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, ]
+    parser_classes = (JSONParser, )
     serializer_class = TerraUserSerializer
     queryset = UserModel.objects.none()
 
@@ -134,10 +136,11 @@ class UserViewSet(ModelViewSet):
 
     @detail_route(methods=['post', ])
     def groups(self, request, pk=None):
-        defined_groups = []
         user = get_object_or_404(UserModel, pk=pk)
 
-        for group in request.data.getlist('groups'):
+        defined_groups = []
+
+        for group in request.data['groups']:
             defined_groups.append(get_object_or_404(Group, name=group))
 
         user.groups.set(defined_groups)
