@@ -41,6 +41,11 @@ class TerraUser(AbstractBaseUser, PermissionsMixin):
 
     objects = TerraUserManager()
 
+    class Meta:
+        permissions = (
+            ('can_manage_users', 'Is able create, delete, update users'),
+        )
+
 
 UserModel = get_user_model()
 
