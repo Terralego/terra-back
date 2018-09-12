@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -9,6 +11,7 @@ UserModel = get_user_model()
 class DocumentTemplate(models.Model):
     name = models.CharField(max_length=50)
     documenttemplate = models.FileField(upload_to='templates/%Y/%m')
+    uid = models.CharField(max_length=256, default=uuid.uuid4)
 
 
 class DownloadableDocument(models.Model):
