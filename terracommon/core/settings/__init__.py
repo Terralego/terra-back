@@ -64,6 +64,7 @@ TEMPLATES = [
 ]
 
 REST_FRAMEWORK = {
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_PAGINATION_CLASS':
         'terracommon.core.pagination.PagePagination',
     'PAGE_SIZE': 100,

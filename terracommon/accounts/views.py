@@ -1,18 +1,25 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.db.utils import IntegrityError
-from rest_framework import status
+from django.shortcuts import get_object_or_404
+from rest_framework import permissions, status
+from rest_framework.decorators import detail_route
 from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 
 from terracommon.events.signals import event
 
 from .forms import PasswordSetAndResetForm
 from .serializers import (PasswordChangeSerializer, PasswordResetSerializer,
                           TerraUserSerializer, UserProfileSerializer)
+
+UserModel = get_user_model()
 
 
 class UserProfileView(RetrieveUpdateAPIView):
@@ -113,3 +120,31 @@ class UserInformationsView(APIView):
     def get(self, request):
         user = self.request.user
         return Response(TerraUserSerializer(user).data)
+
+
+class UserViewSet(ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated, ]
+    parser_classes = (JSONParser, )
+    serializer_class = TerraUserSerializer
+    queryset = UserModel.objects.none()
+
+    def get_queryset(self):
+        if self.request.user.has_perm('accounts.can_manage_users'):
+            return UserModel.objects.all()
+
+        return self.queryset
+
+    @detail_route(methods=['post', ])
+    def groups(self, request, pk=None):
+        user = get_object_or_404(UserModel, pk=pk)
+
+        defined_groups = []
+
+        for group in request.data['groups']:
+            defined_groups.append(get_object_or_404(Group, name=group))
+
+        user.groups.set(defined_groups)
+
+        return Response(
+            [g.name for g in defined_groups],
+            status=status.HTTP_200_OK)
