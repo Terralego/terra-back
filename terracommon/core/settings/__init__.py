@@ -64,6 +64,7 @@ TEMPLATES = [
 ]
 
 REST_FRAMEWORK = {
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_PAGINATION_CLASS':
         'terracommon.core.pagination.PagePagination',
     'PAGE_SIZE': 100,
@@ -161,6 +162,7 @@ STATES = Choices(
     ('SUBMITTED', 200, 'Submitted'),
     ('ACCEPTED', 300, 'Accepted'),
     ('REFUSED', -1, 'Refused'),
+    ('CANCELLED', -100, 'Cancelled'),
 )
 
 TERRA_APPLIANCE_SETTINGS = {}
