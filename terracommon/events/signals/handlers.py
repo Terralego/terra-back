@@ -48,6 +48,7 @@ class AbstractHandler(object):
             'settings': self.settings,
             'event': self.event,
             'instance': self.serialized_instance,
+            'front_url': settings.FRONT_URL,
         })
 
         return attrs
@@ -125,7 +126,7 @@ class SendEmailHandler(AbstractHandler):
             vars.update({
                 'user': {
                     'email': self.args['user'].email,
-                    'properties': self.args['user'].properties
+                    'properties': self.args['user'].properties,
                 },
             })
         return vars
