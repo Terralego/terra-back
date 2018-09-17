@@ -1,4 +1,4 @@
-image: ubuntu:artful
+image: ubuntu:bionic
 
 stages:
   - linting
@@ -10,7 +10,7 @@ variables:
   POSTGRES_USER: user
   POSTGRES_DB: db
   POSTGRES_PASSWORD: password
-  POSTGRES_HOST: mdillon__postgis
+  POSTGRES_HOST: starefossen__pgrouting
 
 cache:
   paths:
@@ -29,7 +29,7 @@ tests:
   stage: tests
   tags: [shared-ci-docker]
   services:
-    - mdillon/postgis:10-alpine
+    - starefossen/pgrouting:10.1-2.4-2.5
   script:
     - ./venv/bin/tox -c tox.ini -e tests,coverage
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
