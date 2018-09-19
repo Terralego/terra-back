@@ -70,6 +70,7 @@ class AbstractHandler(object):
             'max': max,
             'any': any,
             'all': all,
+            'sum': sum,
         })
 
         return functions
