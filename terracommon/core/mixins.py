@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import Http404
 
 
 class MultipleFieldLookupMixin(object):
@@ -21,3 +22,4 @@ class MultipleFieldLookupMixin(object):
             else:
                 self.check_object_permissions(self.request, obj)
                 return obj
+        raise Http404
