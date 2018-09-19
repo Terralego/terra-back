@@ -12,7 +12,7 @@ class MultipleFieldLookupMixin(object):
         queryset = self.get_queryset()             # Get the base queryset
         queryset = self.filter_queryset(queryset)  # Apply any filter backends
 
-        value = self.kwargs[self.lookup_fields[0]]
+        value = self.kwargs[self.lookup_field]
         for field in self.lookup_fields:
             try:
                 obj = queryset.get(**{field: value})
