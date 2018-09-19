@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.http.response import Http404, HttpResponseServerError
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.exceptions import PermissionDenied
@@ -20,8 +21,10 @@ from .serializers import CommentSerializer, UserRequestSerializer
 class RequestViewSet(viewsets.ModelViewSet):
     serializer_class = UserRequestSerializer
     permission_classes = [permissions.IsAuthenticated, ]
-    filter_backends = (SearchFilter, JSONFieldOrderingFilter)
+    filter_backends = (SearchFilter, JSONFieldOrderingFilter,
+                       DjangoFilterBackend, )
     search_fields = ('id', 'properties', )
+    filter_fields = ('state', 'reviewers', )
 
     def get_queryset(self):
         if self.request.user.has_perm('trrequests.can_read_all_requests'):
