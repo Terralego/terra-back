@@ -39,6 +39,6 @@ setup(
                       'secretary>=0.2,<0.3',
                       'requests>=2.19,<2.20',
                       'mercantile>=1.0,<1.1',
-                      'django-filter>=2.0,<2.1',
+                      'django-url-filter>=0.3,<0.4',
     ],
 )
