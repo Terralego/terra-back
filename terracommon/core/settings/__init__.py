@@ -31,7 +31,6 @@ INSTALLED_APPS = (
     'rest_framework_gis',
     'drf_yasg',
     'corsheaders',
-    'django_filters',
 )
 
 MIDDLEWARE = (

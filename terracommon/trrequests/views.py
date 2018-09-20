@@ -2,12 +2,12 @@ from django.conf import settings
 from django.db.models import Q
 from django.http.response import Http404, HttpResponseServerError
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
+from url_filter.integrations.drf import DjangoFilterBackend
 
 from terracommon.accounts.permissions import TokenBasedPermission
 from terracommon.core.filters import JSONFieldOrderingFilter
