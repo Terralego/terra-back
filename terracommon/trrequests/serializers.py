@@ -78,7 +78,7 @@ class UserRequestSerializer(serializers.ModelSerializer):
         if ('properties' in validated_data
                 and old_properties != validated_data['properties']):
             event.send(sender=self.__class__,
-                       action="USERREQUEST_PATCHED",
+                       action='USERREQUEST_PROPERTIES_CHANGED',
                        user=self.context['request'].user,
                        instance=instance,
                        old_properties=old_properties)

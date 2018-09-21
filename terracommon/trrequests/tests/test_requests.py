@@ -231,10 +231,12 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
                                      {'properties': {'property': 'value'}},
                                      format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        receiver_callback.assert_called_with(sender=UserRequestSerializer,
-                                             signal=event,
-                                             action='USERREQUEST_PATCHED',
-                                             user=self.user,
-                                             instance=userrequest,
-                                             old_properties=old_properties)
+        receiver_callback.assert_called_with(
+            sender=UserRequestSerializer,
+            signal=event,
+            action='USERREQUEST_PROPERTIES_CHANGED',
+            user=self.user,
+            instance=userrequest,
+            old_properties=old_properties
+        )
         event.disconnect(receiver_callback)
