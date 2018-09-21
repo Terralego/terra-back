@@ -40,5 +40,6 @@ setup(
                       'requests>=2.19,<2.20',
                       'mercantile>=1.0,<1.1',
                       'django-url-filter>=0.3,<0.4',
+                      'Fiona>=1.7,<1.8',
     ],
 )

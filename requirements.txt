@@ -12,6 +12,7 @@ django-url-filter>=0.3,<0.4
 
 # SIG
 mercantile>=1.0,<1.1
+Fiona>=1.7,<1.8
 
 # development
 django-debug-toolbar>=1.9,<1.10
