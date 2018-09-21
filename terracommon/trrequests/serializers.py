@@ -55,7 +55,7 @@ class UserRequestSerializer(serializers.ModelSerializer):
             return instance
 
     def update(self, instance, validated_data):
-        old_state = instance.state
+        old_properties, old_state = instance.properties, instance.state
 
         if 'layer' in validated_data:
             geojson = validated_data.pop('layer')
@@ -74,6 +74,14 @@ class UserRequestSerializer(serializers.ModelSerializer):
                 user=self.context['request'].user,
                 instance=instance,
                 old_state=old_state)
+
+        if ('properties' in validated_data
+                and old_properties != validated_data['properties']):
+            event.send(sender=self.__class__,
+                       action="USERREQUEST_PATCHED",
+                       user=self.context['request'].user,
+                       instance=instance,
+                       old_properties=old_properties)
 
         try:
             instance.user_read(self.current_user)

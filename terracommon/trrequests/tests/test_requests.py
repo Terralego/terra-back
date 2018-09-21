@@ -3,10 +3,12 @@ from unittest.mock import MagicMock
 from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
+from rest_framework import status
 from rest_framework.test import APIClient
 
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.events.signals import event
+from terracommon.terra.tests.factories import LayerFactory
 from terracommon.trrequests.models import UserRequest
 from terracommon.trrequests.serializers import UserRequestSerializer
 
@@ -213,3 +215,26 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             len(self.geojson['features']),
             userrequest.layer.features.all().count()
             )
+
+    def test_userrequest_patched(self):
+        self._set_permissions(['can_read_self_requests', ])
+
+        old_properties = {'property': ''}
+        userrequest = UserRequest.objects.create(owner=self.user,
+                                                 layer=LayerFactory(),
+                                                 properties=old_properties)
+
+        receiver_callback = MagicMock()
+        event.connect(receiver_callback)
+        response = self.client.patch(reverse('request-detail',
+                                             kwargs={'pk': userrequest.pk}),
+                                     {'properties': {'property': 'value'}},
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        receiver_callback.assert_called_with(sender=UserRequestSerializer,
+                                             signal=event,
+                                             action='USERREQUEST_PATCHED',
+                                             user=self.user,
+                                             instance=userrequest,
+                                             old_properties=old_properties)
+        event.disconnect(receiver_callback)
