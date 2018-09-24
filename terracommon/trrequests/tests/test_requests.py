@@ -201,7 +201,7 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
     def test_geojson_update(self):
         userrequest = UserRequestFactory(
             owner=self.user,
-            layer__add_features=[{}, ])
+            layer__add_features=1)
 
         self.assertEqual(1, userrequest.layer.features.all().count())
 
