@@ -1,11 +1,12 @@
 from django.contrib.gis.geos import GEOSGeometry, LineString, Point
-from django.http import HttpResponseBadRequest
-from rest_framework import viewsets
+from django.http import HttpResponse, HttpResponseBadRequest
+from rest_framework import status, viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.status import HTTP_204_NO_CONTENT
 
+from terracommon.accounts.permissions import TokenBasedPermission
 from terracommon.core.mixins import MultipleFieldLookupMixin
 
 from .models import FeatureRelation, Layer, LayerRelation
@@ -18,6 +19,23 @@ class LayerViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
     queryset = Layer.objects.all()
     serializer_class = LayerSerializer
     lookup_fields = ('pk', 'name')
+
+    @detail_route(methods=['get'],
+                  url_path='shapefile',
+                  permission_classes=(TokenBasedPermission, ))
+    def to_shapefile(self, request, pk=None):
+        layer = self.get_object()
+        shape_file = layer.to_shapefile()
+
+        if shape_file:
+            response = HttpResponse(content_type='application/zip')
+            response['Content-Disposition'] = ('attachment; '
+                                               f'filename="{layer.name}.zip"')
+            response.write(shape_file.getvalue())
+        else:
+            response = Response(status=status.HTTP_204_NO_CONTENT)
+
+        return response
 
     @detail_route(methods=['get'], url_path='geojson')
     def to_geojson(self, request, pk=None):

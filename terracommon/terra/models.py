@@ -1,18 +1,26 @@
 import json
 import logging
+import os
 import uuid
+from tempfile import TemporaryDirectory
 
+import fiona
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSException, GEOSGeometry
 from django.contrib.postgres.fields import JSONField
 from django.core.serializers import serialize
 from django.db import transaction
-from django.db.models import Manager
+from django.db.models import F, Manager
+from django.utils.functional import cached_property
+from fiona.crs import from_epsg
 from mercantile import tiles
+
+from terracommon.core.helpers import make_zipfile_bytesio
 
 from .helpers import ChunkIterator
 from .managers import FeatureQuerySet
+from .tiles.funcs import ST_SRID
 from .tiles.helpers import VectorTile
 
 logger = logging.getLogger(__name__)
@@ -146,6 +154,59 @@ class Layer(models.Model):
                                     fields=('properties',),
                                     geometry_field='geom',
                                     properties_field='properties'))
+
+    def to_shapefile(self):
+
+        schema = {
+            'geometry': self.layer_geometry,
+            'properties': self.layer_properties,
+        }
+
+        if not self.features.count():
+            return
+
+        with TemporaryDirectory() as shape_folder:
+            with fiona.open(
+                    os.path.join(shape_folder, 'shape.shp'),
+                    mode='w',
+                    driver='ESRI Shapefile',
+                    schema=schema,
+                    crs=from_epsg(self.layer_projection)) as shapefile:
+                for feature in self.features.all():
+                    shapefile.write({
+                        'geometry': json.loads(feature.geom.json),
+                        'properties': feature.properties
+                        })
+            return make_zipfile_bytesio(shape_folder)
+
+    @cached_property
+    def layer_projection(self):
+        feature = self.features.annotate(srid=ST_SRID(F('geom'))).first()
+        return feature.srid
+
+    @cached_property
+    def layer_properties(self):
+        ''' Return properties of first feature of the layer
+        '''
+        feature = self.features.first()
+        if not feature:
+            return {}
+
+        return {
+            prop: 'str'
+            for prop in feature.properties
+        }
+
+    @cached_property
+    def layer_geometry(self):
+        ''' Return the geometry type of the layer using the first feature in
+            the layer
+        '''
+        feature = self.features.first()
+        if feature:
+            return feature.geom.geom_type
+
+        return None
 
     def is_projection_allowed(self, projection):
         return projection in ACCEPTED_PROJECTIONS

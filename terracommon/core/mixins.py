@@ -1,5 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
+from django.utils.functional import cached_property
 
 
 class MultipleFieldLookupMixin(object):
@@ -23,3 +24,15 @@ class MultipleFieldLookupMixin(object):
                 self.check_object_permissions(self.request, obj)
                 return obj
         raise Http404
+
+
+class SerializerCurrentUserMixin(object):
+    """
+    Usefull mixin in serializers to get currently logged in user, in the
+    current_user property
+    """
+
+    @cached_property
+    def current_user(self):
+        return (self.context['request'].user
+                if 'request' in self.context else None)
