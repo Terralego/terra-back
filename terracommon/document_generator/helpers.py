@@ -62,11 +62,11 @@ class DocumentGenerator:
                     cached_pdf.write(response.content.read())
                 return cache.name
 
-    def _timedelta_filter(self, date_value, detla_day):
+    def _timedelta_filter(self, date_value, delta_days):
         """ custom filter that will add a positive or negative value, timedelta
             to the day of a date in string format """
         current_date = dateparse.parse_date(date_value)
-        return current_date - timedelta(days=detla_day)
+        return current_date - timedelta(days=delta_days)
 
 
 class CachedDocument(File):
