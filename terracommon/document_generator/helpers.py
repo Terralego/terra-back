@@ -17,6 +17,7 @@ class DocumentGenerator:
 
     def get_odt(self, data=None):
         engine = Renderer()
+        engine.environment.filters['timedelta_filter'] = self._timedelta_filter
         return engine.render(self.template, data=data)
 
     def get_pdf(self, data=None, reset_cache=False):
@@ -58,6 +59,13 @@ class DocumentGenerator:
                 with cache.open() as cached_pdf:
                     cached_pdf.write(response.content.read())
                 return cache.name
+
+    def _timedelta_filter(self, date_value, timedelta):
+        """ custom filter that will add a positive or negative value, timedelta
+            to the day of a date in string format """
+        day, month, year = date_value.split('-')
+        updated_day = int(day) + int(timedelta)
+        return '-'.join((str(updated_day), month, year))
 
 
 class CachedDocument(File):
