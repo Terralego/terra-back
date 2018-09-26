@@ -1,10 +1,12 @@
 import logging
 import os
+from datetime import timedelta
 
 import requests
 from django.conf import settings
 from django.core.files import File
 from django.db.models import Model
+from django.utils import dateparse
 from requests.exceptions import HTTPError
 from secretary import Renderer
 
@@ -60,12 +62,13 @@ class DocumentGenerator:
                     cached_pdf.write(response.content.read())
                 return cache.name
 
-    def _timedelta_filter(self, date_value, timedelta):
+    def _timedelta_filter(self, date_value, time_delta):
         """ custom filter that will add a positive or negative value, timedelta
             to the day of a date in string format """
-        day, month, year = date_value.split('-')
-        updated_day = int(day) + int(timedelta)
-        return '-'.join((str(updated_day), month, year))
+        timedelta_object = timedelta(days=time_delta)
+        current_date = dateparse.parse_date(date_value)
+        updated_date = current_date - timedelta_object
+        return updated_date
 
 
 class CachedDocument(File):
