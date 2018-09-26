@@ -1,6 +1,7 @@
 import json
 
-from django.contrib.gis.geos import GEOSGeometry, LineString, Point
+from django.contrib.gis.geos import (GEOSException, GEOSGeometry, LineString,
+                                     Point)
 from django.core.serializers import serialize
 from django.http import HttpResponse, HttpResponseBadRequest
 from rest_framework import status, viewsets
@@ -25,7 +26,7 @@ class LayerViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
 
     @detail_route(methods=['get'],
                   url_path='shapefile',
-                  permission_classes=(TokenBasedPermission, ))
+                  permission_classes=(TokenBasedPermission,))
     def to_shapefile(self, request, pk=None):
         layer = self.get_object()
         shape_file = layer.to_shapefile()
@@ -55,9 +56,9 @@ class LayerViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
             if not isinstance(geometry, LineString):
                 raise ValueError
             points = [Point(c, srid=geometry.srid) for c in geometry.coords]
-        except (TypeError, ValueError):
+        except (GEOSException, TypeError, ValueError):
             return HttpResponseBadRequest(
-                    content='Provided geometry is not valid LineString')
+                content='Provided geometry is not valid LineString')
 
         routing = Routing(points, layer)
         route = routing.get_route()
@@ -82,9 +83,9 @@ class LayerViewSet(MultipleFieldLookupMixin, viewsets.ModelViewSet):
 
         try:
             geometry = GEOSGeometry(request.data.get('geom', None))
-        except (TypeError, ValueError):
+        except (GEOSException, TypeError, ValueError):
             return HttpResponseBadRequest(
-                        content='Provided geometry is not valid')
+                content='Provided geometry is not valid')
 
         response = {
             'request': {
