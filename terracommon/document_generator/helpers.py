@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.files import File
 from django.db.models import Model
 from django.utils import dateparse
-from requests.exceptions import HTTPError
+from requests.exceptions import ConnectionError, HTTPError
 from secretary import Renderer
 
 logger = logging.getLogger(__name__)
@@ -56,6 +56,10 @@ class DocumentGenerator:
                 # for caching purpose
                 cache.remove()
                 logger.warning(f"Http error {response.status_code}")
+                raise
+            except ConnectionError:
+                cache.remove()
+                logger.warning("Connection error")
                 raise
             else:
                 with cache.open() as cached_pdf:
