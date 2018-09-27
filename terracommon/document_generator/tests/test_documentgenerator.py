@@ -5,7 +5,7 @@ import requests
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
-from requests import HTTPError, Response
+from requests import ConnectionError, HTTPError, Response
 
 from terracommon.document_generator.helpers import DocumentGenerator
 from terracommon.trrequests.tests.factories import UserRequestFactory
@@ -97,3 +97,14 @@ class DocumentGeneratorTestCase(TestCase):
 
                 self.assertTrue(os.path.isfile(pdf_path))
                 os.remove(pdf_path)
+
+    @patch('terracommon.document_generator.helpers.logger')
+    def test_raises_connection_error_exception(self, mock_logger):
+        requests.post = MagicMock(side_effect=ConnectionError())
+
+        template = os.path.join(os.path.dirname(__file__), 'empty.odt')
+        dg = DocumentGenerator(template)
+
+        with self.assertRaises(ConnectionError):
+            dg.get_pdf(self.userrequest)
+            mock_logger.warning.assert_called()
