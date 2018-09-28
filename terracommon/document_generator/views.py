@@ -34,12 +34,12 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
         """
 
         userrequest = get_object_or_404(UserRequest, pk=request_pk)
-        mytemplate = get_object_or_404(DocumentTemplate, pk=pk)
+        template = get_object_or_404(DocumentTemplate, pk=pk)
 
         userrequest_type = ContentType.objects.get_for_model(
                                                         userrequest)
         downloadable_properties = {
-            'document': mytemplate,
+            'document': template,
             'content_type': userrequest_type,
             'object_id': userrequest.pk,
         }
@@ -49,9 +49,7 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
                     **downloadable_properties).exists())):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        mytemplate_path = str(mytemplate.documenttemplate)
-
-        pdf_generator = DocumentGenerator(mytemplate_path)
+        pdf_generator = DocumentGenerator(template.documenttemplate.path)
         pdf_path = pdf_generator.get_pdf(data=userrequest)
         pdf_url = os.path.join(settings.MEDIA_URL, pdf_path)
 
