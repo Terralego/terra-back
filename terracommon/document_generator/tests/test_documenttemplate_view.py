@@ -63,7 +63,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                           return_value=fake_pdf.name) as mock_dg:
 
             # Expected name schema
-            pdf_name = f'document_{date.today().__str__()}.pdf'
+            pdf_name = f'document_{date.today()}.pdf'
 
             # Testing with no MEDIA_ACCEL_REDIRECT
             response = self.client.get(reverse(self.pdfcreator_urlname,
@@ -100,7 +100,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                 'get_pdf',
                 return_value=os.path.basename(fake_pdf.name)) as mock_dg:
             # Expected name schema
-            pdf_name = f'document_{date.today().__str__()}.pdf'
+            pdf_name = f'document_{date.today()}.pdf'
             with self.settings(MEDIA_ACCEL_REDIRECT=True):
                 response = self.client.get(reverse(self.pdfcreator_urlname,
                                                    kwargs=pks))
