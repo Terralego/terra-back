@@ -1,11 +1,13 @@
 import os
 from datetime import date
 from tempfile import NamedTemporaryFile
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
+from jinja2 import TemplateSyntaxError
+from requests import ConnectionError, HTTPError
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -177,3 +179,69 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         response = self.client.get(reverse(self.pdfcreator_urlname,
                                            kwargs=pks))
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
+
+        # Reseting default test settings
+        self.client.force_authenticate(user=self.user)
+
+    def test_raises_filenotfounderror_return_404(self):
+        ur = UserRequestFactory()
+        pks = {'request_pk': ur.pk, 'pk': self.myodt.pk}
+
+        # Creating Permission
+        DownloadableDocument.objects.create(user=self.user,
+                                            document=self.myodt,
+                                            linked_object=ur)
+        # Mocking getpdf
+        DocumentGenerator.get_pdf = MagicMock(side_effect=FileNotFoundError)
+
+        response = self.client.get(reverse(self.pdfcreator_urlname,
+                                           kwargs=pks))
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
+
+    def test_raises_HTTPError_return_503(self):
+        ur = UserRequestFactory()
+        pks = {'request_pk': ur.pk, 'pk': self.myodt.pk}
+
+        # Creating Permission
+        DownloadableDocument.objects.create(user=self.user,
+                                            document=self.myodt,
+                                            linked_object=ur)
+        # Mocking getpdf
+        DocumentGenerator.get_pdf = MagicMock(side_effect=HTTPError)
+
+        response = self.client.get(reverse(self.pdfcreator_urlname,
+                                           kwargs=pks))
+        self.assertEqual(status.HTTP_503_SERVICE_UNAVAILABLE,
+                         response.status_code)
+
+    def test_raises_ConnectionError_return_503(self):
+        ur = UserRequestFactory()
+        pks = {'request_pk': ur.pk, 'pk': self.myodt.pk}
+
+        # Creating Permission
+        DownloadableDocument.objects.create(user=self.user,
+                                            document=self.myodt,
+                                            linked_object=ur)
+        # Mocking getpdf
+        DocumentGenerator.get_pdf = MagicMock(side_effect=ConnectionError)
+        response = self.client.get(reverse(self.pdfcreator_urlname,
+                                           kwargs=pks))
+        self.assertEqual(status.HTTP_503_SERVICE_UNAVAILABLE,
+                         response.status_code)
+
+    def test_raises_TemplateSyntaxError_return_500(self):
+        ur = UserRequestFactory()
+        pks = {'request_pk': ur.pk, 'pk': self.myodt.pk}
+
+        # Creating Permission
+        DownloadableDocument.objects.create(user=self.user,
+                                            document=self.myodt,
+                                            linked_object=ur)
+        # Mocking getpdf
+        DocumentGenerator.get_pdf = MagicMock(side_effect=TemplateSyntaxError(
+                                                message='error',
+                                                lineno=1))
+        response = self.client.get(reverse(self.pdfcreator_urlname,
+                                           kwargs=pks))
+        self.assertEqual(status.HTTP_500_INTERNAL_SERVER_ERROR,
+                         response.status_code)

@@ -10,6 +10,7 @@ from django.core.files import File
 from django.db.models import Model
 from django.utils import dateparse
 from django.utils.functional import cached_property
+from jinja2 import TemplateSyntaxError
 from requests.exceptions import ConnectionError, HTTPError
 from secretary import Renderer
 
@@ -46,6 +47,11 @@ class DocumentGenerator:
             # for caching purpose
             cache.remove()
             logger.warning(f"File {self.template} not found.")
+            raise
+        except TemplateSyntaxError as e:
+            cache.remove()
+            logger.warning(f'TemplateSyntaxError for {self.template} '
+                           f'at line {e.lineno}: {e.message}')
             raise
         else:
             try:
