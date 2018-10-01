@@ -1,7 +1,7 @@
 import os
 from datetime import date
 from tempfile import NamedTemporaryFile
-from unittest.mock import Mock
+from unittest.mock import patch
 
 from django.conf import settings
 from django.test import TestCase
@@ -57,24 +57,25 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         # Mocking
         fake_pdf = NamedTemporaryFile(mode='wb+', delete=False)
         fake_pdf.write(b'Header PDF-1.4\nsome line.')
-        DocumentGenerator.get_pdf = Mock(
-            return_value=fake_pdf.name)
 
-        # Expected name schema
-        pdf_name = f'document_{date.today().__str__()}.pdf'
+        with patch.object(DocumentGenerator,
+                          'get_pdf',
+                          return_value=fake_pdf.name) as mock_dg:
 
-        # Testing with no MEDIA_ACCEL_REDIRECT
-        response = self.client.get(reverse(self.pdfcreator_urlname,
-                                           kwargs=pks))
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual('application/pdf', response['Content-Type'])
-        self.assertEqual(f'attachment;filename={pdf_name}',
-                         response['Content-Disposition'])
+            # Expected name schema
+            pdf_name = f'document_{date.today().__str__()}.pdf'
 
-        DocumentGenerator.get_pdf.assert_called_with(
-            data=fake_userrequest)
+            # Testing with no MEDIA_ACCEL_REDIRECT
+            response = self.client.get(reverse(self.pdfcreator_urlname,
+                                               kwargs=pks))
+            self.assertEqual(status.HTTP_200_OK, response.status_code)
+            self.assertEqual('application/pdf', response['Content-Type'])
+            self.assertEqual(f'attachment;filename={pdf_name}',
+                             response['Content-Disposition'])
 
-        self.assertEqual(response.content, fake_pdf.read())
+            self.assertEqual(response.content, fake_pdf.read())
+
+            mock_dg.assert_called_with(data=fake_userrequest)
 
         os.remove(fake_pdf.name)
 
@@ -93,22 +94,24 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                                       delete=False,
                                       dir='./')
         fake_pdf.write(b'Header PDF-1.4\nsome line.')
-        DocumentGenerator.get_pdf = Mock(
-            return_value=os.path.basename(fake_pdf.name))  # Dirty hack
 
-        # Expected name schema
-        pdf_name = f'document_{date.today().__str__()}.pdf'
-        with self.settings(MEDIA_ACCEL_REDIRECT=True):
-            response = self.client.get(reverse(self.pdfcreator_urlname,
-                                               kwargs=pks))
-            self.assertEqual(status.HTTP_200_OK, response.status_code)
-            self.assertEqual('application/pdf', response['Content-Type'])
-            self.assertEqual(f'attachment;filename={pdf_name}',
-                             response['Content-Disposition'])
+        with patch.object(
+                DocumentGenerator,
+                'get_pdf',
+                return_value=os.path.basename(fake_pdf.name)) as mock_dg:
+            # Expected name schema
+            pdf_name = f'document_{date.today().__str__()}.pdf'
+            with self.settings(MEDIA_ACCEL_REDIRECT=True):
+                response = self.client.get(reverse(self.pdfcreator_urlname,
+                                                   kwargs=pks))
 
-            DocumentGenerator.get_pdf.assert_called_with(
-                data=userrequest)
-            self.assertIn(settings.MEDIA_URL, response.get('X-Accel-Redirect'))
+                self.assertEqual(status.HTTP_200_OK, response.status_code)
+                self.assertEqual('application/pdf', response['Content-Type'])
+                self.assertEqual(f'attachment;filename={pdf_name}',
+                                 response['Content-Disposition'])
+                self.assertIn(settings.MEDIA_URL,
+                              response.get('X-Accel-Redirect'))
+                mock_dg.assert_called_with(data=userrequest)
 
         os.remove(fake_pdf.name)
 
@@ -149,19 +152,18 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         fake_pdf = NamedTemporaryFile(mode='wb+',
                                       delete=False)
         fake_pdf.write(b'Header PDF-1.4\nsome line.')
-        DocumentGenerator.get_pdf = Mock(
-            return_value=fake_pdf.name)
 
-        userrequest = UserRequestFactory(properties=self.properties)
-        pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
+        with patch.object(DocumentGenerator,
+                          'get_pdf',
+                          return_value=fake_pdf.name) as mock_dg:
+            userrequest = UserRequestFactory(properties=self.properties)
+            pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
 
-        response = self.client.get(reverse(self.pdfcreator_urlname,
-                                           kwargs=pks))
+            response = self.client.get(reverse(self.pdfcreator_urlname,
+                                               kwargs=pks))
 
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-
-        DocumentGenerator.get_pdf.assert_called_with(
-            data=userrequest)
+            self.assertEqual(status.HTTP_200_OK, response.status_code)
+            mock_dg.assert_called_with(data=userrequest)
 
         os.remove(fake_pdf.name)
 
