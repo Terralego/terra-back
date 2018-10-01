@@ -1,3 +1,5 @@
+import hashlib
+import io
 import logging
 import os
 from datetime import timedelta
@@ -7,6 +9,7 @@ from django.conf import settings
 from django.core.files import File
 from django.db.models import Model
 from django.utils import dateparse
+from django.utils.functional import cached_property
 from requests.exceptions import ConnectionError, HTTPError
 from secretary import Renderer
 
@@ -26,7 +29,8 @@ class DocumentGenerator:
         if not isinstance(data, Model):
             raise TypeError("data must be a django Model")
 
-        cachepath = os.path.join(data.__class__.__name__, f'{data.pk}.pdf')
+        cachepath = os.path.join(data.__class__.__name__,
+                                 f'{self._document_checksum}_{data.pk}.pdf')
         cache = CachedDocument(cachepath)
 
         if cache.exist:
@@ -71,6 +75,17 @@ class DocumentGenerator:
             to the day of a date in string format """
         current_date = dateparse.parse_date(date_value)
         return current_date - timedelta(days=delta_days)
+
+    @cached_property
+    def _document_checksum(self):
+        """ return the md5 checksum of self.template """
+        content = None
+        if isinstance(self.template, io.IOBase):
+            content = self.template.read()
+        else:
+            content = bytes(self.template, 'utf-8')
+
+        return hashlib.md5(content)
 
 
 class CachedDocument(File):
