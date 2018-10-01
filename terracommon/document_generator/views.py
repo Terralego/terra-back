@@ -58,8 +58,7 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
         except (ConnectionError, HTTPError):
             return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        except TemplateSyntaxError as e:
-            print(e.lineno, e.message)
+        except TemplateSyntaxError:
             return Response(
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 data='malformed template'

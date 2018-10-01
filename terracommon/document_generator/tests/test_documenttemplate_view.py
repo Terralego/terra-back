@@ -1,7 +1,7 @@
 import os
 from datetime import date
 from tempfile import NamedTemporaryFile
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from django.conf import settings
 from django.test import TestCase
@@ -192,11 +192,13 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                                             document=self.myodt,
                                             linked_object=ur)
         # Mocking getpdf
-        DocumentGenerator.get_pdf = MagicMock(side_effect=FileNotFoundError)
-
-        response = self.client.get(reverse(self.pdfcreator_urlname,
-                                           kwargs=pks))
-        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
+        with patch.object(DocumentGenerator,
+                          'get_pdf',
+                          side_effect=FileNotFoundError) as mock_dg:
+            response = self.client.get(reverse(self.pdfcreator_urlname,
+                                               kwargs=pks))
+            self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
+            mock_dg.assert_called_with(data=ur)
 
     def test_raises_HTTPError_return_503(self):
         ur = UserRequestFactory()
@@ -207,12 +209,14 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                                             document=self.myodt,
                                             linked_object=ur)
         # Mocking getpdf
-        DocumentGenerator.get_pdf = MagicMock(side_effect=HTTPError)
-
-        response = self.client.get(reverse(self.pdfcreator_urlname,
-                                           kwargs=pks))
-        self.assertEqual(status.HTTP_503_SERVICE_UNAVAILABLE,
-                         response.status_code)
+        with patch.object(DocumentGenerator,
+                          'get_pdf',
+                          side_effect=HTTPError) as mock_dg:
+            response = self.client.get(reverse(self.pdfcreator_urlname,
+                                               kwargs=pks))
+            self.assertEqual(status.HTTP_503_SERVICE_UNAVAILABLE,
+                             response.status_code)
+            mock_dg.assert_called_with(data=ur)
 
     def test_raises_ConnectionError_return_503(self):
         ur = UserRequestFactory()
@@ -223,11 +227,14 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                                             document=self.myodt,
                                             linked_object=ur)
         # Mocking getpdf
-        DocumentGenerator.get_pdf = MagicMock(side_effect=ConnectionError)
-        response = self.client.get(reverse(self.pdfcreator_urlname,
-                                           kwargs=pks))
-        self.assertEqual(status.HTTP_503_SERVICE_UNAVAILABLE,
-                         response.status_code)
+        with patch.object(DocumentGenerator,
+                          'get_pdf',
+                          side_effect=ConnectionError) as mock_dg:
+            response = self.client.get(reverse(self.pdfcreator_urlname,
+                                               kwargs=pks))
+            self.assertEqual(status.HTTP_503_SERVICE_UNAVAILABLE,
+                             response.status_code)
+            mock_dg.assert_called_with(data=ur)
 
     def test_raises_TemplateSyntaxError_return_500(self):
         ur = UserRequestFactory()
@@ -238,10 +245,13 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                                             document=self.myodt,
                                             linked_object=ur)
         # Mocking getpdf
-        DocumentGenerator.get_pdf = MagicMock(side_effect=TemplateSyntaxError(
-                                                message='error',
-                                                lineno=1))
-        response = self.client.get(reverse(self.pdfcreator_urlname,
-                                           kwargs=pks))
-        self.assertEqual(status.HTTP_500_INTERNAL_SERVER_ERROR,
-                         response.status_code)
+        with patch.object(
+                DocumentGenerator,
+                'get_pdf',
+                side_effect=TemplateSyntaxError(message='error',
+                                                lineno=1)) as mock_dg:
+            response = self.client.get(reverse(self.pdfcreator_urlname,
+                                               kwargs=pks))
+            self.assertEqual(status.HTTP_500_INTERNAL_SERVER_ERROR,
+                             response.status_code)
+            mock_dg.assert_called_with(data=ur)
