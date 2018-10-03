@@ -24,9 +24,9 @@ class RequestViewSet(viewsets.ModelViewSet):
     serializer_class = UserRequestSerializer
     permission_classes = [permissions.IsAuthenticated, ]
     filter_backends = (SearchFilter, JSONFieldOrderingFilter,
-                       DjangoFilterBackend, )
-    search_fields = ('id', 'properties', )
-    filter_fields = ('state', 'reviewers', )
+                       DjangoFilterBackend,)
+    search_fields = ('id', 'properties',)
+    filter_fields = ('state', 'reviewers',)
 
     def get_queryset(self):
         if self.request.user.has_perm('trrequests.can_read_all_requests'):
@@ -92,14 +92,14 @@ class CommentViewSet(mixins.CreateModelMixin,
 
         if 'is_internal' in serializer.validated_data:
             if (serializer.validated_data['is_internal'] is True
-                and not self.request.user.has_perm(
-                    'trrequests.can_internal_comment_requests')):
+                    and not self.request.user.has_perm(
+                        'trrequests.can_internal_comment_requests')):
                 raise PermissionDenied(
                     'Permission missing to create internal comment')
 
             elif (serializer.validated_data['is_internal'] is False
                   and not self.request.user.has_perm(
-                      'trrequests.can_comment_requests')):
+                        'trrequests.can_comment_requests')):
                 raise PermissionDenied(
                     'Permission missing to create public comment')
 
@@ -111,29 +111,30 @@ class CommentViewSet(mixins.CreateModelMixin,
 
         return serializer.save(**auto_data)
 
-    @detail_route(methods=['get'], permission_classes=(TokenBasedPermission, ))
+    @detail_route(methods=['get'], permission_classes=(TokenBasedPermission,))
     def attachment(self, request, request_pk=None, pk=None):
         comment = self.get_object()
         if not comment.attachment:
             raise Http404('Attachment does not exist')
 
         if settings.MEDIA_ACCEL_REDIRECT:
-            response = get_media_response(request, comment.attachment,
-                                          headers={
-                                              'Content-Disposition': (
-                                                  'attachment;'
-                                                  f' filename={comment.filename}')
-                                          })
+            response = get_media_response(
+                request, comment.attachment,
+                headers={
+                    'Content-Disposition': (
+                        'attachment;'
+                        f' filename={comment.filename}')
+                })
         else:
-            response = get_media_response(request, comment.attachment,
-                                          headers={
-                                              'Content-Disposition': (
-                                                  'attachment;'
-                                                  f' filename={comment.filename}'),
-                                              'Content-Type': (
-                                                  f' content_type={mimetypes.guess_type(comment.filename)}')
-                                          })
-
-
+            type = mimetypes.guess_type(comment.filename)
+            response = get_media_response(
+                request, comment.attachment,
+                headers={
+                    'Content-Disposition': (
+                        'attachment;'
+                        f' filename={comment.filename}'),
+                    'Content-Type': (
+                        f' content_type={type}')
+                })
 
         return response
