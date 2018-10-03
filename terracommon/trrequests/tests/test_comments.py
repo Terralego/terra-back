@@ -1,5 +1,6 @@
 import datetime
 import json
+import mimetypes
 from io import StringIO
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -200,6 +201,7 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         self.assertIn(f'comment_{datetime.date.today():%d}',
                       comment_updated.attachment.url)
         self.assertEqual(tmp_file.name, comment_updated.filename)
+        self.assertEqual(mimetypes.guess_type(tmp_file.name), mimetypes.guess_type(comment_updated.filename))
         self.assertNotEqual(tmp_file.name, comment_updated.attachment.name)
 
     def test_comment_creations_with_same_filename(self):
