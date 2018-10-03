@@ -126,7 +126,7 @@ class CommentViewSet(mixins.CreateModelMixin,
                         f' filename={comment.filename}')
                 })
         else:
-            type = mimetypes.guess_type(comment.filename)
+            file_type = mimetypes.guess_type(comment.filename)
             response = get_media_response(
                 request, comment.attachment,
                 headers={
@@ -134,7 +134,7 @@ class CommentViewSet(mixins.CreateModelMixin,
                         'attachment;'
                         f' filename={comment.filename}'),
                     'Content-Type': (
-                        f' content_type={type}')
+                        f' content_type={file_type}')
                 })
 
         return response
