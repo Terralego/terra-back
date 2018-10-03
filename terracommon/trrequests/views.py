@@ -1,3 +1,5 @@
+import mimetypes
+
 from django.conf import settings
 from django.db.models import Q
 from django.http.response import Http404, HttpResponseServerError
@@ -114,10 +116,24 @@ class CommentViewSet(mixins.CreateModelMixin,
         comment = self.get_object()
         if not comment.attachment:
             raise Http404('Attachment does not exist')
-        response = get_media_response(request, comment.attachment,
-                                      headers={
-                                          'Content-Disposition': (
-                                              'attachment;'
-                                              f' filename={comment.filename}')
-                                      })
+
+        if settings.MEDIA_ACCEL_REDIRECT:
+            response = get_media_response(request, comment.attachment,
+                                          headers={
+                                              'Content-Disposition': (
+                                                  'attachment;'
+                                                  f' filename={comment.filename}')
+                                          })
+        else:
+            response = get_media_response(request, comment.attachment,
+                                          headers={
+                                              'Content-Disposition': (
+                                                  'attachment;'
+                                                  f' filename={comment.filename}'),
+                                              'Content-Type': (
+                                                  f' content_type={mimetypes.guess_type(comment.filename)}')
+                                          })
+
+
+
         return response
