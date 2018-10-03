@@ -73,7 +73,7 @@ class DocumentGenerator:
                 raise
             else:
                 with cache.open() as cached_pdf:
-                    cached_pdf.write(response.content.read())
+                    cached_pdf.write(response.content)
                 return cache.name
 
     def _timedelta_filter(self, date_value, delta_days):

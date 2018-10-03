@@ -22,7 +22,7 @@ class DocumentGeneratorTestCase(TestCase):
 
         with patch('requests.Response.content',
                    new_callable=PropertyMock) as mock_content:
-            mock_content.return_value = pdf_file
+            mock_content.return_value = pdf_file.read()
 
             convertit_response = Response()
             convertit_response.url = settings.CONVERTIT_URL
@@ -82,7 +82,7 @@ class DocumentGeneratorTestCase(TestCase):
 
         with patch('requests.Response.content',
                    new_callable=PropertyMock) as mock_content:
-            mock_content.return_value = pdf_file
+            mock_content.return_value = pdf_file.read()
             response_convertit = Response()
             response_convertit.url = settings.CONVERTIT_URL
             response_convertit.status_code = 200
