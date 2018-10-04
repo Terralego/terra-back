@@ -1,14 +1,16 @@
+import os
 from io import BytesIO
 from zipfile import ZipFile
 
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.gis.geos import GEOSException
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from rest_framework.status import (HTTP_200_OK, HTTP_204_NO_CONTENT,
-                                   HTTP_403_FORBIDDEN)
+                                   HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN)
 
 from terracommon.accounts.mixins import UserTokenGeneratorMixin
 from terracommon.accounts.tests.factories import TerraUserFactory
@@ -73,6 +75,46 @@ class LayerTestCase(TestCase, UserTokenGeneratorMixin):
             self.client.get(url).status_code,
             HTTP_403_FORBIDDEN
         )
+
+    def test_shapefile_import(self):
+        layer = LayerFactory()
+        shapefile_path = os.path.join(os.path.dirname(__file__),
+                                      'files',
+                                      'shapefile.zip')
+
+        with open(shapefile_path, 'rb') as shapefile:
+            layer.from_shapefile(shapefile.read())
+
+        self.assertEqual(8, layer.features.all().count())
+
+    def test_shapefile_import_view(self):
+        layer = LayerFactory()
+
+        shapefile_path = os.path.join(os.path.dirname(__file__),
+                                      'files',
+                                      'shapefile.zip')
+
+        with open(shapefile_path, 'rb') as fd:
+            shapefile = SimpleUploadedFile('shapefile.zip',
+                                           fd.read())
+
+            response = self.client.post(
+                reverse('layer-shapefile', args=[layer.pk, ]),
+                {'shapefile': shapefile, }
+                )
+
+        self.assertEqual(HTTP_200_OK, response.status_code)
+        self.assertEqual(8, layer.features.all().count())
+
+    def test_shapefile_import_view_error(self):
+        shapefile = SimpleUploadedFile('shapefile.zip',
+                                       b'bad bad data')
+
+        response = self.client.post(
+            reverse('layer-shapefile', args=[self.layer.pk, ]),
+            {'shapefile': shapefile, }
+            )
+        self.assertEqual(HTTP_400_BAD_REQUEST, response.status_code)
 
     def get_uidb64_token_for_user(self):
         return (urlsafe_base64_encode(force_bytes(self.user.pk)).decode(),
