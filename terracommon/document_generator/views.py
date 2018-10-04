@@ -4,6 +4,8 @@ from datetime import date
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
+from jinja2 import TemplateSyntaxError
+from requests.exceptions import ConnectionError, HTTPError
 from rest_framework import status, viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
@@ -49,17 +51,28 @@ class DocumentTemplateViewSets(viewsets.ViewSet):
                     **downloadable_properties).exists())):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        pdf_generator = DocumentGenerator(template.documenttemplate.path)
-        pdf_path = pdf_generator.get_pdf(data=userrequest)
-        pdf_url = os.path.join(settings.MEDIA_URL, pdf_path)
+        try:
+            pdf_generator = DocumentGenerator(template.documenttemplate.path)
+            pdf_path = pdf_generator.get_pdf(data=userrequest)
+        except FileNotFoundError:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        except (ConnectionError, HTTPError):
+            return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except TemplateSyntaxError:
+            return Response(
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                data='malformed template'
+            )
+        else:
+            pdf_url = os.path.join(settings.MEDIA_URL, pdf_path)
 
-        filename = f'document_{date.today().__str__()}.pdf'
-        response = get_media_response(request,
-                                      {'path': pdf_path, 'url': pdf_url},
-                                      headers={
-                                        'Content-Type': 'application/pdf',
-                                        'Content-disposition': (
-                                            'attachment;'
-                                            f'filename={filename}')
-                                        })
-        return response
+            filename = f'document_{date.today().__str__()}.pdf'
+            response = get_media_response(
+                request,
+                {'path': pdf_path, 'url': pdf_url},
+                headers={
+                    'Content-Type': 'application/pdf',
+                    'Content-disposition': f'attachment;filename={filename}'
+                }
+            )
+            return response

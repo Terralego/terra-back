@@ -5,6 +5,7 @@ import requests
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
+from jinja2 import TemplateSyntaxError
 from requests import ConnectionError, HTTPError, Response
 
 from terracommon.document_generator.helpers import DocumentGenerator
@@ -106,5 +107,15 @@ class DocumentGeneratorTestCase(TestCase):
         dg = DocumentGenerator(template)
 
         with self.assertRaises(ConnectionError):
+            dg.get_pdf(self.userrequest)
+            mock_logger.warning.assert_called()
+
+    @patch('terracommon.document_generator.helpers.logger')
+    def test_raises_templatesyntaxerror_exception(self, mock_logger):
+        template = os.path.join(os.path.dirname(__file__), 'empty.odt')
+        dg = DocumentGenerator(template)
+        dg.get_odt = MagicMock(side_effect=TemplateSyntaxError('', 0))
+
+        with self.assertRaises(TemplateSyntaxError):
             dg.get_pdf(self.userrequest)
             mock_logger.warning.assert_called()
