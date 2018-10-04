@@ -106,7 +106,5 @@ class CachedDocument(File):
             self.exist = True
             super().__init__(open(self.pathname))
 
-        # self.url = f'{settings.MEDIA_URL}{self.name}'
-
     def remove(self):
         os.remove(self.name)
