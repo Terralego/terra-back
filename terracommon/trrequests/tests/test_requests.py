@@ -185,7 +185,6 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             {'state': new_state},
             format='json')
 
-        # handler.assert_called_once()
         handler.assert_called_once_with(
             signal=event,
             action="USERREQUEST_STATE_CHANGED",
