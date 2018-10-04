@@ -10,7 +10,7 @@ variables:
   POSTGRES_USER: user
   POSTGRES_DB: db
   POSTGRES_PASSWORD: password
-  POSTGRES_HOST: starefossen__pgrouting
+  POSTGRES_HOST: registry.makina-corpus.net__nan__pgrouting
 
 cache:
   paths:
@@ -29,7 +29,7 @@ tests:
   stage: tests
   tags: [shared-ci-docker]
   services:
-    - starefossen/pgrouting:10.1-2.4-2.5
+    - registry.makina-corpus.net/nan/pgrouting:10.1-2.5.4
   script:
     - ./venv/bin/tox -c tox.ini -e tests,coverage
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
