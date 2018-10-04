@@ -1,0 +1,104 @@
+
+from django.contrib.auth.models import Group, Permission
+from django.test import TestCase
+from django.urls import reverse
+from rest_framework.status import (HTTP_200_OK, HTTP_401_UNAUTHORIZED,
+                                   HTTP_403_FORBIDDEN)
+from rest_framework.test import APIClient
+
+from terracommon.accounts.tests.factories import TerraUserFactory
+
+from .models import DataStore, DataStorePermission
+
+
+class DataStoreTestCase(TestCase):
+    def setUp(self):
+
+        examples = [{
+            'key': 'terracommon.test.data.store',
+            'value': {'key': 'value', }
+        }, {
+            'key': 'terracommon.test.data.new_store',
+            'value': {}
+        }, {
+            'key': 'terracommon.prefix.dot.com',
+            'value': {}
+        }]
+
+        for example in examples:
+            DataStore.objects.create(**example)
+
+        self.client = APIClient()
+        self.user = TerraUserFactory()
+        self.client.force_authenticate(user=self.user)
+
+    def test_not_authenticated(self):
+        client = APIClient()
+        response = client.get(reverse('datastore-list'))
+        self.assertEqual(HTTP_401_UNAUTHORIZED, response.status_code)
+
+    def test_no_permission(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+        response = client.get(reverse('datastore-list'))
+
+        self.assertEqual(HTTP_200_OK, response.status_code)
+        self.assertEqual(0, response.json()['count'])
+
+    def test_can_readonly(self):
+        # Add the user to a group
+        group = Group.objects.create(name='can_read')
+        self.user.groups.add(group)
+        self.user.save()
+
+        # Allow this group to read the terracommon.prefix prefix
+        perm = Permission.objects.get(codename='can_read_datastore')
+        DataStorePermission.objects.create(
+            group=group,
+            permission=perm,
+            prefix='terracommon.prefix',
+        )
+
+        response = self.client.get(reverse('datastore-list'))
+        self.assertEqual(HTTP_200_OK, response.status_code)
+        self.assertEqual(1, response.json()['count'])
+
+        # test that write is not allowed
+        test_value = {'a': 'TEST'}
+        ds = DataStore.objects.get(key='terracommon.prefix.dot.com')
+        response = self.client.put(reverse('datastore-detail', args=[ds.key]),
+                                   data={'value': test_value})
+
+        self.assertEqual(HTTP_403_FORBIDDEN, response.status_code)
+        self.user.groups.clear()
+
+    def test_can_readwrite(self):
+        # Add the user to a group
+        group = Group.objects.create(name='can_readwrite')
+        self.user.groups.add(group)
+        self.user.save()
+
+        # Allow this group to read the terracommon.prefix prefix
+        perm = Permission.objects.get(codename='can_readwrite_datastore')
+        DataStorePermission.objects.create(
+            group=group,
+            permission=perm,
+            prefix='terracommon.prefix',
+        )
+
+        response = self.client.get(reverse('datastore-list'))
+        self.assertEqual(HTTP_200_OK, response.status_code)
+        self.assertEqual(1, response.json()['count'])
+
+        # Test writing
+        test_value = {'a': 'b'}
+        ds = DataStore.objects.get(key='terracommon.prefix.dot.com')
+        response = self.client.put(reverse('datastore-detail', args=[ds.key]),
+                                   data={'value': test_value})
+
+        self.assertEqual(HTTP_200_OK, response.status_code)
+
+        ds.refresh_from_db()
+        self.assertDictEqual(ds.value, test_value)
+
+        self.user.groups.clear()
