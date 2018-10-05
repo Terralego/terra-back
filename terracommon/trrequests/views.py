@@ -117,24 +117,17 @@ class CommentViewSet(mixins.CreateModelMixin,
         if not comment.attachment:
             raise Http404('Attachment does not exist')
 
-        if settings.MEDIA_ACCEL_REDIRECT:
-            response = get_media_response(
-                request, comment.attachment,
-                headers={
-                    'Content-Disposition': (
-                        'attachment;'
-                        f' filename={comment.filename}')
-                })
-        else:
-            file_type = mimetypes.guess_type(comment.filename)
-            response = get_media_response(
-                request, comment.attachment,
-                headers={
-                    'Content-Disposition': (
-                        'attachment;'
-                        f' filename={comment.filename}'),
-                    'Content-Type': (
-                        f' content_type={file_type}')
-                })
+        file_type = mimetypes.guess_type(comment.filename)
+        setting = settings.MEDIA_ACCEL_REDIRECT
+
+        response = get_media_response(
+            request, comment.attachment,
+            headers={
+                'Content-Disposition': (
+                    'attachment;'
+                    f' filename={comment.filename}'),
+                'Content-Type': (file_type) if setting else ''
+            }
+        )
 
         return response
