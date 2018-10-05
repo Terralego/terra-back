@@ -1,6 +1,7 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView
-from rest_framework.permissions import BasePermission, IsAuthenticated
+from rest_framework.permissions import (SAFE_METHODS, BasePermission,
+                                        IsAuthenticated)
 
 
 class TokenBasedPermission(BasePermission):
@@ -22,7 +23,7 @@ class IsAuthenticatedPost(IsAuthenticated):
         return self.has_permission(request, view)
 
     def has_permission(self, request, view):
-        if request.method == 'POST':
+        if request.method not in SAFE_METHODS:
             return super().has_permission(request, view)
         return False
 
