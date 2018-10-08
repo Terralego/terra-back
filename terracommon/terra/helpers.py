@@ -1,4 +1,5 @@
 import io
+import magic
 
 from django.conf import settings
 from django.contrib.gis.geos.point import Point
@@ -11,9 +12,11 @@ def get_media_response(request, data, permissions=None, headers=None):
     content, url = None, None
     if isinstance(data, (io.IOBase, File)):
         content, url = data, data.url
+        filetype = magic.from_file(url, mime=True)
     else:
         # https://docs.djangoproject.com/fr/2.1/ref/request-response/#passing-iterators # noqa
-        content, url = open(data['path']), data['url']
+        content, url = open(data['path'], mode='rb'), data['url']
+        filetype = magic.from_file(url, mime=True)
     if isinstance(permissions, list):
         if not set(permissions).intersection(
                 request.user.get_all_permissions()):
@@ -27,7 +30,8 @@ def get_media_response(request, data, permissions=None, headers=None):
     if settings.MEDIA_ACCEL_REDIRECT:
         response['X-Accel-Redirect'] = f'{url}'
     else:
-        response.content = content
+        response.content = content.read()
+        response.content_type = filetype
 
     return response
 

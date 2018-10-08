@@ -19,6 +19,7 @@ CUSTOM_APPS = (
     'terracommon.data_importers',
     'terracommon.events',
     'terracommon.document_generator',
+    'terracommon.datastore',
 )
 
 for app in CUSTOM_APPS:
