@@ -79,7 +79,7 @@ class DocumentGenerator:
     def _timedelta_filter(self, date_value, delta_days):
         """ custom filter that will add a positive or negative value, timedelta
             to the day of a date in string format """
-        current_date = dateparse.parse_date(date_value)
+        current_date = dateparse.parse_datetime(date_value)
         return current_date - timedelta(days=delta_days)
 
     @cached_property
