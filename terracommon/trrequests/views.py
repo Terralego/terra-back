@@ -1,5 +1,3 @@
-import mimetypes
-
 from django.conf import settings
 from django.db.models import Q
 from django.http.response import Http404, HttpResponseServerError
