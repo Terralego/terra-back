@@ -9,6 +9,7 @@ simpleeval>=0.9,<1.0
 secretary>=0.2,<0.3
 requests>=2.19,<2.20
 django-url-filter>=0.3,<0.4
+python-magic
 
 # SIG
 mercantile>=1.0,<1.1
