@@ -1,8 +1,8 @@
 import datetime
 import json
-import magic
 from io import StringIO
 
+import magic
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
@@ -198,7 +198,9 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         comment_updated = Comment.objects.get(pk=response.json().get('id'))
         file_type_tmp = magic.from_buffer(tmp_file.read(1024), mime=True)
-        file_type_attachment = magic.from_buffer(comment_updated.attachment.read(1024), mime=True)
+        file_type_attachment = magic.from_buffer(
+            comment_updated.attachment.read(1024), mime=True
+        )
         self.assertEqual('lipsum', comment_updated.properties.get('comment'))
         self.assertIsNotNone(comment_updated.attachment)
         self.assertIn(f'comment_{datetime.date.today():%d}',
