@@ -1,6 +1,6 @@
 import datetime
 import json
-import mimetypes
+import magic
 from io import StringIO
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -183,6 +183,7 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
     def test_comment_creation_with_attachment(self):
         tmp_file = StringIO('File content')
         tmp_file.name = 'filename.txt'
+
         comment_request = {
             'is_internal': False,
             'properties': json.dumps({
@@ -196,13 +197,14 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         response = self._post_comment(comment_request, format='multipart')
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         comment_updated = Comment.objects.get(pk=response.json().get('id'))
+        file_type_tmp = magic.from_buffer(tmp_file.read(1024), mime=True)
+        file_type_attachment = magic.from_buffer(comment_updated.attachment.read(1024), mime=True)
         self.assertEqual('lipsum', comment_updated.properties.get('comment'))
         self.assertIsNotNone(comment_updated.attachment)
         self.assertIn(f'comment_{datetime.date.today():%d}',
                       comment_updated.attachment.url)
         self.assertEqual(tmp_file.name, comment_updated.filename)
-        self.assertEqual(mimetypes.guess_type(tmp_file.name),
-                         mimetypes.guess_type(comment_updated.filename))
+        self.assertNotEqual(file_type_tmp, file_type_attachment)
         self.assertNotEqual(tmp_file.name, comment_updated.attachment.name)
 
     def test_comment_creations_with_same_filename(self):
