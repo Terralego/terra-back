@@ -33,7 +33,9 @@ def signal_event_proxy(sender, action, instance, user, *args, **kwargs):
                 if settings.DEBUG:
                     raise
                 else:
-                    logger.error('Handler error: %s', e, extra=handler.handler)
+                    logger.error('Handler error: %s',
+                                 e,
+                                 extra={'handler': handler.handler})
         except ImportError as e:
             logger.error(f"An error occured loading {handler.handler}: {e}")
 
