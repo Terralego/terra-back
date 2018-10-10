@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, PropertyMock, patch
 
 import requests
 from django.conf import settings
-from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from jinja2 import TemplateSyntaxError
@@ -24,7 +23,10 @@ class DocumentGeneratorTestCase(TestCase):
         with open(self.docx_file, 'rb') as docx:
             self.template = DocumentTemplate.objects.create(
                 name='emptydocx',
-                documenttemplate=SimpleUploadedFile(self.docx_file, docx.read())
+                documenttemplate=SimpleUploadedFile(
+                    self.docx_file,
+                    docx.read()
+                )
             )
         self.downloadable = DownloadableDocument.objects.create(
             user=self.user,
