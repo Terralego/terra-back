@@ -21,17 +21,19 @@ class DocumentGeneratorTestCase(TestCase):
         self.user = TerraUserFactory()
         self.userrequest = UserRequestFactory()
         self.docx_file = os.path.join(os.path.dirname(__file__), 'empty.docx')
-        self.template = DocumentTemplate.objects.create(
-            name='emptydocx',
-            documenttemplate=File(open(self.docx_file, 'rb'))
-        )
+        self.template = None
+        with open(self.docx_file, 'rb') as docxfile:
+            self.template = DocumentTemplate.objects.create(
+                name='emptydocx',
+                documenttemplate=File(docxfile)
+            )
         self.downloadable = DownloadableDocument.objects.create(
             user=self.user,
             document=self.template,
             linked_object=self.userrequest
         )
 
-    def test_pdf_is_generated_from_enriched_odt(self):
+    def test_pdf_is_generated_from_enriched_docx(self):
         pdf_file = SimpleUploadedFile('fake.pdf', b'some content')
         pdf_file.seek(0)
 
@@ -44,8 +46,8 @@ class DocumentGeneratorTestCase(TestCase):
             convertit_response.status_code = 200
             requests.post = MagicMock(return_value=convertit_response)
 
-            odt_path = os.path.join(os.path.dirname(__file__), 'empty.docx')
-            docx_file = open(odt_path, 'rb')
+            docx_path = os.path.join(os.path.dirname(__file__), 'empty.docx')
+            docx_file = open(docx_path, 'rb')
 
             dg = DocumentGenerator(self.downloadable)
             dg.get_docx = MagicMock(return_value=docx_file)
