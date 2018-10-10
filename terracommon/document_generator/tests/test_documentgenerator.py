@@ -21,11 +21,10 @@ class DocumentGeneratorTestCase(TestCase):
         self.user = TerraUserFactory()
         self.userrequest = UserRequestFactory()
         self.docx_file = os.path.join(os.path.dirname(__file__), 'empty.docx')
-        self.template = None
-        with open(self.docx_file, 'rb') as docxfile:
+        with open(self.docx_file, 'rb') as docx:
             self.template = DocumentTemplate.objects.create(
                 name='emptydocx',
-                documenttemplate=File(docxfile)
+                documenttemplate=SimpleUploadedFile(self.docx_file, docx.read())
             )
         self.downloadable = DownloadableDocument.objects.create(
             user=self.user,
@@ -63,10 +62,13 @@ class DocumentGeneratorTestCase(TestCase):
     def test_everything_seems_to_work_with_variables(self):
         template_path = os.path.join(os.path.dirname(__file__),
                                      'template_with_img.docx')
-        template = DocumentTemplate.objects.create(
-            name='template_with_img',
-            documenttemplate=template_path
-        )
+
+        with open(template_path, 'rb') as template_fd:
+            template = DocumentTemplate.objects.create(
+                name='template_with_img',
+                documenttemplate=SimpleUploadedFile(template_path,
+                                                    template_fd.read())
+            )
         downloadable = DownloadableDocument.objects.create(
             user=self.user,
             document=template,
