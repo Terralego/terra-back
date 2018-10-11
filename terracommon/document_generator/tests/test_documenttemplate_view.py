@@ -380,3 +380,47 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
         with open(doc_tpl_not_updated.documenttemplate.path, 'rb') as dtnu:
             self.assertEqual(b'martine likes pizza', dtnu.read())
+
+    def test_delete_document_template_with_permission(self):
+        # File to delete in the database
+        doc_tpl = DocumentTemplate.objects.create(
+            name='michel',
+            documenttemplate=SimpleUploadedFile('a/fake/path', b'no content'),
+            uid='file to delete'
+        )
+
+        self._set_permissions(['can_delete_documents', ])
+        response = self.client.delete(
+            reverse(
+                'document-detail',
+                kwargs={'pk': doc_tpl.pk}
+            )
+        )
+
+        self.assertEqual(status.HTTP_204_NO_CONTENT, response.status_code)
+        self.assertTrue(
+            not DocumentTemplate.objects.filter(name='michel',
+                                                uid='file to delete').exists()
+        )
+
+    def test_delete_document_template_with_permission_bad_pk(self):
+        # File to delete in the database
+        DocumentTemplate.objects.create(
+            name='michel',
+            documenttemplate=SimpleUploadedFile('a/fake/path', b'no content'),
+            uid='file to delete'
+        )
+
+        self._set_permissions(['can_delete_documents', ])
+        response = self.client.delete(
+            reverse(
+                'document-detail',
+                kwargs={'pk': '666'}
+            )
+        )
+
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
+        self.assertTrue(
+            DocumentTemplate.objects.filter(name='michel',
+                                            uid='file to delete').exists()
+        )
