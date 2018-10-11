@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import serializers
 
-from .models import DownloadableDocument, DocumentTemplate
+from .models import DocumentTemplate, DownloadableDocument
 
 
 class DownloadableDocumentSerializer(serializers.ModelSerializer):
@@ -21,7 +21,7 @@ class DownloadableDocumentSerializer(serializers.ModelSerializer):
                            'request_pk': obj.linked_object.id,
                            'pk': obj.document.id})
 
-# TODO
+
 class DocumentTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentTemplate

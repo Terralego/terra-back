@@ -8,10 +8,9 @@ from jinja2 import TemplateSyntaxError
 from requests.exceptions import ConnectionError, HTTPError
 from rest_framework import status, viewsets
 from rest_framework.decorators import detail_route
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
-
 
 from terracommon.terra.helpers import get_media_response
 from terracommon.trrequests.models import UserRequest

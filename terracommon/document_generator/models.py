@@ -20,6 +20,7 @@ class DocumentTemplate(models.Model):
             ('can_delete_documents', 'Is allowed to delete documents'),
         )
 
+
 class DownloadableDocument(models.Model):
     user = models.ForeignKey(UserModel, on_delete=models.PROTECT)
     document = models.ForeignKey(DocumentTemplate, on_delete=models.PROTECT)
