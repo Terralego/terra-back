@@ -4,9 +4,9 @@ from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
 from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
-from django.core.files.uploadedfile import SimpleUploadedFile
 from jinja2 import TemplateSyntaxError
 from requests import ConnectionError, HTTPError
 from rest_framework import status
@@ -300,5 +300,45 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
         self.assertTrue(
             not DocumentTemplate.objects.filter(name=file_tpl.name,
-                                            uid='test_uid').exists()
+                                                uid='test_uid').exists()
         )
+
+    def test_update_document_template_with_permissions(self):
+        # File send for patch
+        file_tpl = SimpleUploadedFile(
+            'a/another/path',
+            b'me like pizza',
+            content_type='multipart/form-data'
+        )
+
+        # File updated in database
+        doc_tpl = DocumentTemplate.objects.create(
+            name="martine",
+            documenttemplate=SimpleUploadedFile(
+                'a/new/path',
+                b'martine likes pizza',
+            ),
+            uid="new_uid"
+        )
+
+        self._set_permissions(['can_update_documents', ])
+
+        response = self.client.patch(
+            reverse('document-detail', kwargs={"pk": doc_tpl.pk}),
+            {
+                'name': file_tpl.name,
+                'documenttemplate': file_tpl,
+                'uid': 'test_uid'
+            },
+            format='multipart'
+        )
+
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+        doc_tpl_updated = DocumentTemplate.objects.get(pk=doc_tpl.pk)
+
+        self.assertEqual(file_tpl.name, doc_tpl_updated.name)
+        self.assertEqual("test_uid", doc_tpl_updated.uid)
+
+        with open(doc_tpl_updated.documenttemplate.path, mode="rb") as dtu:
+            self.assertEqual(b'me like pizza', dtu.read())
