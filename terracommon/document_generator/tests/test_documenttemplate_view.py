@@ -6,6 +6,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
+from django.core.files.uploadedfile import SimpleUploadedFile
 from jinja2 import TemplateSyntaxError
 from requests import ConnectionError, HTTPError
 from rest_framework import status
@@ -255,3 +256,49 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             self.assertEqual(status.HTTP_500_INTERNAL_SERVER_ERROR,
                              response.status_code)
             mock_dg.assert_called_with(data=ur)
+
+    def test_create_document_template_with_permission(self):
+        file_tpl = SimpleUploadedFile(
+            'a/super/path',
+            b'me like pizza',
+            content_type='multipart/form-data'
+        )
+        self._set_permissions(['can_upload_documents', ])
+
+        response = self.client.post(
+            reverse('document-list'),
+            {
+                'name': file_tpl.name,
+                'documenttemplate': file_tpl,
+                'uid': 'test_uid'
+            },
+            format='multipart'
+        )
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertTrue(
+            DocumentTemplate.objects.filter(name=file_tpl.name,
+                                            uid='test_uid').exists()
+        )
+
+    def test_create_false_document_template_with_permission(self):
+        file_tpl = SimpleUploadedFile(
+            '',
+            b'me like pizza',
+            content_type='multipart/form-data'
+        )
+        self._set_permissions(['can_upload_documents', ])
+
+        response = self.client.post(
+            reverse('document-list'),
+            {
+                'name': file_tpl.name,
+                'documenttemplate': file_tpl,
+                'uid': 'test_uid'
+            },
+            format='multipart'
+        )
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.assertTrue(
+            not DocumentTemplate.objects.filter(name=file_tpl.name,
+                                            uid='test_uid').exists()
+        )
