@@ -340,5 +340,43 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(file_tpl.name, doc_tpl_updated.name)
         self.assertEqual("test_uid", doc_tpl_updated.uid)
 
-        with open(doc_tpl_updated.documenttemplate.path, mode="rb") as dtu:
+        with open(doc_tpl_updated.documenttemplate.path, "rb") as dtu:
             self.assertEqual(b'me like pizza', dtu.read())
+
+    def test_bad_update_document_template_with_permission(self):
+        # File to update in database
+        doc_tpl = DocumentTemplate.objects.create(
+            name="martine",
+            documenttemplate=SimpleUploadedFile(
+                'a/new/path',
+                b'martine likes pizza',
+            ),
+            uid="new_uid"
+        )
+
+        # File send for patch
+        file_tpl = SimpleUploadedFile(
+            '',
+            b'me likes pineapple pen',
+            content_type='multipart/form-data'
+        )
+
+        self._set_permissions(['can_update_documents', ])
+        response = self.client.patch(
+            reverse('document-detail', kwargs={'pk': doc_tpl.pk}),
+            {
+                'name': file_tpl.name,
+                'documenttemplate': file_tpl,
+                'uid': 'wrong_uid'
+            },
+            format='multipart',
+        )
+
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+
+        doc_tpl_not_updated = DocumentTemplate.objects.get(pk=doc_tpl.pk)
+        self.assertEqual(doc_tpl.name, doc_tpl_not_updated.name)
+        self.assertEqual(doc_tpl.uid, doc_tpl_not_updated.uid)
+
+        with open(doc_tpl_not_updated.documenttemplate.path, 'rb') as dtnu:
+            self.assertEqual(b'martine likes pizza', dtnu.read())
