@@ -10,7 +10,7 @@ UserModel = get_user_model()
 
 class DocumentTemplate(models.Model):
     name = models.CharField(max_length=50)
-    documenttemplate = models.FileField(upload_to='templates/%Y/%m')
+    documenttemplate = models.FileField(upload_to='templates/%Y/%m/')
     uid = models.CharField(max_length=256, default=uuid.uuid4)
 
 
