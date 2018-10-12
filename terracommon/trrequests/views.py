@@ -28,7 +28,7 @@ class RequestViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.has_perm('trrequests.can_read_all_requests'):
-            return UserRequest.objects.all()
+            return UserRequest.objects.exclude(state=settings.STATES.DRAFT)
         elif self.request.user.has_perm('trrequests.can_read_self_requests'):
             return UserRequest.objects.filter(
                 Q(owner=self.request.user)
