@@ -15,9 +15,9 @@ class DocumentTemplate(models.Model):
 
     class Meta:
         permissions = (
-            ('can_upload_documents', 'Is allowed to upload documents'),
-            ('can_update_documents', 'Is allowed to update documents'),
-            ('can_delete_documents', 'Is allowed to delete documents'),
+            ('can_upload_template', 'Is allowed to upload a template'),
+            ('can_update_template', 'Is allowed to update a template'),
+            ('can_delete_template', 'Is allowed to delete a template'),
         )
 
 

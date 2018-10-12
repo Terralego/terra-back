@@ -27,21 +27,21 @@ class DocumentTemplateViewSets(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         if not request.user.has_perm(
-                'document_generator.can_upload_documents'):
+                'document_generator.can_upload_template'):
             raise PermissionDenied
 
         return super().create(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
         if not request.user.has_perm(
-                'document_generator.can_update_documents'):
+                'document_generator.can_update_template'):
             raise PermissionDenied
 
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         if not request.user.has_perm(
-                'document_generator.can_delete_documents'):
+                'document_generator.can_delete_template'):
             raise PermissionDenied
 
         return super().destroy(request, *args, **kwargs)
