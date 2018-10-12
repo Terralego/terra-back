@@ -13,6 +13,13 @@ class DocumentTemplate(models.Model):
     documenttemplate = models.FileField(upload_to='templates/%Y/%m/')
     uid = models.CharField(max_length=256, default=uuid.uuid4)
 
+    class Meta:
+        permissions = (
+            ('can_upload_template', 'Is allowed to upload a template'),
+            ('can_update_template', 'Is allowed to update a template'),
+            ('can_delete_template', 'Is allowed to delete a template'),
+        )
+
 
 class DownloadableDocument(models.Model):
     user = models.ForeignKey(UserModel, on_delete=models.PROTECT)

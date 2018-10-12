@@ -8,6 +8,7 @@ from jinja2 import TemplateSyntaxError
 from requests.exceptions import ConnectionError, HTTPError
 from rest_framework import status, viewsets
 from rest_framework.decorators import detail_route
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -16,14 +17,34 @@ from terracommon.trrequests.models import UserRequest
 
 from .helpers import DocumentGenerator
 from .models import DocumentTemplate
+from .serializers import DocumentTemplateSerializer
 
 
-class DocumentTemplateViewSets(viewsets.ViewSet):
-    """
-    pdf_creator:
-    Create a new pdf document from a template link to a user request.
-    """
+class DocumentTemplateViewSets(viewsets.ModelViewSet):
+    queryset = DocumentTemplate.objects.all()
+    serializer_class = DocumentTemplateSerializer
     permission_classes = (IsAuthenticated, )
+
+    def create(self, request, *args, **kwargs):
+        if not request.user.has_perm(
+                'document_generator.can_upload_template'):
+            raise PermissionDenied
+
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        if not request.user.has_perm(
+                'document_generator.can_update_template'):
+            raise PermissionDenied
+
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if not request.user.has_perm(
+                'document_generator.can_delete_template'):
+            raise PermissionDenied
+
+        return super().destroy(request, *args, **kwargs)
 
     @detail_route(methods=['get'],
                   url_name='pdf',
