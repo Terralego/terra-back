@@ -298,9 +298,9 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             format='multipart'
         )
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
-        self.assertTrue(
-            not DocumentTemplate.objects.filter(name=file_tpl.name,
-                                                uid='test_uid').exists()
+        self.assertFalse(
+            DocumentTemplate.objects.filter(name=file_tpl.name,
+                                            uid='test_uid').exists()
         )
 
     def test_update_document_template_with_permissions(self):
@@ -398,9 +398,9 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         )
 
         self.assertEqual(status.HTTP_204_NO_CONTENT, response.status_code)
-        self.assertTrue(
-            not DocumentTemplate.objects.filter(name='michel',
-                                                uid='file to delete').exists()
+        self.assertFalse(
+            DocumentTemplate.objects.filter(name='michel',
+                                            uid='file to delete').exists()
         )
 
     def test_delete_document_template_with_permission_bad_pk(self):
