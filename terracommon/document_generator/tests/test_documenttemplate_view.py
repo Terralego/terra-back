@@ -303,6 +303,26 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                                             uid='test_uid').exists()
         )
 
+    def test_create_document_template_without_permission(self):
+        response = self.client.post(
+            reverse('document-list'),
+            {
+                'name': 'refused_doc',
+                'documenttemplate': SimpleUploadedFile(
+                    'path/to/doc',
+                    b'refused content',
+                    content_type='multipart/form-data'
+                ),
+                'uid': 'refused document'
+            },
+            format='multipart'
+        )
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+        self.assertFalse(
+            DocumentTemplate.objects.filter(name='refuse_doc',
+                                            uid='refused document').exists()
+        )
+
     def test_update_document_template_with_permissions(self):
         # File send for patch
         txt_tpl = b'me like pizza'
@@ -383,6 +403,36 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         with open(doc_tpl_not_updated.documenttemplate.path, 'rb') as dtnu:
             self.assertEqual(tpl_text, dtnu.read())
 
+    def test_update_document_template_without_permission(self):
+        # Document in the base to update
+        txt_tpl = b'no content'
+        doc_tpl = DocumentTemplate.objects.create(
+            name='initial.doc',
+            documenttemplate=SimpleUploadedFile('path/to/doc', txt_tpl),
+            uid='initial document'
+        )
+        response = self.client.patch(
+            reverse('request-detail', kwargs={'pk': doc_tpl.pk}),
+            {
+                'name': 'refused.doc',
+                'documenttemplate': SimpleUploadedFile(
+                    'path/to/refuseddoc',
+                    b'refused content',
+                    content_type='multipart/form-data'
+                ),
+                'uid': 'refused document'
+            },
+            format='multipart'
+        )
+
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
+
+        not_updated_doc_tpl = DocumentTemplate.objects.get(pk=doc_tpl.pk)
+        self.assertEqual(not_updated_doc_tpl.name, doc_tpl.name)
+        self.assertEqual(not_updated_doc_tpl.uid, doc_tpl.uid)
+        with open(not_updated_doc_tpl.documenttemplate.path, 'rb') as dt:
+            self.assertEqual(txt_tpl, dt.read())
+
     def test_delete_document_template_with_permission(self):
         # File to delete in the database
         doc_tpl = DocumentTemplate.objects.create(
@@ -425,4 +475,17 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self.assertTrue(
             DocumentTemplate.objects.filter(name='michel',
                                             uid='file to delete').exists()
+        )
+
+    def test_delete_document_template_without_permissions(self):
+        doc_tpl = DocumentTemplate.objects.create(
+            name='doc_to_delete',
+            documenttemplate=SimpleUploadedFile('path/to.doc', b'no content'),
+            uid='document to delete',
+        )
+        response = self.client.delete(reverse('document-detail',
+                                              kwargs={'pk': doc_tpl.pk}))
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+        self.assertTrue(
+            DocumentTemplate.objects.filter(pk=doc_tpl.pk).exists()
         )
