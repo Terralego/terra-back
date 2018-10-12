@@ -263,7 +263,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             b'me like pizza',
             content_type='multipart/form-data'
         )
-        self._set_permissions(['can_upload_documents', ])
+        self._set_permissions(['can_upload_template', ])
 
         response = self.client.post(
             reverse('document-list'),
@@ -286,7 +286,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             b'me like pizza',
             content_type='multipart/form-data'
         )
-        self._set_permissions(['can_upload_documents', ])
+        self._set_permissions(['can_upload_template', ])
 
         response = self.client.post(
             reverse('document-list'),
@@ -305,9 +305,10 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
     def test_update_document_template_with_permissions(self):
         # File send for patch
+        txt_tpl = b'me like pizza'
         file_tpl = SimpleUploadedFile(
             'a/another/path',
-            b'me like pizza',
+            txt_tpl,
             content_type='multipart/form-data'
         )
 
@@ -321,7 +322,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             uid="new_uid"
         )
 
-        self._set_permissions(['can_update_documents', ])
+        self._set_permissions(['can_update_template', ])
 
         response = self.client.patch(
             reverse('document-detail', kwargs={"pk": doc_tpl.pk}),
@@ -341,15 +342,16 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual("test_uid", doc_tpl_updated.uid)
 
         with open(doc_tpl_updated.documenttemplate.path, "rb") as dtu:
-            self.assertEqual(b'me like pizza', dtu.read())
+            self.assertEqual(txt_tpl, dtu.read())
 
     def test_bad_update_document_template_with_permission(self):
+        tpl_text = b'martine likes pizza'
         # File to update in database
         doc_tpl = DocumentTemplate.objects.create(
             name="martine",
             documenttemplate=SimpleUploadedFile(
                 'a/new/path',
-                b'martine likes pizza',
+                tpl_text,
             ),
             uid="new_uid"
         )
@@ -361,7 +363,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             content_type='multipart/form-data'
         )
 
-        self._set_permissions(['can_update_documents', ])
+        self._set_permissions(['can_update_template', ])
         response = self.client.patch(
             reverse('document-detail', kwargs={'pk': doc_tpl.pk}),
             {
@@ -379,7 +381,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(doc_tpl.uid, doc_tpl_not_updated.uid)
 
         with open(doc_tpl_not_updated.documenttemplate.path, 'rb') as dtnu:
-            self.assertEqual(b'martine likes pizza', dtnu.read())
+            self.assertEqual(tpl_text, dtnu.read())
 
     def test_delete_document_template_with_permission(self):
         # File to delete in the database
@@ -389,7 +391,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             uid='file to delete'
         )
 
-        self._set_permissions(['can_delete_documents', ])
+        self._set_permissions(['can_delete_template', ])
         response = self.client.delete(
             reverse(
                 'document-detail',
@@ -411,7 +413,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             uid='file to delete'
         )
 
-        self._set_permissions(['can_delete_documents', ])
+        self._set_permissions(['can_delete_template', ])
         response = self.client.delete(
             reverse(
                 'document-detail',
