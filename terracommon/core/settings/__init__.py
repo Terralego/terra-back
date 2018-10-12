@@ -154,6 +154,10 @@ AUTH_USER_MODEL = 'accounts.TerraUser'
 
 REQUEST_SCHEMA = {}
 
+# Geometrical projection used internaly in database
+# Note: Other projection than 4326 are not yet supported by some part of code
+INTERNAL_GEOMETRY_SRID = 4326
+
 MAX_TILE_ZOOM = 17
 MIN_TILE_ZOOM = 10
 
