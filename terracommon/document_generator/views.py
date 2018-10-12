@@ -16,8 +16,8 @@ from terracommon.terra.helpers import get_media_response
 from terracommon.trrequests.models import UserRequest
 
 from .helpers import DocumentGenerator
-from .serializers import DocumentTemplateSerializer
 from .models import DocumentTemplate, DownloadableDocument
+from .serializers import DocumentTemplateSerializer
 
 
 class DocumentTemplateViewSets(viewsets.ModelViewSet):
