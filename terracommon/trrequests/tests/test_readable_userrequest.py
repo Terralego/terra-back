@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -130,3 +131,26 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         read_object = ur.get_user_read(self.user)
         self.assertIsNotNone(read_object)
+
+    def test_userrequest_draft_only_read_by_owner(self):
+        self._set_permissions(['can_read_all_requests', ])
+
+        # test with a non owner user
+        UserRequestFactory(state=settings.STATES.DRAFT)
+        response = self.client.get(reverse('request-list'))
+
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(response.json().get('count'), 0)
+
+        self._clean_permissions()
+
+        # # test with a owner
+        UserRequestFactory(state=settings.STATES.DRAFT, owner=self.user)
+
+        self._set_permissions(['can_read_self_requests', ])
+
+        response = self.client.get(reverse('request-list'))
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertNotEqual(response.json().get('count'), 0)
+
+        self._clean_permissions()
