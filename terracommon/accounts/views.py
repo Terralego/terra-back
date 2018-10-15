@@ -6,13 +6,16 @@ from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status
 from rest_framework.decorators import detail_route
+from rest_framework.filters import SearchFilter
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+from url_filter.integrations.drf import DjangoFilterBackend
 
+from terracommon.core.filters import JSONFieldOrderingFilter
 from terracommon.events.signals import event
 
 from .forms import PasswordSetAndResetForm
@@ -123,10 +126,14 @@ class UserInformationsView(APIView):
 
 
 class UserViewSet(ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, ]
+    permission_classes = (permissions.IsAuthenticated, )
     parser_classes = (JSONParser, )
     serializer_class = TerraUserSerializer
     queryset = UserModel.objects.none()
+    filter_backends = (DjangoFilterBackend, JSONFieldOrderingFilter,
+                       SearchFilter, )
+    search_fields = ('uuid', 'email', 'properties',)
+    filter_fields = ('uuid', 'email', 'properties',)
 
     def get_queryset(self):
         if self.request.user.has_perm('accounts.can_manage_users'):
