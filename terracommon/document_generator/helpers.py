@@ -30,9 +30,7 @@ class DocumentGenerator:
     def get_docx(self, data):
         doc = DocxTemplator(self.template)
         jinja_env = jinja2.Environment()
-        for filter_name, filter_func in self.filters.items():
-            jinja_env.filters[filter_name] = filter_func
-
+        jinja_env.filters.update(self.filters)
         doc.render(context=data, jinja_env=jinja_env)
         return doc.save()
 
