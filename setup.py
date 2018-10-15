@@ -36,11 +36,11 @@ setup(
                       'drf-yasg>=1.9,<1.10',
                       'django-cors-headers>=2.2,<2.3',
                       'simpleeval>=0.9,<1.0',
-                      'secretary>=0.2,<0.3',
                       'requests>=2.19,<2.20',
                       'mercantile>=1.0,<1.1',
                       'django-url-filter>=0.3,<0.4',
                       'Fiona>=1.7,<1.8',
-                      'python-magic>=0.4,<0.5'
+                      'python-magic>=0.4,<0.5',
+                      'docxtpl>=0.5,<0.6',
     ],
 )

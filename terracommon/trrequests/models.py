@@ -54,6 +54,13 @@ class UserRequest(BaseUpdatableModel, ReadableModelMixin):
 
         return query.exclude(filter)
 
+    def get_serializer(self):
+        # Exceptionnally,
+        # to avoid circular dependencies between model and serializer
+        from .serializers import UserRequestSerializer
+
+        return UserRequestSerializer
+
     class Meta:
         permissions = (
             ('can_create_requests', 'Is able to create a new requests'),

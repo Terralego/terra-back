@@ -16,7 +16,7 @@ from terracommon.terra.helpers import get_media_response
 from terracommon.trrequests.models import UserRequest
 
 from .helpers import DocumentGenerator
-from .models import DocumentTemplate
+from .models import DocumentTemplate, DownloadableDocument
 from .serializers import DocumentTemplateSerializer
 
 
@@ -73,8 +73,10 @@ class DocumentTemplateViewSets(viewsets.ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         try:
-            pdf_generator = DocumentGenerator(template.documenttemplate.path)
-            pdf_path = pdf_generator.get_pdf(data=userrequest)
+            pdf_generator = DocumentGenerator(
+                DownloadableDocument.objects.get(**downloadable_properties)
+            )
+            pdf_path = pdf_generator.get_pdf()
         except FileNotFoundError:
             return Response(status=status.HTTP_404_NOT_FOUND)
         except (ConnectionError, HTTPError):

@@ -2,36 +2,43 @@ import hashlib
 import io
 import logging
 import os
+import zipfile
 from datetime import timedelta
 
+import jinja2
 import requests
 from django.conf import settings
 from django.core.files import File
-from django.db.models import Model
 from django.utils import dateparse
 from django.utils.functional import cached_property
+from docxtpl import DocxTemplate
 from jinja2 import TemplateSyntaxError
 from requests.exceptions import ConnectionError, HTTPError
-from secretary import Renderer
+
+from terracommon.document_generator.models import DownloadableDocument
 
 logger = logging.getLogger(__name__)
 
 
 class DocumentGenerator:
-    def __init__(self, template):
-        self.template = template
+    def __init__(self, downloadabledoc):
+        if not isinstance(downloadabledoc, DownloadableDocument):
+            raise TypeError("downloadabledoc must be a DownloadableDocument")
+        self.template = downloadabledoc.document.documenttemplate.path
+        self.datamodel = downloadabledoc.linked_object
 
-    def get_odt(self, data=None):
-        engine = Renderer()
-        engine.environment.filters['timedelta_filter'] = self._timedelta_filter
-        return engine.render(self.template, data=data)
+    def get_docx(self, data):
+        doc = DocxTemplator(self.template)
+        jinja_env = jinja2.Environment()
+        jinja_env.filters.update(self.filters)
+        doc.render(context=data, jinja_env=jinja_env)
+        return doc.save()
 
-    def get_pdf(self, data=None, reset_cache=False):
-        if not isinstance(data, Model):
-            raise TypeError("data must be a django Model")
-
-        cachepath = os.path.join(data.__class__.__name__,
-                                 f'{self._document_checksum}_{data.pk}.pdf')
+    def get_pdf(self, reset_cache=False):
+        cachepath = os.path.join(
+            self.datamodel.__class__.__name__,
+            f'{self._document_checksum}_{self.datamodel.pk}.pdf'
+        )
         cache = CachedDocument(cachepath)
 
         if cache.exist:
@@ -40,8 +47,11 @@ class DocumentGenerator:
             else:
                 return cache.name
 
+        serializer = self.datamodel.get_serializer()
+        serialized_model = serializer(self.datamodel)
+
         try:
-            odt = self.get_odt(data=data)
+            odt = self.get_docx(data=serialized_model.data)
         except FileNotFoundError:
             # remove newly created file
             # for caching purpose
@@ -93,6 +103,10 @@ class DocumentGenerator:
 
         return hashlib.md5(content)
 
+    filters = {
+        'timedelta_filter': _timedelta_filter
+    }
+
 
 class CachedDocument(File):
     cache_root = 'cache'
@@ -114,3 +128,33 @@ class CachedDocument(File):
 
     def remove(self):
         os.remove(self.name)
+
+
+class DocxTemplator(DocxTemplate):
+    def post_processing(self, docx_bytesio):
+        if self.crc_to_new_media or self.crc_to_new_embedded:
+            backup_bytesio = io.BytesIO()
+
+            with zipfile.ZipFile(docx_bytesio) as zin:
+                with zipfile.ZipFile(backup_bytesio, 'w') as zout:
+                    for item in zin.infolist():
+                        buf = zin.read(item.filename)
+
+                        if (item.filename.startwith('word/media/')
+                                and item.CRC in self.crc_to_new_media):
+                            zout.writestr(item,
+                                          self.crc_to_new_media[item.CRC])
+                        elif (item.filename.startwith('word/embeddings/')
+                              and item.CRC in self.crc_to_new_embedded):
+                            zout.writestr(item,
+                                          self.crc_to_new_embedded[item.CRC])
+                        else:
+                            zout.writestr(item, buf)
+            return backup_bytesio
+        return docx_bytesio
+
+    def save(self):
+        docx_bytesio = io.BytesIO()
+        self.pre_processing()
+        self.docx.save(docx_bytesio)
+        return self.post_processing(docx_bytesio)

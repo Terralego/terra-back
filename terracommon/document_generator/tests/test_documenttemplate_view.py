@@ -27,15 +27,15 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self.client.force_authenticate(user=self.user)
 
         # get testing template
-        tmp_odt = os.path.join('terracommon',
-                               'document_generator',
-                               'tests',
-                               'test_template.odt')
+        tmp_docx = os.path.join('terracommon',
+                                'document_generator',
+                                'tests',
+                                'test_template.docx')
 
         # Store it in the database
-        DocumentTemplate.objects.create(name='testodt',
-                                        documenttemplate=tmp_odt)
-        self.myodt = DocumentTemplate.objects.get(name='testodt')
+        DocumentTemplate.objects.create(name='testdocx',
+                                        documenttemplate=tmp_docx)
+        self.docx = DocumentTemplate.objects.get(name='testdocx')
 
         # Create a fake UserRequest
         self.properties = {
@@ -48,12 +48,12 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
     def test_pdf_creator_method_with_dev_settings(self):
         fake_userrequest = UserRequestFactory(properties=self.properties)
-        pks = {'request_pk': fake_userrequest.pk, 'pk': self.myodt.pk}
+        pks = {'request_pk': fake_userrequest.pk, 'pk': self.docx.pk}
 
         # Create permissions
         DownloadableDocument.objects.create(
             user=self.user,
-            document=self.myodt,
+            document=self.docx,
             linked_object=fake_userrequest
         )
 
@@ -78,18 +78,18 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
             self.assertEqual(response.content, fake_pdf.read())
 
-            mock_dg.assert_called_with(data=fake_userrequest)
+            mock_dg.assert_called_with()
 
         os.remove(fake_pdf.name)
 
     def test_pdf_creator_method_with_prod_settings(self):
         userrequest = UserRequestFactory(properties=self.properties)
-        pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
+        pks = {'request_pk': userrequest.pk, 'pk': self.docx.pk}
 
         # Create permissions
         DownloadableDocument.objects.create(
             user=self.user,
-            document=self.myodt,
+            document=self.docx,
             linked_object=userrequest
         )
 
@@ -114,13 +114,13 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                                  response['Content-Disposition'])
                 self.assertIn(settings.MEDIA_URL,
                               response.get('X-Accel-Redirect'))
-                mock_dg.assert_called_with(data=userrequest)
+                mock_dg.assert_called_with()
 
         os.remove(fake_pdf.name)
 
     def test_pdf_creator_with_bad_requestpk(self):
         # Testing bad request_pk
-        pks = {'request_pk': 999, 'pk': self.myodt.pk}
+        pks = {'request_pk': 999, 'pk': self.docx.pk}
 
         response = self.client.get(reverse(self.pdfcreator_urlname,
                                            kwargs=pks))
@@ -130,7 +130,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         fake_userrequest = UserRequestFactory(properties=self.properties)
         DownloadableDocument.objects.create(
             user=self.user,
-            document=self.myodt,
+            document=self.docx,
             linked_object=fake_userrequest
         )
         # Testing bad pk
@@ -142,7 +142,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
     def test_pdf_creator_without_download_pdf_permissions(self):
         userrequest = UserRequestFactory(properties=self.properties)
-        pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
+        pks = {'request_pk': userrequest.pk, 'pk': self.docx.pk}
 
         response = self.client.get(reverse(self.pdfcreator_urlname,
                                            kwargs=pks))
@@ -160,13 +160,22 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                           'get_pdf',
                           return_value=fake_pdf.name) as mock_dg:
             userrequest = UserRequestFactory(properties=self.properties)
-            pks = {'request_pk': userrequest.pk, 'pk': self.myodt.pk}
+
+            # Create another user to verify if the permission
+            # Allow to Download document from other user request
+            user = TerraUserFactory()
+            DownloadableDocument.objects.create(
+                user=user,
+                document=self.docx,
+                linked_object=userrequest
+            )
+            pks = {'request_pk': userrequest.pk, 'pk': self.docx.pk}
 
             response = self.client.get(reverse(self.pdfcreator_urlname,
                                                kwargs=pks))
 
             self.assertEqual(status.HTTP_200_OK, response.status_code)
-            mock_dg.assert_called_with(data=userrequest)
+            mock_dg.assert_called()
 
         os.remove(fake_pdf.name)
 
@@ -175,7 +184,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
         # Testing unauthenticated user
         self.client.force_authenticate(user=None)
-        pks = {'request_pk': fake_userrequest.pk, 'pk': self.myodt.pk}
+        pks = {'request_pk': fake_userrequest.pk, 'pk': self.docx.pk}
 
         response = self.client.get(reverse(self.pdfcreator_urlname,
                                            kwargs=pks))
@@ -186,11 +195,11 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
     def test_raises_filenotfounderror_return_404(self):
         ur = UserRequestFactory()
-        pks = {'request_pk': ur.pk, 'pk': self.myodt.pk}
+        pks = {'request_pk': ur.pk, 'pk': self.docx.pk}
 
         # Creating Permission
         DownloadableDocument.objects.create(user=self.user,
-                                            document=self.myodt,
+                                            document=self.docx,
                                             linked_object=ur)
         # Mocking getpdf
         with patch.object(DocumentGenerator,
@@ -199,15 +208,15 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             response = self.client.get(reverse(self.pdfcreator_urlname,
                                                kwargs=pks))
             self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
-            mock_dg.assert_called_with(data=ur)
+            mock_dg.assert_called_with()
 
     def test_raises_HTTPError_return_503(self):
         ur = UserRequestFactory()
-        pks = {'request_pk': ur.pk, 'pk': self.myodt.pk}
+        pks = {'request_pk': ur.pk, 'pk': self.docx.pk}
 
         # Creating Permission
         DownloadableDocument.objects.create(user=self.user,
-                                            document=self.myodt,
+                                            document=self.docx,
                                             linked_object=ur)
         # Mocking getpdf
         with patch.object(DocumentGenerator,
@@ -217,15 +226,15 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                                                kwargs=pks))
             self.assertEqual(status.HTTP_503_SERVICE_UNAVAILABLE,
                              response.status_code)
-            mock_dg.assert_called_with(data=ur)
+            mock_dg.assert_called_with()
 
     def test_raises_ConnectionError_return_503(self):
         ur = UserRequestFactory()
-        pks = {'request_pk': ur.pk, 'pk': self.myodt.pk}
+        pks = {'request_pk': ur.pk, 'pk': self.docx.pk}
 
         # Creating Permission
         DownloadableDocument.objects.create(user=self.user,
-                                            document=self.myodt,
+                                            document=self.docx,
                                             linked_object=ur)
         # Mocking getpdf
         with patch.object(DocumentGenerator,
@@ -235,15 +244,15 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                                                kwargs=pks))
             self.assertEqual(status.HTTP_503_SERVICE_UNAVAILABLE,
                              response.status_code)
-            mock_dg.assert_called_with(data=ur)
+            mock_dg.assert_called_with()
 
     def test_raises_TemplateSyntaxError_return_500(self):
         ur = UserRequestFactory()
-        pks = {'request_pk': ur.pk, 'pk': self.myodt.pk}
+        pks = {'request_pk': ur.pk, 'pk': self.docx.pk}
 
         # Creating Permission
         DownloadableDocument.objects.create(user=self.user,
-                                            document=self.myodt,
+                                            document=self.docx,
                                             linked_object=ur)
         # Mocking getpdf
         with patch.object(
@@ -255,7 +264,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                                                kwargs=pks))
             self.assertEqual(status.HTTP_500_INTERNAL_SERVER_ERROR,
                              response.status_code)
-            mock_dg.assert_called_with(data=ur)
+            mock_dg.assert_called_with()
 
     def test_create_document_template_with_permission(self):
         file_tpl = SimpleUploadedFile(
