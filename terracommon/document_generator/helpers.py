@@ -30,7 +30,9 @@ class DocumentGenerator:
     def get_docx(self, data):
         doc = DocxTemplator(self.template)
         jinja_env = jinja2.Environment()
-        jinja_env.filters['timedelta_filter'] = self._timedelta_filter
+        for filter_name, filter_func in self.filters.items():
+            jinja_env.filters[filter_name] = filter_func
+
         doc.render(context=data, jinja_env=jinja_env)
         return doc.save()
 
@@ -102,6 +104,10 @@ class DocumentGenerator:
             content = bytes(self.template, 'utf-8')
 
         return hashlib.md5(content)
+
+    filters = {
+        'timedelta_filter': _timedelta_filter
+    }
 
 
 class CachedDocument(File):
