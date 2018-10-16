@@ -28,6 +28,7 @@ tblib
 Sphinx
 sphinx-intl
 sphinx_rtd_theme
+eradicate
 factory_boy
 
 # production
