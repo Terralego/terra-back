@@ -41,15 +41,18 @@ class DocumentGenerator:
         )
         cache = CachedDocument(cachepath)
 
-        if cache.exist:
+        if not cache.exist or reset_cache:
             if reset_cache:
                 cache.remove()
-            else:
-                return cache.name
 
+            self._get_docx_as_pdf(cache)
+
+        return cache.name
+
+    def _get_docx_as_pdf(self, cache):
         serializer = self.datamodel.get_serializer()
         serialized_model = serializer(self.datamodel)
-
+        
         try:
             odt = self.get_docx(data=serialized_model.data)
         except FileNotFoundError:
@@ -63,28 +66,26 @@ class DocumentGenerator:
             logger.warning(f'TemplateSyntaxError for {self.template} '
                            f'at line {e.lineno}: {e.message}')
             raise
-        else:
-            try:
-                response = requests.post(
-                    url=settings.CONVERTIT_URL,
-                    files={'file': odt, },
-                    data={'to': 'application/pdf', }
-                )
-                response.raise_for_status()
-            except HTTPError:
-                # remove newly created file
-                # for caching purpose
-                cache.remove()
-                logger.warning(f"Http error {response.status_code}")
-                raise
-            except ConnectionError:
-                cache.remove()
-                logger.warning("Connection error")
-                raise
-            else:
-                with cache.open() as cached_pdf:
-                    cached_pdf.write(response.content)
-                return cache.name
+        try:
+            response = requests.post(
+                url=settings.CONVERTIT_URL,
+                files={'file': odt, },
+                data={'to': 'application/pdf', }
+            )
+            response.raise_for_status()
+        except HTTPError:
+            # remove newly created file
+            # for caching purpose
+            cache.remove()
+            logger.warning(f"Http error {response.status_code}")
+            raise
+        except ConnectionError:
+            cache.remove()
+            logger.warning("Connection error")
+            raise
+
+        with cache.open() as cached_pdf:
+            cached_pdf.write(response.content)
 
     def _timedelta_filter(self, date_value, delta_days):
         """ custom filter that will add a positive or negative value, timedelta
