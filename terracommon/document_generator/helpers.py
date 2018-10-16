@@ -52,7 +52,7 @@ class DocumentGenerator:
     def _get_docx_as_pdf(self, cache):
         serializer = self.datamodel.get_serializer()
         serialized_model = serializer(self.datamodel)
-        
+
         try:
             odt = self.get_docx(data=serialized_model.data)
         except FileNotFoundError:
