@@ -15,21 +15,5 @@ docxtpl>=0.5,<0.6
 mercantile>=1.0,<1.1
 Fiona>=1.7,<1.8
 
-# development
-django-debug-toolbar>=1.9,<1.10
-django-extensions>=2.0,<2.1
-
-# testing
-tox>=3.2,<3.3
-coverage
-isort
-pylama
-tblib
-Sphinx
-sphinx-intl
-sphinx_rtd_theme
-eradicate
-factory_boy
-
 # production
 gunicorn
