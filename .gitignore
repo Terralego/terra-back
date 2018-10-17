@@ -16,3 +16,6 @@ docker.env
 
 # Tests
 .tox
+
+# pip
+terra_common.egg-info/
