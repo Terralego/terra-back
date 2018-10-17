@@ -13,3 +13,6 @@ docker.env
 
 # Virtualenv
 /venv/
+
+# Tests
+.tox
