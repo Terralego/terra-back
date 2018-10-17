@@ -1,0 +1,12 @@
+-r requirements.txt
+
+tox>=3.2,<3.3
+coverage
+isort
+pylama
+tblib
+Sphinx
+sphinx-intl
+sphinx_rtd_theme
+eradicate
+factory_boy
