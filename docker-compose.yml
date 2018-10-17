@@ -12,7 +12,10 @@ services:
     image: makinacorpus/convertit
     hostname: convertit
   django:
-    build: .
+    build:
+      context: .
+      args:
+        requirements: dev-requirements.txt
     tty: true
     user: "1000"
     volumes:
