@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 from django.http import Http404
 from django.utils.functional import cached_property
 
@@ -36,3 +37,11 @@ class SerializerCurrentUserMixin(object):
     def current_user(self):
         return (self.context['request'].user
                 if 'request' in self.context else None)
+
+
+class BaseUpdatableModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
