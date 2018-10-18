@@ -1,4 +1,5 @@
 FROM ubuntu:bionic
+ARG  requirements=requirements.txt
 ENV PYTHONUNBUFFERED 1
 ENV DEBIAN_FRONTEND=noninteractive
 RUN mkdir /code
@@ -11,7 +12,7 @@ RUN apt-get upgrade -y
 RUN useradd -ms /bin/bash django --uid 1000
 WORKDIR /code
 
-ADD requirements.txt /code/requirements.txt
+ADD *requirements.txt /code/
 ADD manage.py /code/manage.py
 ADD tox.ini /code/tox.ini
 ADD .coveragerc /code/.coveragerc
@@ -24,6 +25,6 @@ RUN chown django:django -R /code
 USER django
 RUN python3.6 -m venv venv
 RUN /code/venv/bin/pip3.6 install setuptools wheel -U
-RUN /code/venv/bin/pip3.6 install --no-cache-dir -r ./requirements.txt --upgrade
+RUN /code/venv/bin/pip3.6 install --no-cache-dir -r ./${requirements} --upgrade
 USER django
 RUN mkdir -p /code/public/static /code/public/media
