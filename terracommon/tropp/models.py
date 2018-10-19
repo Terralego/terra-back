@@ -7,7 +7,7 @@ from terracommon.terra.models import Layer
 
 
 class ObservationPoint(BaseUpdatableModel):
-    label = models.CharField()
+    label = models.CharField(max_length=100)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.PROTECT,
                               related_name='observation_points')
@@ -21,7 +21,6 @@ class ObservationPoint(BaseUpdatableModel):
 
     class Meta:
         permissions = (
-            ('can_create_points', 'Is able to create a new observation point'),
             ('can_download_pdf', 'Is able to download a pdf document'),
         )
 
@@ -35,15 +34,13 @@ class Picture(BaseUpdatableModel):
                               related_name='pictures')
     state = models.IntegerField(default=settings.STATES.DRAFT)
     properties = JSONField(default=dict, blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    file = models.ImageField()
 
     class Meta:
         permissions = (
-            ('can_create_picture', 'Is able to create a new picture'),
             ('can_read_draft_picture', 'Is able to see a draft picture'),
-            ('can_change_state_picture',
-             'Is able to change the picture state'),
+            ('can_change_state_picture', 'Is able to change the picture '
+                                         'state'),
         )
 
         # It's our main way of sorting pictures, so it better be indexed
@@ -51,3 +48,18 @@ class Picture(BaseUpdatableModel):
             models.Index(fields=['point', 'created_at']),
         ]
         get_latest_by = "created_at"
+
+
+class Document(BaseUpdatableModel):
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
+                              on_delete=models.PROTECT,
+                              related_name='documents')
+    point = models.ForeignKey(ObservationPoint,
+                              on_delete=models.PROTECT,
+                              related_name='documents')
+    properties = JSONField(default=dict, blank=True)
+    file = models.FileField()
+
+
+class Theme(models.Model):
+    pass
