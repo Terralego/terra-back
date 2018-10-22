@@ -1,3 +1,4 @@
+import logging
 import types
 from datetime import date, timedelta
 
@@ -13,6 +14,8 @@ from simpleeval import EvalWithCompoundTypes, simple_eval
 from terracommon.events.signals import event
 
 from . import funcs
+
+logger = logging.getLogger(__name__)
 
 
 class AbstractHandler(object):
@@ -112,13 +115,17 @@ class SendEmailHandler(AbstractHandler):
                 **self.vars,)
             to_email = getattr(recipient_data, 'email', recipient)
 
-            send_mail(
-                subject,
-                body,
-                self.settings['from_email'],
-                [to_email, ],
-                fail_silently=True,
-                )
+            if to_email:
+                send_mail(
+                    subject,
+                    body,
+                    self.settings['from_email'],
+                    [to_email, ],
+                    fail_silently=True,
+                    )
+            else:
+                logger.error('No destination e-mail could be found for %s',
+                             recipient)
 
     @cached_property
     def vars(self):
