@@ -24,7 +24,7 @@ class DocumentGeneratorTestCase(TestCase):
             self.template = DocumentTemplate.objects.create(
                 name='emptydocx',
                 documenttemplate=SimpleUploadedFile(
-                    self.docx_file,
+                    'random_test.docx',
                     docx.read()
                 )
             )
