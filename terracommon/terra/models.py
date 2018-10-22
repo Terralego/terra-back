@@ -225,13 +225,13 @@ class Layer(models.Model):
 
     @transaction.atomic
     def update_geometries(self, features):
+        modified = self.features.none()
         for new_feature in features:
             geometry = GEOSGeometry(json.dumps(new_feature['geometry']))
-            self.features.filter(
-                geom=geometry
-            ).update(
-                properties=new_feature.get('properties', {})
-            )
+            feature = self.features.filter(geom=geometry)
+            feature.update(properties=new_feature.get('properties', {}))
+            modified |= feature
+        return modified
 
     @cached_property
     def layer_projection(self):
