@@ -3,19 +3,19 @@ import io
 import logging
 import os
 import zipfile
-from datetime import timedelta
 
 import jinja2
 import requests
 from django.conf import settings
 from django.core.files import File
-from django.utils import dateparse
 from django.utils.functional import cached_property
 from docxtpl import DocxTemplate
 from jinja2 import TemplateSyntaxError
 from requests.exceptions import ConnectionError, HTTPError
 
 from terracommon.document_generator.models import DownloadableDocument
+
+from .filters import timedelta_filter
 
 logger = logging.getLogger(__name__)
 
@@ -87,12 +87,6 @@ class DocumentGenerator:
         with cache.open() as cached_pdf:
             cached_pdf.write(response.content)
 
-    def _timedelta_filter(self, date_value, delta_days):
-        """ custom filter that will add a positive or negative value, timedelta
-            to the day of a date in string format """
-        current_date = dateparse.parse_datetime(date_value)
-        return current_date - timedelta(days=delta_days)
-
     @cached_property
     def _document_checksum(self):
         """ return the md5 checksum of self.template """
@@ -104,8 +98,9 @@ class DocumentGenerator:
 
         return hashlib.md5(content)
 
+    # TODO make it a function in filters.py
     filters = {
-        'timedelta_filter': _timedelta_filter
+        'timedelta_filter': timedelta_filter
     }
 
 
