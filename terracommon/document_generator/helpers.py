@@ -3,19 +3,19 @@ import io
 import logging
 import os
 import zipfile
-from datetime import timedelta
 
 import jinja2
 import requests
 from django.conf import settings
 from django.core.files import File
-from django.utils import dateparse
 from django.utils.functional import cached_property
 from docxtpl import DocxTemplate
 from jinja2 import TemplateSyntaxError
 from requests.exceptions import ConnectionError, HTTPError
 
 from terracommon.document_generator.models import DownloadableDocument
+
+from .filters import timedelta_filter
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +105,7 @@ class DocumentGenerator:
         return hashlib.md5(content)
 
     filters = {
-        'timedelta_filter': _timedelta_filter
+        'timedelta_filter': timedelta_filter
     }
 
 
