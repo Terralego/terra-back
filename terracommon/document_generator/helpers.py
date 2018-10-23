@@ -53,7 +53,7 @@ class DocumentGenerator:
         serialized_model = serializer(self.datamodel)
 
         try:
-            odt = self.get_docx(data=serialized_model.data)
+            docx = self.get_docx(data=serialized_model.data)
         except FileNotFoundError:
             # remove newly created file
             # for caching purpose
@@ -73,7 +73,7 @@ class DocumentGenerator:
             prefix='/tmp/',
             suffix='.docx'
         )
-        tmp_docx.write(odt.getvalue())  # io.BytesIO
+        tmp_docx.write(docx.getvalue())  # io.BytesIO
         tmp_docx.close()
 
         # Call libreoffice to convert docx to pdf
