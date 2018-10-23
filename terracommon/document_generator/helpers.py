@@ -84,7 +84,7 @@ class DocumentGenerator:
             'pdf:writer_pdf_Export',
             '--outdir',
             '/tmp/',
-            f'{tmp_docx.name}'
+            tmp_docx.name
         ])
         os.remove(tmp_docx.name)  # We don't need it anymore
 
