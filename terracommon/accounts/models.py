@@ -17,7 +17,8 @@ class TerraUser(AbstractBaseUser, PermissionsMixin):
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-    uuid = models.UUIDField(_('unique identifier'),
+    uuid = models.CharField(_('unique identifier'),
+                            max_length=255,
                             default=uuid.uuid4,
                             editable=False,
                             unique=True)
