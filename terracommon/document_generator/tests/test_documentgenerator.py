@@ -1,5 +1,6 @@
 import os
 from unittest.mock import MagicMock, PropertyMock, patch
+from uuid import uuid4
 
 import requests
 from django.conf import settings
@@ -24,7 +25,7 @@ class DocumentGeneratorTestCase(TestCase):
             self.template = DocumentTemplate.objects.create(
                 name='emptydocx',
                 documenttemplate=SimpleUploadedFile(
-                    self.docx_file,
+                    str(uuid4()),
                     docx.read()
                 )
             )
