@@ -7,6 +7,5 @@ def timedelta_filter(date_value, delta_days=0):
     """ custom filter that will add a positive or negative value, timedelta
         to the day of a date in string format """
 
-    print('*********************>DATE VALUE:', date_value)
     current_date = parse_datetime(date_value)
     return current_date - timedelta(days=delta_days)

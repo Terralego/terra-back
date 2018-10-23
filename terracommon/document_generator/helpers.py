@@ -98,6 +98,7 @@ class DocumentGenerator:
 
         return hashlib.md5(content)
 
+    # TODO make it a function in filters.py
     filters = {
         'timedelta_filter': timedelta_filter
     }
