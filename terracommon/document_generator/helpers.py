@@ -3,15 +3,14 @@ import io
 import logging
 import os
 import zipfile
+from subprocess import call
+from tempfile import NamedTemporaryFile
 
 import jinja2
-import requests
-from django.conf import settings
 from django.core.files import File
 from django.utils.functional import cached_property
 from docxtpl import DocxTemplate
 from jinja2 import TemplateSyntaxError
-from requests.exceptions import ConnectionError, HTTPError
 
 from terracommon.document_generator.models import DownloadableDocument
 
@@ -66,26 +65,38 @@ class DocumentGenerator:
             logger.warning(f'TemplateSyntaxError for {self.template} '
                            f'at line {e.lineno}: {e.message}')
             raise
-        try:
-            response = requests.post(
-                url=settings.CONVERTIT_URL,
-                files={'file': odt, },
-                data={'to': 'application/pdf', }
-            )
-            response.raise_for_status()
-        except HTTPError:
-            # remove newly created file
-            # for caching purpose
-            cache.remove()
-            logger.warning(f"Http error {response.status_code}")
-            raise
-        except ConnectionError:
-            cache.remove()
-            logger.warning("Connection error")
-            raise
+
+        # Create a temporary docx file on disk so libreoffice can use it
+        tmp_docx = NamedTemporaryFile(
+            mode='wb',
+            delete=False,
+            prefix='/tmp/',
+            suffix='.docx'
+        )
+        tmp_docx.write(odt.getvalue())  # io.BytesIO
+        tmp_docx.close()
+
+        # Call libreoffice to convert docx to pdf
+        call([
+            'lowriter',
+            '--headless',
+            '--convert-to',
+            'pdf:writer_pdf_Export',
+            '--outdir',
+            '/tmp/',
+            f'{tmp_docx.name}'
+        ])
+        os.remove(tmp_docx.name)  # We don't need it anymore
+
+        # Get pdf name of the file created from libreoffice writer
+        tmp_pdf_root = os.path.splitext(os.path.basename(tmp_docx.name))[0]
+        tmp_pdf = os.path.join('/tmp', f'{tmp_pdf_root}.pdf')
 
         with cache.open() as cached_pdf:
-            cached_pdf.write(response.content)
+            with open(tmp_pdf, 'rb') as pdf:
+                cached_pdf.write(pdf.read())
+
+        os.remove(tmp_pdf)  # We don't need it anymore
 
     @cached_property
     def _document_checksum(self):
