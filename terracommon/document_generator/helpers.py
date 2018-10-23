@@ -67,36 +67,31 @@ class DocumentGenerator:
             raise
 
         # Create a temporary docx file on disk so libreoffice can use it
-        tmp_docx = NamedTemporaryFile(
-            mode='wb',
-            delete=False,
-            prefix='/tmp/',
-            suffix='.docx'
-        )
-        tmp_docx.write(docx.getvalue())  # io.BytesIO
-        tmp_docx.close()
+        with NamedTemporaryFile(mode='wb',
+                                prefix='/tmp/',
+                                suffix='.docx') as tmp_docx:
+            tmp_docx.write(docx.getvalue())  # docx is an io.BytesIO
 
-        # Call libreoffice to convert docx to pdf
-        call([
-            'lowriter',
-            '--headless',
-            '--convert-to',
-            'pdf:writer_pdf_Export',
-            '--outdir',
-            '/tmp/',
-            tmp_docx.name
-        ])
-        os.remove(tmp_docx.name)  # We don't need it anymore
+            # Call libreoffice to convert docx to pdf
+            call([
+                'lowriter',
+                '--headless',
+                '--convert-to',
+                'pdf:writer_pdf_Export',
+                '--outdir',
+                '/tmp/',
+                tmp_docx.name
+            ])
 
-        # Get pdf name of the file created from libreoffice writer
-        tmp_pdf_root = os.path.splitext(os.path.basename(tmp_docx.name))[0]
-        tmp_pdf = os.path.join('/tmp', f'{tmp_pdf_root}.pdf')
+            # Get pdf name of the file created from libreoffice writer
+            tmp_pdf_root = os.path.splitext(os.path.basename(tmp_docx.name))[0]
+            tmp_pdf = os.path.join('/tmp', f'{tmp_pdf_root}.pdf')
 
-        with cache.open() as cached_pdf:
-            with open(tmp_pdf, 'rb') as pdf:
+            with cache.open() as cached_pdf, open(tmp_pdf, 'rb') as pdf:
                 cached_pdf.write(pdf.read())
 
-        os.remove(tmp_pdf)  # We don't need it anymore
+            # We don't need it anymore
+            os.remove(tmp_pdf)
 
     @cached_property
     def _document_checksum(self):
