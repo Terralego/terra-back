@@ -92,7 +92,7 @@ class SendEmailHandler(AbstractHandler):
     settings = {
         'condition': 'True',
         'from_email': settings.DEFAULT_FROM_EMAIL,
-        'recipients': "[user, ]",
+        'recipients': "[user['email'], ]",
         'subject_tpl': "Hello world {user[email]}",
         'body_tpl': "Dear, your properties {user[properties]}"
     }
