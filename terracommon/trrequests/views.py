@@ -23,8 +23,8 @@ class RequestViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, ]
     filter_backends = (SearchFilter, JSONFieldOrderingFilter,
                        DjangoFilterBackend,)
-    search_fields = ('id', 'properties',)
-    filter_fields = ('state', 'reviewers',)
+    search_fields = ('id', 'properties', 'expiry')
+    filter_fields = ('state', 'reviewers', 'expiry')
 
     def get_queryset(self):
         if self.request.user.has_perm('trrequests.can_read_all_requests'):
