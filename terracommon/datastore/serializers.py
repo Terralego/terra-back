@@ -15,6 +15,9 @@ class DataStoreSerializer(serializers.ModelSerializer):
 
 
 class RelatedDocumentSerializer(serializers.ModelSerializer):
+
+    document = serializers.CharField()
+
     class Meta:
         model = RelatedDocument
-        fields = ('key', 'model_object', 'document')
+        fields = ('key', 'document', )

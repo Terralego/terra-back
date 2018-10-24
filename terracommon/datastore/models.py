@@ -26,17 +26,19 @@ class DataStorePermission(models.Model):
             ('can_readwrite_datastore', 'Is able to write in datastore'),
         )
 
+
 def related_document_path(instance, filename):
-    return (f'documents/{instance.contenttype}/'
-            f'{instance.identifier}/{instance.key}')
+    return (f'documents/'
+            f'{instance.content_type.app_label}_{instance.content_type.model}'
+            f'/{instance.object_id}/{instance.key}')
 
 
 class RelatedDocument(models.Model):
     key = models.CharField(max_length=255, blank=False)
-    model_object = GenericForeignKey('contenttype', 'identifier')
-    contenttype = models.ForeignKey(ContentType, on_delete=models.PROTECT)
-    identifier = models.PositiveIntegerField()
+    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
+    object_id = models.PositiveIntegerField()
+    linked_object = GenericForeignKey('content_type', 'object_id')
     document = models.FileField(upload_to=related_document_path, null=False)
 
     class Meta:
-        unique_together = ('key', 'contenttype', 'identifier')
+        unique_together = ('key', 'content_type', 'object_id')
