@@ -3,7 +3,6 @@ import io
 import logging
 import os
 import zipfile
-from datetime import timedelta
 from subprocess import run
 from tempfile import NamedTemporaryFile
 
