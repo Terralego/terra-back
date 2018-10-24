@@ -3,15 +3,14 @@ import io
 import logging
 import os
 import zipfile
+from subprocess import run
+from tempfile import NamedTemporaryFile
 
 import jinja2
-import requests
-from django.conf import settings
 from django.core.files import File
 from django.utils.functional import cached_property
 from docxtpl import DocxTemplate
 from jinja2 import TemplateSyntaxError
-from requests.exceptions import ConnectionError, HTTPError
 
 from terracommon.document_generator.models import DownloadableDocument
 
@@ -54,7 +53,7 @@ class DocumentGenerator:
         serialized_model = serializer(self.datamodel)
 
         try:
-            odt = self.get_docx(data=serialized_model.data)
+            docx = self.get_docx(data=serialized_model.data)
         except FileNotFoundError:
             # remove newly created file
             # for caching purpose
@@ -66,26 +65,33 @@ class DocumentGenerator:
             logger.warning(f'TemplateSyntaxError for {self.template} '
                            f'at line {e.lineno}: {e.message}')
             raise
-        try:
-            response = requests.post(
-                url=settings.CONVERTIT_URL,
-                files={'file': odt, },
-                data={'to': 'application/pdf', }
-            )
-            response.raise_for_status()
-        except HTTPError:
-            # remove newly created file
-            # for caching purpose
-            cache.remove()
-            logger.warning(f"Http error {response.status_code}")
-            raise
-        except ConnectionError:
-            cache.remove()
-            logger.warning("Connection error")
-            raise
 
-        with cache.open() as cached_pdf:
-            cached_pdf.write(response.content)
+        # Create a temporary docx file on disk so libreoffice can use it
+        with NamedTemporaryFile(mode='wb',
+                                prefix='/tmp/',
+                                suffix='.docx') as tmp_docx:
+            tmp_docx.write(docx.getvalue())  # docx is an io.BytesIO
+
+            # Call libreoffice to convert docx to pdf
+            run([
+                'lowriter',
+                '--headless',
+                '--convert-to',
+                'pdf:writer_pdf_Export',
+                '--outdir',
+                '/tmp/',
+                tmp_docx.name
+            ])
+
+            # Get pdf name of the file created from libreoffice writer
+            tmp_pdf_root = os.path.splitext(os.path.basename(tmp_docx.name))[0]
+            tmp_pdf = os.path.join('/tmp', f'{tmp_pdf_root}.pdf')
+
+            with cache.open() as cached_pdf, open(tmp_pdf, 'rb') as pdf:
+                cached_pdf.write(pdf.read())
+
+            # We don't need it anymore
+            os.remove(tmp_pdf)
 
     @cached_property
     def _document_checksum(self):

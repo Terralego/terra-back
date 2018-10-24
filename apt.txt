@@ -16,3 +16,4 @@ binutils
 libproj-dev
 gdal-bin
 postgresql-server-dev-all
+libreoffice-writer
