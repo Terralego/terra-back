@@ -34,6 +34,7 @@ class DocumentGeneratorTestCase(TestCase):
             linked_object=self.userrequest
         )
 
+    # TODO: patch properly so libreoffice is not called during test
     def test_pdf_is_generated_from_enriched_docx(self):
         pdf_file = NamedTemporaryFile(
             mode='wb',
@@ -95,6 +96,7 @@ class DocumentGeneratorTestCase(TestCase):
             dg.get_pdf()
             mock_logger.warning.assert_called()
 
+    # TODO: patch properly so libreoffice is not called during test
     def test_cache_is_created(self):
         pdf_file = NamedTemporaryFile(
             mode='wb',
