@@ -42,7 +42,7 @@ class DocumentGeneratorTestCase(TestCase):
             suffix='.pdf',
         )
 
-        with patch('subprocess.call',
+        with patch('subprocess.run',
                    new_callable=PropertyMock) as mock_content:
             mock_content.side_effect = pdf_file.write(b'some content')
 
@@ -103,7 +103,7 @@ class DocumentGeneratorTestCase(TestCase):
             suffix='.pdf'
         )
 
-        with patch('subprocess.call',
+        with patch('subprocess.run',
                    new_callable=PropertyMock) as mock_content:
             mock_content.side_effect = pdf_file.write(b'some content')
             pdf_file.close()
