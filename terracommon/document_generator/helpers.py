@@ -3,7 +3,8 @@ import io
 import logging
 import os
 import zipfile
-from subprocess import call
+from datetime import timedelta
+from subprocess import run
 from tempfile import NamedTemporaryFile
 
 import jinja2
@@ -73,7 +74,7 @@ class DocumentGenerator:
             tmp_docx.write(docx.getvalue())  # docx is an io.BytesIO
 
             # Call libreoffice to convert docx to pdf
-            call([
+            run([
                 'lowriter',
                 '--headless',
                 '--convert-to',
