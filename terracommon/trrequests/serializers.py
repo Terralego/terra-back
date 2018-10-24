@@ -9,6 +9,7 @@ from rest_framework import serializers
 from terracommon.accounts.mixins import UserTokenGeneratorMixin
 from terracommon.accounts.serializers import TerraUserSerializer
 from terracommon.core.mixins import SerializerCurrentUserMixin
+from terracommon.datastore.serializers import RelatedDocumentSerializer
 from terracommon.document_generator.serializers import \
     DownloadableDocumentSerializer
 from terracommon.events.signals import event
@@ -30,6 +31,7 @@ class UserRequestSerializer(serializers.ModelSerializer,
     downloadables = DownloadableDocumentSerializer(read_only=True,
                                                    many=True,
                                                    source='downloadable')
+    documents = RelatedDocumentSerializer(many=True)
 
     def create(self, validated_data):
         with transaction.atomic():

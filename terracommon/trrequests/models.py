@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from terracommon.accounts.mixins import ReadableModelMixin
+from terracommon.datastore.models import RelatedDocument
 from terracommon.document_generator.models import DownloadableDocument
 from terracommon.terra.models import Layer
 
@@ -34,6 +35,7 @@ class UserRequest(BaseUpdatableModel, ReadableModelMixin):
                                        related_name='to_review')
     properties = JSONField(default=dict, blank=True)
     downloadable = GenericRelation(DownloadableDocument)
+    documents = GenericRelation(RelatedDocument)
 
     def get_comments_for_user(self, user):
         query = self.comments.all()
