@@ -19,7 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractHandler(object):
-    settings = {
+
+    default_settings = {
         'condition': 'True',
     }
 
@@ -33,9 +34,14 @@ class AbstractHandler(object):
                          eval or template.
 
         """
+
         self.event = event
-        self.settings.update(settings)
+        self.handler_settings = settings or {}
         self.args = kwargs
+
+    @property
+    def settings(self):
+        return {**self.default_settings, **self.handler_settings}
 
     def valid_condition(self):
         return simple_eval(
@@ -89,7 +95,7 @@ class SendEmailHandler(AbstractHandler):
     subject_tpl and body_tpl are formatted with python .format() method.
     """
 
-    settings = {
+    default_settings = {
         'condition': 'True',
         'from_email': settings.DEFAULT_FROM_EMAIL,
         'recipients': "[user['email'], ]",
@@ -159,7 +165,7 @@ class TimeDeltaHandler(AbstractHandler):
     Available field from UserRequest are ```['expiry', 'properties', ]```
     '''
 
-    settings = {
+    default_settings = {
         'condition': 'True',
         'daysdelta': 0,
         'field': 'expiry',
@@ -201,7 +207,7 @@ class TimeDeltaHandler(AbstractHandler):
 
 class SendNotificationHandler(AbstractHandler):
 
-    settings = {
+    default_settings = {
         'condition': 'True',
         'level': 'info',
         'message': "New notifications received",
@@ -223,7 +229,7 @@ class SendNotificationHandler(AbstractHandler):
 
 
 class SetGroupHandler(AbstractHandler):
-    settings = {
+    default_settings = {
         'condition': 'True',
         'group': None,
         'userfield': None,
@@ -241,7 +247,7 @@ class ModelValueHandler(AbstractHandler):
     Triggers actions for each recovered record.
     """
 
-    settings = {
+    default_settings = {
         'condition': 'True',
         'model': None,
         'query': {},
