@@ -9,6 +9,8 @@ from rest_framework import serializers
 from terracommon.accounts.mixins import UserTokenGeneratorMixin
 from terracommon.accounts.serializers import TerraUserSerializer
 from terracommon.core.mixins import SerializerCurrentUserMixin
+from terracommon.datastore.serializers import RelatedDocumentSerializer
+from terracommon.datastore.views_mixins import Base64RelatedDocumentsMixin
 from terracommon.document_generator.serializers import \
     DownloadableDocumentSerializer
 from terracommon.events.signals import event
@@ -21,7 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 class UserRequestSerializer(serializers.ModelSerializer,
-                            SerializerCurrentUserMixin):
+                            SerializerCurrentUserMixin,
+                            Base64RelatedDocumentsMixin):
     owner = TerraUserSerializer(read_only=True)
     geojson = GeoJSONLayerSerializer(source='layer')
     reviewers = TerraUserSerializer(read_only=True, many=True)
@@ -30,28 +33,39 @@ class UserRequestSerializer(serializers.ModelSerializer,
     downloadables = DownloadableDocumentSerializer(read_only=True,
                                                    many=True,
                                                    source='downloadable')
+    documents = RelatedDocumentSerializer(many=True, required=False)
 
     def create(self, validated_data):
         with transaction.atomic():
-            layer = Layer.objects.create(
-                name=uuid.uuid4(),
-                schema={},
-            )
 
-            layer.from_geojson(
-                json.dumps(validated_data.pop('layer')),
-            )
+            layer = json.dumps(validated_data.pop('layer', {}))
             validated_data.update({
-                'layer': layer,
+                'layer': self._create_layer(layer),
             })
+            documents = validated_data.pop('documents', [])
 
             instance = super().create(validated_data)
+
+            self._update_or_create_documents(instance, documents)
+
             try:
                 instance.user_read(self.current_user)
             except AttributeError:
                 logger.info('Cannot set object read since current_user is '
                             'unknown')
             return instance
+
+    def _create_layer(self, layer_json):
+        layer = Layer.objects.create(
+            name=uuid.uuid4(),
+            schema={},
+        )
+
+        layer.from_geojson(
+            layer_json,
+        )
+
+        return layer
 
     def update(self, instance, validated_data):
         old_properties, old_state = instance.properties, instance.state

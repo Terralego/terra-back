@@ -239,3 +239,22 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             old_properties=old_properties
         )
         event.disconnect(receiver_callback)
+
+    def test_upload_document(self):
+        self._set_permissions(['can_create_requests', ])
+        request = {
+            'properties': {
+                'myproperty': 'myvalue',
+            },
+            'geojson': self.geojson,
+            'documents': [{
+                'key': 'my_document',
+                'document': ('ZXNzYWllc3NhaWVlc3NhaWVzc2FpZWVzc2FpZXNzYWllZXN'
+                             'zYWllc3NhaWU=')
+            }, ]
+        }
+        """First we try with no rights"""
+        response = self.client.post(reverse('request-list'),
+                                    request,
+                                    format='json')
+        self.assertEqual(len(response.json().get('documents')), 1)
