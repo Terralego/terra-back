@@ -27,7 +27,6 @@ class Theme(LabelBasedModel):
 class ObservationPoint(LabelBasedModel):
     theme = models.ManyToManyField(
         Theme,
-        on_delete=models.PROTECT,
         verbose_name=_('Theme'),
         related_name='observation_points',
     )
@@ -52,30 +51,23 @@ class ObservationPoint(LabelBasedModel):
 class Campaign(LabelBasedModel):
     observation_points = models.ManyToManyField(
         ObservationPoint,
-        on_delete=models.PROTECT,
         verbose_name=_('Observation points'),
         related_name='campaigns',
     )
+    # TODO Permission to edit a campaign
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         verbose_name=_('Owner'),
         related_name='campaigns',
     )
-    # TODO Is user a photographer ?
-    photographer = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        verbose_name=_('Photographer'),
-        related_name='campaigns',
-    )
 
 
 class Picture(BaseUpdatableModel):
-    photographer = models.ForeignKey(
+    owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
-        verbose_name=_('Photographer'),
+        verbose_name=_('Owner'),
         related_name='pictures',
     )
     point = models.ForeignKey(
