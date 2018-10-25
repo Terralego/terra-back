@@ -207,7 +207,7 @@ class TimeDeltaHandler(AbstractHandler):
 
 class SendNotificationHandler(AbstractHandler):
 
-    settings = {
+    default_settings = {
         'condition': 'True',
         'level': 'info',
         'message': "New notifications received",
@@ -229,7 +229,7 @@ class SendNotificationHandler(AbstractHandler):
 
 
 class SetGroupHandler(AbstractHandler):
-    settings = {
+    default_settings = {
         'condition': 'True',
         'group': None,
         'userfield': None,
@@ -247,7 +247,7 @@ class ModelValueHandler(AbstractHandler):
     Triggers actions for each recovered record.
     """
 
-    settings = {
+    default_settings = {
         'condition': 'True',
         'model': None,
         'query': {},
