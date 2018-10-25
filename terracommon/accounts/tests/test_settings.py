@@ -16,6 +16,6 @@ class SettingsViewTestCase(TestCase):
         response = self.client.get(reverse('accounts:settings'))
         self.assertEqual(200, response.status_code)
         self.assertListEqual(
-            ['states', ],
+            ['states', 'jwt_delta', ],
             list(response.json())
             )
