@@ -3,8 +3,11 @@ from rest_framework import serializers
 
 from .models import DocumentTemplate, DownloadableDocument
 
+from terracommon.accounts.mixins import UserTokenGeneratorMixin
 
-class DownloadableDocumentSerializer(serializers.ModelSerializer):
+
+class DownloadableDocumentSerializer(serializers.ModelSerializer,
+                                     UserTokenGeneratorMixin):
     title = serializers.SerializerMethodField()
     url = serializers.SerializerMethodField()
 
@@ -16,10 +19,16 @@ class DownloadableDocumentSerializer(serializers.ModelSerializer):
         return obj.document.name
 
     def get_url(self, obj):
-        return reverse('document-pdf',
-                       kwargs={
-                           'request_pk': obj.linked_object.id,
-                           'pk': obj.document.id})
+        uidb64, token = self.get_uidb64_token_for_user(self.current_user)
+        return "{}?uidb64={}&token={}".format(
+            reverse('document-pdf', kwargs={
+                'request_pk': obj.linked_object.id,
+                'pk': obj.document.id
+
+            }),
+            uidb64,
+            token,
+        )
 
 
 class DocumentTemplateSerializer(serializers.ModelSerializer):
