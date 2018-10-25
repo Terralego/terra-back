@@ -74,7 +74,11 @@ class UserRequestSerializer(serializers.ModelSerializer,
             geojson = validated_data.pop('layer')
             instance.layer.from_geojson(json.dumps(geojson), update=True)
 
+        documents = validated_data.pop('documents', [])
+
         instance = super().update(instance, validated_data)
+
+        self._update_or_create_documents(instance, documents)
 
         if ('state' in validated_data
                 and old_state != validated_data['state']):
