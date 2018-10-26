@@ -18,4 +18,4 @@ def translate_filter(data, datastorekey):
         from datastore correspondence table """
 
     correspondences = DataStore.objects.get(key=datastorekey)
-    return correspondences[data]
+    return correspondences.value[data]
