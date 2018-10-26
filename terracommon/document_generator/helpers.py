@@ -14,7 +14,7 @@ from jinja2 import TemplateSyntaxError
 
 from terracommon.document_generator.models import DownloadableDocument
 
-from .filters import timedelta_filter
+from .filters import timedelta_filter, translate_filter
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +106,8 @@ class DocumentGenerator:
 
     # TODO make it a function in filters.py
     filters = {
-        'timedelta_filter': timedelta_filter
+        'timedelta_filter': timedelta_filter,
+        'translate_filter': translate_filter,
     }
 
 
