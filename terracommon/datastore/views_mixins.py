@@ -10,8 +10,10 @@ class Base64RelatedDocumentsMixin(object):
 
     def _update_or_create_documents(self, instance, documents):
         for document in documents:
+            encoded = document.get('document', ',').split(",", 1)[1]
+
             document_file = SimpleUploadedFile(
-                document['key'], base64.b64decode(document.get('document')))
+                document['key'], base64.b64decode(encoded))
             RelatedDocument.objects.update_or_create(
                 key=document['key'],
                 object_id=instance.pk,
