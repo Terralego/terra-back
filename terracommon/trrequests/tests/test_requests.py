@@ -249,8 +249,7 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             'geojson': self.geojson,
             'documents': [{
                 'key': 'my_document',
-                'document': ('ZXNzYWllc3NhaWVlc3NhaWVzc2FpZWVzc2FpZXNzYWllZXN'
-                             'zYWllc3NhaWU=')
+                'document': ('data:image/png;base64,aGVsbG8gd29ybGQ=')
             }, ]
         }
         """First we try with no rights"""
