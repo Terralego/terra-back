@@ -4,9 +4,12 @@ from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
 from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from jinja2 import TemplateSyntaxError
 from requests import ConnectionError, HTTPError
 from rest_framework import status
@@ -67,10 +70,12 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
             # Expected name schema
             pdf_name = f'document_{date.today()}.pdf'
-
+            uidb64, token = self.get_uidb64_token_for_user()
+            document_url = reverse(self.pdfcreator_urlname,
+                                   kwargs=pks)
             # Testing with no MEDIA_ACCEL_REDIRECT
-            response = self.client.get(reverse(self.pdfcreator_urlname,
-                                               kwargs=pks))
+            response = self.client.get(
+                f'{document_url}?token={token}&uidb64={uidb64}')
             self.assertEqual(status.HTTP_200_OK, response.status_code)
             self.assertEqual('application/pdf', response['Content-Type'])
             self.assertEqual(f'attachment;filename={pdf_name}',
@@ -105,8 +110,11 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             # Expected name schema
             pdf_name = f'document_{date.today()}.pdf'
             with self.settings(MEDIA_ACCEL_REDIRECT=True):
-                response = self.client.get(reverse(self.pdfcreator_urlname,
-                                                   kwargs=pks))
+                uidb64, token = self.get_uidb64_token_for_user()
+                pdf_url = reverse(self.pdfcreator_urlname,
+                                  kwargs=pks)
+                response = self.client.get(
+                    f'{pdf_url}?token={token}&uidb64={uidb64}')
 
                 self.assertEqual(status.HTTP_200_OK, response.status_code)
                 self.assertEqual('application/pdf', response['Content-Type'])
@@ -121,9 +129,12 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
     def test_pdf_creator_with_bad_requestpk(self):
         # Testing bad request_pk
         pks = {'request_pk': 999, 'pk': self.docx.pk}
+        uidb64, token = self.get_uidb64_token_for_user()
+        pdf_url = reverse(self.pdfcreator_urlname,
+                          kwargs=pks)
+        response = self.client.get(
+            f'{pdf_url}?token={token}&uidb64={uidb64}')
 
-        response = self.client.get(reverse(self.pdfcreator_urlname,
-                                           kwargs=pks))
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
     def test_pdf_creator_with_bad_pk(self):
@@ -135,17 +146,22 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         )
         # Testing bad pk
         pks = {'request_pk': fake_userrequest.pk, 'pk': 9999}
-
-        response = self.client.get(reverse(self.pdfcreator_urlname,
-                                           kwargs=pks))
+        uidb64, token = self.get_uidb64_token_for_user()
+        pdf_url = reverse(self.pdfcreator_urlname,
+                          kwargs=pks)
+        response = self.client.get(
+            f'{pdf_url}?token={token}&uidb64={uidb64}')
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
     def test_pdf_creator_without_download_pdf_permissions(self):
         userrequest = UserRequestFactory(properties=self.properties)
         pks = {'request_pk': userrequest.pk, 'pk': self.docx.pk}
-
-        response = self.client.get(reverse(self.pdfcreator_urlname,
-                                           kwargs=pks))
+        uidb64, token = self.get_uidb64_token_for_user()
+        pdf_url = reverse(self.pdfcreator_urlname,
+                          kwargs=pks)
+        response = self.client.get(
+            f'{pdf_url}?token={token}&uidb64={uidb64}')
+        response = self.client.get(response)
 
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
@@ -170,11 +186,20 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                 linked_object=userrequest
             )
             pks = {'request_pk': userrequest.pk, 'pk': self.docx.pk}
-
-            response = self.client.get(reverse(self.pdfcreator_urlname,
-                                               kwargs=pks))
+            uidb64, token = self.get_uidb64_token_for_user()
+            pdf_url = reverse(self.pdfcreator_urlname,
+                              kwargs=pks)
+            response = self.client.get(
+                f'{pdf_url}?token={token}&uidb64={uidb64}')
 
             self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+            self.client.force_authenticate(user=None)
+            response = self.client.get(
+                f'{pdf_url}?token={token}&uidb64={uidb64}')
+
+            self.assertEqual(status.HTTP_200_OK, response.status_code)
+
             mock_dg.assert_called()
 
         os.remove(fake_pdf.name)
@@ -185,10 +210,12 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         # Testing unauthenticated user
         self.client.force_authenticate(user=None)
         pks = {'request_pk': fake_userrequest.pk, 'pk': self.docx.pk}
-
-        response = self.client.get(reverse(self.pdfcreator_urlname,
-                                           kwargs=pks))
-        self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
+        uidb64, token = self.get_uidb64_token_for_user()
+        pdf_url = reverse(self.pdfcreator_urlname,
+                          kwargs=pks)
+        response = self.client.get(
+            f'{pdf_url}?token={token}&uidb64={uidb64}')
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
         # Reseting default test settings
         self.client.force_authenticate(user=self.user)
@@ -205,8 +232,11 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         with patch.object(DocumentGenerator,
                           'get_pdf',
                           side_effect=FileNotFoundError) as mock_dg:
-            response = self.client.get(reverse(self.pdfcreator_urlname,
-                                               kwargs=pks))
+            uidb64, token = self.get_uidb64_token_for_user()
+            pdf_url = reverse(self.pdfcreator_urlname,
+                              kwargs=pks)
+            response = self.client.get(
+                f'{pdf_url}?token={token}&uidb64={uidb64}')
             self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
             mock_dg.assert_called_with()
 
@@ -222,8 +252,11 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         with patch.object(DocumentGenerator,
                           'get_pdf',
                           side_effect=HTTPError) as mock_dg:
-            response = self.client.get(reverse(self.pdfcreator_urlname,
-                                               kwargs=pks))
+            uidb64, token = self.get_uidb64_token_for_user()
+            pdf_url = reverse(self.pdfcreator_urlname,
+                              kwargs=pks)
+            response = self.client.get(
+                f'{pdf_url}?token={token}&uidb64={uidb64}')
             self.assertEqual(status.HTTP_503_SERVICE_UNAVAILABLE,
                              response.status_code)
             mock_dg.assert_called_with()
@@ -240,8 +273,11 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         with patch.object(DocumentGenerator,
                           'get_pdf',
                           side_effect=ConnectionError) as mock_dg:
-            response = self.client.get(reverse(self.pdfcreator_urlname,
-                                               kwargs=pks))
+            uidb64, token = self.get_uidb64_token_for_user()
+            pdf_url = reverse(self.pdfcreator_urlname,
+                              kwargs=pks)
+            response = self.client.get(
+                f'{pdf_url}?token={token}&uidb64={uidb64}')
             self.assertEqual(status.HTTP_503_SERVICE_UNAVAILABLE,
                              response.status_code)
             mock_dg.assert_called_with()
@@ -260,8 +296,11 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                 'get_pdf',
                 side_effect=TemplateSyntaxError(message='error',
                                                 lineno=1)) as mock_dg:
-            response = self.client.get(reverse(self.pdfcreator_urlname,
-                                               kwargs=pks))
+            uidb64, token = self.get_uidb64_token_for_user()
+            pdf_url = reverse(self.pdfcreator_urlname,
+                              kwargs=pks)
+            response = self.client.get(
+                f'{pdf_url}?token={token}&uidb64={uidb64}')
             self.assertEqual(status.HTTP_500_INTERNAL_SERVER_ERROR,
                              response.status_code)
             mock_dg.assert_called_with()
@@ -498,3 +537,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self.assertTrue(
             DocumentTemplate.objects.filter(pk=doc_tpl.pk).exists()
         )
+
+    def get_uidb64_token_for_user(self):
+        return (urlsafe_base64_encode(force_bytes(self.user.pk)).decode(),
+                default_token_generator.make_token(self.user))

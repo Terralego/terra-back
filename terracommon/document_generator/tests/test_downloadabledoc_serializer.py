@@ -38,9 +38,9 @@ class DownloadbleDocumentTestCase(TestCase):
     def test_expected_fields_content(self):
         data = self.serializer.data
         self.assertEqual(data['title'], self.documenttemplate.name)
-        self.assertEqual(data['url'],
-                         reverse('document-pdf',
-                                 kwargs={
-                                     'request_pk': self.userrequest.pk,
-                                     'pk': self.documenttemplate.pk
-                                 }))
+        self.assertIn(
+            reverse('document-pdf',
+                    kwargs={'request_pk': self.userrequest.pk,
+                            'pk': self.documenttemplate.pk}),
+            data['url'],
+        )

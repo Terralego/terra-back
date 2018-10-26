@@ -12,6 +12,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from terracommon.accounts.permissions import TokenBasedPermission
 from terracommon.terra.helpers import get_media_response
 from terracommon.trrequests.models import UserRequest
 
@@ -48,7 +49,8 @@ class DocumentTemplateViewSets(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'],
                   url_name='pdf',
-                  url_path='pdf/(?P<request_pk>[^/.]+)')
+                  url_path='pdf/(?P<request_pk>[^/.]+)',
+                  permission_classes=(TokenBasedPermission,))
     def pdf_creator(self, request, pk=None, request_pk=None):
         """ Insert data from user request into a template & convert it to pdf
 
