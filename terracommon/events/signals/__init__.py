@@ -12,7 +12,6 @@ event = Signal(providing_args=['action', 'logged_user'])
 
 
 def signal_event_proxy(sender, action, instance, user, *args, **kwargs):
-
     for handler in EventHandler.objects.filter(action=action):
         try:
             args = {

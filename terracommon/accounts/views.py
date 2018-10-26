@@ -112,6 +112,7 @@ class SettingsView(APIView):
                 y: x
                 for x, y in settings.STATES.VALUE_TO_CONST.items()
                 },
+            'jwt_delta': settings.JWT_AUTH['JWT_EXPIRATION_DELTA']
         }
 
         terra_settings.update(settings.TERRA_APPLIANCE_SETTINGS)

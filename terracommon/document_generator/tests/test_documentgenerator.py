@@ -1,13 +1,12 @@
+import io
 import os
+from tempfile import NamedTemporaryFile
 from unittest.mock import MagicMock, PropertyMock, patch
 from uuid import uuid4
 
-import requests
-from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from jinja2 import TemplateSyntaxError
-from requests import ConnectionError, HTTPError, Response
 
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.document_generator.helpers import DocumentGenerator
@@ -35,28 +34,29 @@ class DocumentGeneratorTestCase(TestCase):
             linked_object=self.userrequest
         )
 
+    # TODO: patch properly so libreoffice is not called during test
     def test_pdf_is_generated_from_enriched_docx(self):
-        pdf_file = SimpleUploadedFile('fake.pdf', b'some content')
-        pdf_file.seek(0)
+        pdf_file = NamedTemporaryFile(
+            mode='wb',
+            delete=False,
+            prefix='/tmp/',
+            suffix='.pdf',
+        )
 
-        with patch('requests.Response.content',
+        with patch('subprocess.run',
                    new_callable=PropertyMock) as mock_content:
-            mock_content.return_value = pdf_file.read()
-
-            convertit_response = Response()
-            convertit_response.url = settings.CONVERTIT_URL
-            convertit_response.status_code = 200
-            requests.post = MagicMock(return_value=convertit_response)
+            mock_content.side_effect = pdf_file.write(b'some content')
 
             docx_path = os.path.join(os.path.dirname(__file__), 'empty.docx')
             docx_file = open(docx_path, 'rb')
 
             dg = DocumentGenerator(self.downloadable)
-            dg.get_docx = MagicMock(return_value=docx_file)
+            dg.get_docx = MagicMock(return_value=io.BytesIO(docx_file.read()))
             pdf_path = dg.get_pdf()
             dg.get_docx.assert_called()
 
             os.remove(pdf_path)
+        os.remove(pdf_file.name)
 
     def test_everything_seems_to_work_without_variables(self):
         dg = DocumentGenerator(self.downloadable)
@@ -96,47 +96,30 @@ class DocumentGeneratorTestCase(TestCase):
             dg.get_pdf()
             mock_logger.warning.assert_called()
 
-    @patch('terracommon.document_generator.helpers.logger')
-    def test_raises_exception_when_convertit_does_not_answer(self,
-                                                             mock_logger):
-        mock_response = Response()
-        mock_response.url = settings.CONVERTIT_URL
-        mock_response.status_code = 404
-        requests.post = MagicMock(return_value=mock_response)
-
-        dg = DocumentGenerator(self.downloadable)
-        with self.assertRaises(HTTPError):
-            dg.get_pdf()
-            mock_logger.warning.assert_called()
-
+    # TODO: patch properly so libreoffice is not called during test
     def test_cache_is_created(self):
-        pdf_file = SimpleUploadedFile('fake.pdf', b'file content')
-        pdf_file.seek(0)
+        pdf_file = NamedTemporaryFile(
+            mode='wb',
+            delete=False,
+            prefix='/tmp/',
+            suffix='.pdf'
+        )
 
-        with patch('requests.Response.content',
+        with patch('subprocess.run',
                    new_callable=PropertyMock) as mock_content:
-            mock_content.return_value = pdf_file.read()
-            response_convertit = Response()
-            response_convertit.url = settings.CONVERTIT_URL
-            response_convertit.status_code = 200
-            requests.post = MagicMock(return_value=response_convertit)
+            mock_content.side_effect = pdf_file.write(b'some content')
+            pdf_file.close()
 
             with open(self.docx_file, 'rb') as docx_file:
                 dg = DocumentGenerator(self.downloadable)
-                dg.get_docx = MagicMock(return_value=docx_file)
+                dg.get_docx = MagicMock(
+                    return_value=io.BytesIO(docx_file.read())
+                )
                 pdf_path = dg.get_pdf()
 
                 self.assertTrue(os.path.isfile(pdf_path))
                 os.remove(pdf_path)
-
-    @patch('terracommon.document_generator.helpers.logger')
-    def test_raises_connection_error_exception(self, mock_logger):
-        requests.post = MagicMock(side_effect=ConnectionError())
-
-        dg = DocumentGenerator(self.downloadable)
-        with self.assertRaises(ConnectionError):
-            dg.get_pdf()
-            mock_logger.warning.assert_called()
+            os.remove(pdf_file.name)
 
     @patch('terracommon.document_generator.helpers.logger')
     def test_raises_templatesyntaxerror_exception(self, mock_logger):
