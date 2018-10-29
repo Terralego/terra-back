@@ -13,9 +13,11 @@ def timedelta_filter(date_value, delta_days=0):
     return current_date - timedelta(days=delta_days)
 
 
-def translate_filter(data, datastorekey):
+def translate_filter(data, datastorekey=''):
     """ Custom filter that will return the translated data
         from datastore correspondence table """
 
+    if not datastorekey:
+        return data
     correspondences = DataStore.objects.get(key=datastorekey)
     return correspondences.value[data]
