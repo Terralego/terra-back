@@ -1,13 +1,13 @@
 from django.conf import settings
+from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
-from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from terracommon.core.mixins import BaseUpdatableModel
 from terracommon.terra.models import Layer
 
 
-class LabelBasedModel(BaseUpdatableModel):
+class BaseLabelModel(BaseUpdatableModel):
     label = models.CharField(_('Label'), max_length=100)
 
     class Meta:
@@ -17,49 +17,48 @@ class LabelBasedModel(BaseUpdatableModel):
         return self.label
 
 
-class Theme(LabelBasedModel):
-    content = models.TextField(_('Content'))
-
-    class Meta:
-        verbose_name = _('Theme')
+class Theme(BaseLabelModel):
+    pass
 
 
-class ObservationPoint(LabelBasedModel):
+class Viewpoint(BaseLabelModel):
+    # TODO should we use a ForeignKey to Feature instead?
+    point = models.PointField(srid=settings.INTERNAL_GEOMETRY_SRID)
     theme = models.ManyToManyField(
         Theme,
         verbose_name=_('Theme'),
-        related_name='observation_points',
+        related_name='viewpoints',
     )
     layer = models.ForeignKey(
         Layer,
         on_delete=models.PROTECT,
         verbose_name=_('Layer'),
-        related_name='observation_points',
+        related_name='viewpoints',
     )
-    # FIXME GeoJSON field ?
     properties = JSONField(_('Properties'), default=dict, blank=True)
-    remarks = models.TextField(_('Remarks'), max_length=350)
 
     class Meta:
         permissions = (
             ('can_download_pdf', 'Is able to download a pdf document'),
         )
-        verbose_name = _('Observation point')
-        verbose_name_plural = _('Observation points')
 
 
-class Campaign(LabelBasedModel):
-    observation_points = models.ManyToManyField(
-        ObservationPoint,
-        verbose_name=_('Observation points'),
+class Campaign(BaseLabelModel):
+    viewpoints = models.ManyToManyField(
+        Viewpoint,
         related_name='campaigns',
     )
-    # TODO Permission to edit a campaign
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         verbose_name=_('Owner'),
         related_name='campaigns',
+    )
+    assignee = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        verbose_name=_('Assigned to'),
+        related_name='assigned_campaigns',
     )
 
 
@@ -70,36 +69,35 @@ class Picture(BaseUpdatableModel):
         verbose_name=_('Owner'),
         related_name='pictures',
     )
-    point = models.ForeignKey(
-        ObservationPoint,
+    viewpoint = models.ForeignKey(
+        Viewpoint,
         on_delete=models.PROTECT,
-        verbose_name=_('Point'),
         related_name='pictures',
     )
+    # TODO states may be : draft, submitted, metadata_ok, accepted, refused
     state = models.IntegerField(_('State'), default=settings.STATES.DRAFT)
+
     properties = JSONField(_('Properties'), default=dict, blank=True)
-    file = models.ImageField(_('File'))
+
+    # TODO configure versatile + s3 storage
+    file = VersatileImageField(_('File'))
+
+    # Different from created_at which is the upload date
     date = models.DateTimeField(_('Date'))
-    weather_conditions = models.TextField(
-        _('Weather conditions'),
-        max_length=350,
-    )
-    remarks = models.TextField(_('Remarks'), max_length=350)
-    # TODO latitude, longitude, altitude, orientation ? GeoJSON Field ?
+
+    # TODO maybe modve that to another model with GenericFK?
+    # remarks = models.TextField(_('Remarks'), max_length=350)
 
     class Meta:
         permissions = (
-            ('can_read_draft_picture', 'Is able to see a draft picture'),
             ('can_change_state_picture', 'Is able to change the picture '
                                          'state'),
         )
-        verbose_name = _('Picture')
-
         # It's our main way of sorting pictures, so it better be indexed
         indexes = [
-            models.Index(fields=['point', 'created_at']),
+            models.Index(fields=['viewpoint', 'date']),
         ]
-        get_latest_by = 'created_at'
+        get_latest_by = 'date'
 
 
 class Document(BaseUpdatableModel):
@@ -109,10 +107,9 @@ class Document(BaseUpdatableModel):
         verbose_name=_('Owner'),
         related_name='documents',
     )
-    point = models.ForeignKey(
-        ObservationPoint,
+    viewpoint = models.ForeignKey(
+        Viewpoint,
         on_delete=models.PROTECT,
-        verbose_name=_('Point'),
         related_name='documents',
     )
     properties = JSONField(_('Properties'), default=dict, blank=True)
