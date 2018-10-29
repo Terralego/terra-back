@@ -7,9 +7,10 @@ from subprocess import run
 from tempfile import NamedTemporaryFile
 
 import jinja2
+from django.conf import settings
 from django.core.files import File
 from django.utils.functional import cached_property
-from docxtpl import DocxTemplate
+from docxtpl import DocxTemplate, InlineImage
 from jinja2 import TemplateSyntaxError
 
 from terracommon.document_generator.models import DownloadableDocument
@@ -28,9 +29,13 @@ class DocumentGenerator:
 
     def get_docx(self, data):
         doc = DocxTemplator(self.template)
+
+        updated_data = (self._get_image(data, doc)
+                        if data.get('documents')
+                        else data)
         jinja_env = jinja2.Environment()
         jinja_env.filters.update(self.filters)
-        doc.render(context=data, jinja_env=jinja_env)
+        doc.render(context=updated_data, jinja_env=jinja_env)
         return doc.save()
 
     def get_pdf(self, reset_cache=False):
@@ -92,6 +97,12 @@ class DocumentGenerator:
 
             # We don't need it anymore
             os.remove(tmp_pdf)
+
+    def _get_image(self, data, tpl):
+        for document in data['documents']:
+            img_path = os.path.join(settings.MEDIA_ROOT, document['document'])
+            document['document'] = InlineImage(tpl, img_path)
+        return data
 
     @cached_property
     def _document_checksum(self):
