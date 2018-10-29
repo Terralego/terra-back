@@ -58,6 +58,7 @@ class AbstractHandler(object):
             'event': self.event,
             'instance': self.serialized_instance,
             'front_url': settings.FRONT_URL,
+            'hostname': settings.HOSTNAME,
         })
 
         return attrs
