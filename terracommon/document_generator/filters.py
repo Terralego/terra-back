@@ -22,5 +22,6 @@ def translate_filter(value, datastorekey=''):
     correspondences = DataStore.objects.get(key=datastorekey)
     return correspondences.value[value]
 
+
 def todate_filter(value):
     return parse_datetime(value).date()
