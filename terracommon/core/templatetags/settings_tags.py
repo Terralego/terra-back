@@ -8,3 +8,8 @@ register = template.Library()
 @register.simple_tag
 def front_url():
     return mark_safe(settings.FRONT_URL)
+
+
+@register.simple_tag
+def hostname():
+    return mark_safe(settings.HOSTNAME)
