@@ -11,6 +11,7 @@ import jinja2
 from django.conf import settings
 from django.core.files import File
 from django.utils.functional import cached_property
+from docx.shared import Mm
 from docxtpl import DocxTemplate, InlineImage
 from jinja2 import TemplateSyntaxError
 
@@ -103,7 +104,8 @@ class DocumentGenerator:
     def _get_image(self, data, tpl):
         for document in data['documents']:
             img_path = os.path.join(settings.MEDIA_ROOT, document['document'])
-            document['document'] = InlineImage(tpl, img_path)
+            # Set as image of 170mm width
+            document['document'] = InlineImage(tpl, img_path, width=Mm(170))
         return data
 
     @cached_property
