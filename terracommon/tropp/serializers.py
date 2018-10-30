@@ -1,14 +1,14 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import Campaign, Document, ObservationPoint, Picture, Theme
+from .models import Campaign, Document, Viewpoint, Picture, Theme
 
 UserModel = get_user_model()
 
 
-class ObservationPointSerializer(serializers.ModelSerializer):
+class ViewpointSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ObservationPoint
+        model = Viewpoint
         fields = '__all__'
 
 
