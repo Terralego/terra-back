@@ -10,14 +10,17 @@ def timedelta_filter(date_value, delta_days=0):
         to the day of a date in string format """
 
     current_date = parse_datetime(date_value)
-    return current_date - timedelta(days=delta_days)
+    return (current_date - timedelta(days=delta_days)).date()
 
 
-def translate_filter(data, datastorekey=''):
+def translate_filter(value, datastorekey=''):
     """ Custom filter that will return the translated data
         from datastore correspondence table """
 
     if not datastorekey:
-        return data
+        return value
     correspondences = DataStore.objects.get(key=datastorekey)
-    return correspondences.value[data]
+    return correspondences.value[value]
+
+def todate_filter(value):
+    return parse_datetime(value).date()
