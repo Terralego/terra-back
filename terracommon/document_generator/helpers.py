@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import io
 import logging
@@ -34,6 +35,7 @@ class DocumentGenerator:
                         if data.get('documents')
                         else data)
         jinja_env = jinja2.Environment()
+        jinja_env.globals['now'] = datetime.datetime.now
         jinja_env.filters.update(self.filters)
         doc.render(context=updated_data, jinja_env=jinja_env)
         return doc.save()
