@@ -25,10 +25,10 @@ class Theme(BaseLabelModel):
 class Viewpoint(BaseLabelModel):
     # TODO should we use a ForeignKey to Feature instead?
     point = models.PointField(srid=settings.INTERNAL_GEOMETRY_SRID)
-    theme = models.ManyToManyField(
+    themes = models.ManyToManyField(
         Theme,
-        verbose_name=_('Theme'),
         related_name='viewpoints',
+        blank=True
     )
     layer = models.ForeignKey(
         Layer,

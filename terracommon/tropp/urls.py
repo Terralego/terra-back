@@ -1,19 +1,13 @@
 from rest_framework.routers import SimpleRouter
 
-from .views import (CampaignViewSet, DocumentViewSet, LayerViewSet,
-                    ObservationPointViewSet, PictureViewSet, ThemeViewSet)
+from . import views
 
 router = SimpleRouter()
 
-router.register(
-    r'observation-points',
-    ObservationPointViewSet,
-    base_name='observation-point',
-)
-router.register(r'campaigns', CampaignViewSet, base_name='campaign')
-router.register(r'pictures', PictureViewSet, base_name='picture')
-router.register(r'documents', DocumentViewSet, base_name='document')
-router.register(r'themes', ThemeViewSet, base_name='theme')
-router.register(r'layers', LayerViewSet, base_name='layer')
+router.register(r'viewpoint', views.ViewpointViewSet, base_name='viewpoint')
+router.register(r'campaign', views.CampaignViewSet, base_name='campaign')
+router.register(r'picture', views.PictureViewSet, base_name='picture')
+router.register(r'document', views.DocumentViewSet, base_name='document')
+router.register(r'theme', views.ThemeViewSet, base_name='theme')
 
 urlpatterns = router.urls
