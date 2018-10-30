@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.utils.translation import ugettext_lazy as _
+from versatileimagefield.fields import VersatileImageField
 
 from terracommon.core.mixins import BaseUpdatableModel
 from terracommon.terra.models import Layer
@@ -74,19 +75,17 @@ class Picture(BaseUpdatableModel):
         on_delete=models.PROTECT,
         related_name='pictures',
     )
-    # TODO states may be : draft, submitted, metadata_ok, accepted, refused
+    # States may be : draft, metadata_ok (submitted), accepted, refused
     state = models.IntegerField(_('State'), default=settings.STATES.DRAFT)
 
     properties = JSONField(_('Properties'), default=dict, blank=True)
-
-    # TODO configure versatile + s3 storage
     file = VersatileImageField(_('File'))
 
     # Different from created_at which is the upload date
     date = models.DateTimeField(_('Date'))
 
-    # TODO maybe modve that to another model with GenericFK?
-    # remarks = models.TextField(_('Remarks'), max_length=350)
+    # TODO maybe move that to another model with GenericFK?
+    remarks = models.TextField(_('Remarks'), max_length=350)
 
     class Meta:
         permissions = (

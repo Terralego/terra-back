@@ -10,8 +10,9 @@ requests>=2.19,<2.20
 django-url-filter>=0.3,<0.4
 python-magic>=0.4,<0.5
 docxtpl>=0.5,<0.6
+Pillow>=5.3.0,<6.0.0
 django-storages>=1.7,<1.8
-django-versatileimagefield>=1.10,<1.11
+django-versatileimagefield>=1.10,<2.0
 
 # SIG
 mercantile>=1.0,<1.1
