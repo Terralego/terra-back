@@ -1,9 +1,9 @@
 from rest_framework import permissions, viewsets
 
-from .models import Campaign, Document, Viewpoint, Picture, Theme
+from .models import Campaign, Document, Picture, Theme, Viewpoint
 from .serializers import (CampaignSerializer, DocumentSerializer,
-                          ViewpointSerializer, PictureSerializer,
-                          ThemeSerializer)
+                          PictureSerializer, ThemeSerializer,
+                          ViewpointSerializer)
 
 
 class ViewpointViewSet(viewsets.ModelViewSet):
@@ -17,7 +17,7 @@ class ViewpointViewSet(viewsets.ModelViewSet):
 class CampaignViewSet(viewsets.ModelViewSet):
     queryset = Campaign.objects.all()
     serializer_class = CampaignSerializer
-    permission_classes = [permissions.DjangoModelPermissions,]
+    permission_classes = [permissions.DjangoModelPermissions, ]
 
 
 class PictureViewSet(viewsets.ModelViewSet):

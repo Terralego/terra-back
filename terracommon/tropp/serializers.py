@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import Campaign, Document, Viewpoint, Picture, Theme
+from .models import Campaign, Document, Picture, Theme, Viewpoint
 
 UserModel = get_user_model()
 
