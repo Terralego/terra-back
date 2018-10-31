@@ -6,4 +6,4 @@ class EventHandler(models.Model):
     action = models.CharField(max_length=255, blank=False, null=False)
     handler = models.CharField(max_length=255, blank=False, null=False)
     settings = JSONField(default={})
-    priority = models.IntegerField(default=0)
+    priority = models.PositiveIntegerField(default=10)
