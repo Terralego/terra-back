@@ -6,8 +6,8 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from terracommon.accounts.mixins import ReadableModelMixin
-from terracommon.datastore.models import RelatedDocument
 from terracommon.core.mixins import BaseUpdatableModel
+from terracommon.datastore.models import RelatedDocument
 from terracommon.document_generator.models import DownloadableDocument
 from terracommon.terra.models import Layer
 
