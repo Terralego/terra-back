@@ -7,11 +7,15 @@ from .serializers import (CampaignSerializer, DocumentSerializer,
 
 
 class ViewpointViewSet(viewsets.ModelViewSet):
-    queryset = Viewpoint.objects.all()
     serializer_class = ViewpointSerializer
     permission_classes = [
         permissions.DjangoModelPermissionsOrAnonReadOnly,
     ]
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Viewpoint.objects.all()
+        return Viewpoint.objects.with_pictures()
 
 
 class CampaignViewSet(viewsets.ModelViewSet):

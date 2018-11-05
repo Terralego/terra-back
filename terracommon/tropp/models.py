@@ -22,6 +22,11 @@ class Theme(BaseLabelModel):
     pass
 
 
+class ViewpointsManager(models.Manager):
+    def with_pictures(self):
+        return super().get_queryset().filter(pictures__isnull=False)
+
+
 class Viewpoint(BaseLabelModel):
     point = models.ForeignKey(
         Feature,
@@ -34,6 +39,8 @@ class Viewpoint(BaseLabelModel):
         blank=True
     )
     properties = JSONField(_('Properties'), default=dict, blank=True)
+
+    objects = ViewpointsManager()
 
     class Meta:
         permissions = (
