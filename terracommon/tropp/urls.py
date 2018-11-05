@@ -2,6 +2,8 @@ from rest_framework.routers import SimpleRouter
 
 from . import views
 
+app_name = 'tropp'
+
 router = SimpleRouter()
 
 router.register(r'viewpoint', views.ViewpointViewSet, base_name='viewpoint')
