@@ -1,7 +1,7 @@
 version: '3'
 services:
   db:
-    image: registry.makina-corpus.net/nan/pgrouting:10.1-2.5.4
+    image: makinacorpus/pgrouting:10.1-2.5.4
     env_file:
       - docker.env
     volumes:
