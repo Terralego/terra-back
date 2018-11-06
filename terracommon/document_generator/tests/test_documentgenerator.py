@@ -1,7 +1,6 @@
 import io
 import os
-from tempfile import NamedTemporaryFile
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -13,6 +12,13 @@ from terracommon.document_generator.helpers import DocumentGenerator
 from terracommon.document_generator.models import (DocumentTemplate,
                                                    DownloadableDocument)
 from terracommon.trrequests.tests.factories import UserRequestFactory
+
+
+def mock_libreoffice(arguments):
+    tmp_pdf_root = os.path.splitext(os.path.basename(arguments[-1]))[0]
+    tmp_pdf = os.path.join('/tmp', f'{tmp_pdf_root}.pdf')
+    with open(tmp_pdf, 'wb') as pdf_file:
+        pdf_file.write(b'some content')
 
 
 class DocumentGeneratorTestCase(TestCase):
@@ -34,29 +40,22 @@ class DocumentGeneratorTestCase(TestCase):
             linked_object=self.userrequest
         )
 
-    # TODO: patch properly so libreoffice is not called during test
-    def test_pdf_is_generated_from_enriched_docx(self):
-        pdf_file = NamedTemporaryFile(
-            mode='wb',
-            delete=False,
-            prefix='/tmp/',
-            suffix='.pdf',
-        )
+    @patch('subprocess.run', side_effect=mock_libreoffice)
+    def test_pdf_is_generated_from_enriched_docx(self, mock_run):
+        # Patch libroffice call, that should write a pdf file of the same name
+        # as temporary docx file
 
-        with patch('subprocess.run',
-                   new_callable=PropertyMock) as mock_content:
-            mock_content.side_effect = pdf_file.write(b'some content')
-
-            docx_path = os.path.join(os.path.dirname(__file__), 'empty.docx')
-            docx_file = open(docx_path, 'rb')
-
-            dg = DocumentGenerator(self.downloadable)
-            dg.get_docx = MagicMock(return_value=io.BytesIO(docx_file.read()))
-            pdf_path = dg.get_pdf()
-            dg.get_docx.assert_called()
-
-            os.remove(pdf_path)
-        os.remove(pdf_file.name)
+        # Now patch get_docx to return dumb content
+        docx_path = os.path.join(os.path.dirname(__file__), 'empty.docx')
+        with open(docx_path, 'rb') as docx_file:
+            with patch.object(
+                    DocumentGenerator, 'get_docx',
+                    return_value=io.BytesIO(docx_file.read())
+            ) as mock_docx:
+                dg = DocumentGenerator(self.downloadable)
+                pdf_path = dg.get_pdf()
+                mock_docx.assert_called()
+                os.remove(pdf_path)
 
     def test_everything_seems_to_work_without_variables(self):
         dg = DocumentGenerator(self.downloadable)
@@ -96,30 +95,13 @@ class DocumentGeneratorTestCase(TestCase):
             dg.get_pdf()
             mock_logger.warning.assert_called()
 
-    # TODO: patch properly so libreoffice is not called during test
-    def test_cache_is_created(self):
-        pdf_file = NamedTemporaryFile(
-            mode='wb',
-            delete=False,
-            prefix='/tmp/',
-            suffix='.pdf'
-        )
+    @patch('subprocess.run', side_effect=mock_libreoffice)
+    def test_cache_is_created(self, mock_run):
+        dg = DocumentGenerator(self.downloadable)
+        pdf_path = dg.get_pdf()
 
-        with patch('subprocess.run',
-                   new_callable=PropertyMock) as mock_content:
-            mock_content.side_effect = pdf_file.write(b'some content')
-            pdf_file.close()
-
-            with open(self.docx_file, 'rb') as docx_file:
-                dg = DocumentGenerator(self.downloadable)
-                dg.get_docx = MagicMock(
-                    return_value=io.BytesIO(docx_file.read())
-                )
-                pdf_path = dg.get_pdf()
-
-                self.assertTrue(os.path.isfile(pdf_path))
-                os.remove(pdf_path)
-            os.remove(pdf_file.name)
+        self.assertTrue(os.path.isfile(pdf_path))
+        os.remove(pdf_path)
 
     @patch('terracommon.document_generator.helpers.logger')
     def test_raises_templatesyntaxerror_exception(self, mock_logger):

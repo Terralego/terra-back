@@ -3,8 +3,8 @@ import hashlib
 import io
 import logging
 import os
+import subprocess
 import zipfile
-from subprocess import run
 from tempfile import NamedTemporaryFile
 
 import jinja2
@@ -81,7 +81,7 @@ class DocumentGenerator:
             tmp_docx.write(docx.getvalue())  # docx is an io.BytesIO
 
             # Call libreoffice to convert docx to pdf
-            run([
+            subprocess.run([
                 'lowriter',
                 '--headless',
                 '--convert-to',
@@ -172,7 +172,7 @@ class DocxTemplator(DocxTemplate):
             return backup_bytesio
         return docx_bytesio
 
-    def save(self):
+    def save(self, *args, **kwargs):
         docx_bytesio = io.BytesIO()
         self.pre_processing()
         self.docx.save(docx_bytesio)

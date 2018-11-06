@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 import tempfile
 
 from django.utils import six
@@ -18,6 +17,12 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 PASSWORD_HASHERS = (
     'django.contrib.auth.hashers.MD5PasswordHasher',
 )
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
 
 # Force every loggers to use null handler only. Note that using 'root'
 # logger is not enough if children don't propage.
