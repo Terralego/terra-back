@@ -15,7 +15,11 @@ class Migration(migrations.Migration):
             model_name='viewpoint',
             name='layer',
         ),
-        migrations.AlterField(
+        migrations.RemoveField(
+            model_name='viewpoint',
+            name='point',
+        ),
+        migrations.AddField(
             model_name='viewpoint',
             name='point',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='points', to='terra.Feature'),
