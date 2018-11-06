@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from versatileimagefield.fields import VersatileImageField
 
 from terracommon.core.mixins import BaseUpdatableModel
-from terracommon.terra.models import Layer
+from terracommon.terra.models import Feature
 
 
 class BaseLabelModel(BaseUpdatableModel):
@@ -23,18 +23,15 @@ class Theme(BaseLabelModel):
 
 
 class Viewpoint(BaseLabelModel):
-    # TODO should we use a ForeignKey to Feature instead?
-    point = models.PointField(srid=settings.INTERNAL_GEOMETRY_SRID)
+    point = models.ForeignKey(
+        Feature,
+        on_delete=models.CASCADE,
+        related_name='points',
+    )
     themes = models.ManyToManyField(
         Theme,
         related_name='viewpoints',
         blank=True
-    )
-    layer = models.ForeignKey(
-        Layer,
-        on_delete=models.PROTECT,
-        verbose_name=_('Layer'),
-        related_name='viewpoints',
     )
     properties = JSONField(_('Properties'), default=dict, blank=True)
 
