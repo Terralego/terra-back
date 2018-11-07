@@ -6,6 +6,9 @@ from django.utils import six
 from .base import *  # noqa
 
 REST_FRAMEWORK['TEST_REQUEST_DEFAULT_FORMAT'] = 'json'
+REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
+    'rest_framework.permissions.IsAuthenticatedOrReadOnly'
+]
 
 SECRET_KEY = 'spam-spam-spam-spam'
 
@@ -39,6 +42,9 @@ DATABASES = {
         'PORT': '',
     }
 }
+
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+MEDIA_URL = 'http://testserver/'
 
 try:
     from .local import *  # noqa

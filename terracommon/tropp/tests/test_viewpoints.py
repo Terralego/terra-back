@@ -3,7 +3,7 @@ from rest_framework.test import APIClient, APITestCase
 
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.terra.tests.factories import FeatureFactory
-from terracommon.tropp.tests.factories import PictureFactory, ViewpointFactory
+from terracommon.tropp.tests.factories import ViewpointFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin
 
 
@@ -15,12 +15,11 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
 
     def test_viewpoint_get_list(self):
         # Create viewpoints with picture attached to it
-        viewpoint = ViewpointFactory(label="Test viewpoint creation")
-        PictureFactory(viewpoint=viewpoint)
+        ViewpointFactory(label="Test viewpoint creation")
         # TODO Check picture state
 
         # Create viewpoints with no picture attached to it
-        ViewpointFactory(label="Test viewpoint creation")
+        ViewpointFactory(label="Test viewpoint creation", pictures=None)
 
         # User is not authenticated yet
         data = self.client.get(
@@ -38,7 +37,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         self.assertEqual(2, data.get('count'))
 
     def test_viewpoint_get(self):
-        viewpoint = ViewpointFactory(label='Test viewpoint get')
+        viewpoint = ViewpointFactory(label='Test viewpoint get', pictures=None)
         # User is not authenticated yet
         response = self.client.get(
             reverse('tropp:viewpoint-detail', args=[viewpoint.pk])

@@ -5,6 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from versatileimagefield.fields import VersatileImageField
 
 from terracommon.core.mixins import BaseUpdatableModel
+from terracommon.core.settings import STATES
 from terracommon.terra.models import Feature
 
 
@@ -42,10 +43,26 @@ class Viewpoint(BaseLabelModel):
 
     objects = ViewpointsManager()
 
+    @property
+    def status(self):
+        """
+        Return the status of this viewpoint for a campaign
+        :param self:
+        :return: string (missing, draft, submitted, accepted)
+        """
+        # Get only pictures created for the campaign
+        picture = self.pictures.filter(
+            created_at__gte=self.created_at
+        ).first()
+        if picture is None:
+            return 'Missing'
+        return STATES.CHOICES_DICT[picture.state]
+
     class Meta:
         permissions = (
             ('can_download_pdf', 'Is able to download a pdf document'),
         )
+        ordering = ['-created_at']
 
 
 class Campaign(BaseLabelModel):
@@ -66,6 +83,27 @@ class Campaign(BaseLabelModel):
         related_name='assigned_campaigns',
     )
 
+    @property
+    def status(self):
+        missing = self.viewpoints.filter(pictures__isnull=True).count()
+        pending = self.viewpoints.filter(
+            pictures__state=STATES.DRAFT
+        ).count()
+        refused = self.viewpoints.filter(
+            pictures__state=STATES.REFUSED
+        ).count()
+        return {
+            'missing': missing,
+            'pending': pending,
+            'refused': refused,
+        }
+
+    class Meta:
+        permissions = (
+            ('manage_all_campaigns', "Can manage all campaigns"),
+        )
+        ordering = ['-created_at']
+
 
 class Picture(BaseUpdatableModel):
     owner = models.ForeignKey(
@@ -76,11 +114,11 @@ class Picture(BaseUpdatableModel):
     )
     viewpoint = models.ForeignKey(
         Viewpoint,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='pictures',
     )
     # States may be : draft, metadata_ok (submitted), accepted, refused
-    state = models.IntegerField(_('State'), default=settings.STATES.DRAFT)
+    state = models.IntegerField(_('State'), default=STATES.DRAFT)
 
     properties = JSONField(_('Properties'), default=dict, blank=True)
     file = VersatileImageField(_('File'))
@@ -93,8 +131,8 @@ class Picture(BaseUpdatableModel):
 
     class Meta:
         permissions = (
-            ('can_change_state_picture', 'Is able to change the picture '
-                                         'state'),
+            ('change_state_picture', 'Is able to change the picture '
+                                     'state'),
         )
         # It's our main way of sorting pictures, so it better be indexed
         indexes = [
@@ -112,7 +150,7 @@ class Document(BaseUpdatableModel):
     )
     viewpoint = models.ForeignKey(
         Viewpoint,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='documents',
     )
     properties = JSONField(_('Properties'), default=dict, blank=True)
