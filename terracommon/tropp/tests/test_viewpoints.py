@@ -1,9 +1,10 @@
+from django.conf import settings
 from django.urls import reverse
 from rest_framework.test import APIClient, APITestCase
 
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.terra.tests.factories import FeatureFactory
-from terracommon.tropp.tests.factories import ViewpointFactory
+from terracommon.tropp.tests.factories import PictureFactory, ViewpointFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin
 
 
@@ -15,8 +16,11 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
 
     def test_viewpoint_get_list(self):
         # Create viewpoints with picture attached to it
-        ViewpointFactory(label="Test viewpoint creation")
-        # TODO Check picture state
+        viewpoint = ViewpointFactory(label="Test viewpoint creation")
+        PictureFactory(viewpoint=viewpoint, state=settings.STATES.ACCEPTED)
+
+        viewpoint = ViewpointFactory(label="Test viewpoint creation")
+        PictureFactory(viewpoint=viewpoint)  # This picture is a draft
 
         # Create viewpoints with no picture attached to it
         ViewpointFactory(label="Test viewpoint creation", pictures=None)
@@ -26,6 +30,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
             reverse('tropp:viewpoint-list')
         ).json()
         # List must contain all viewpoints WITHOUT those with no pictures
+        # Pictures must also be ACCEPTED
         self.assertEqual(1, data.get('count'))
 
         # User is now authenticated
@@ -34,7 +39,8 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
             reverse('tropp:viewpoint-list')
         ).json()
         # List must still contain ALL viewpoints even those with no pictures
-        self.assertEqual(2, data.get('count'))
+        #  and pictures with other states than ACCEPTED
+        self.assertEqual(3, data.get('count'))
 
     def test_viewpoint_get(self):
         viewpoint = ViewpointFactory(label='Test viewpoint get', pictures=None)

@@ -18,7 +18,7 @@ class ViewpointViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_authenticated:
             return Viewpoint.objects.all()
-        return Viewpoint.objects.with_pictures()
+        return Viewpoint.objects.with_accepted_pictures()
 
 
 class CampaignViewSet(viewsets.ModelViewSet):
