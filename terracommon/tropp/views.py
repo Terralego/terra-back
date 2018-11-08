@@ -6,11 +6,11 @@ from .models import Campaign, Document, Picture, Theme, Viewpoint
 from .serializers import (CampaignSerializer, DetailCampaignNestedSerializer,
                           DocumentSerializer, ListCampaignNestedSerializer,
                           PictureSerializer, ThemeSerializer,
-                          ViewpointSerializer)
+                          ViewpointSerializerWithPicture)
 
 
 class ViewpointViewSet(viewsets.ModelViewSet):
-    serializer_class = ViewpointSerializer
+    serializer_class = ViewpointSerializerWithPicture
     permission_classes = [
         permissions.DjangoModelPermissionsOrAnonReadOnly,
     ]

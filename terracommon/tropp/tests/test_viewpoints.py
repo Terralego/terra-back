@@ -88,6 +88,9 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         # Request is correctly constructed and viewpoint has been created
         self.assertEqual(201, response.status_code)
 
+    def test_viewpoint_create_with_picture(self):
+        pass  # TODO
+
     def test_viewpoint_delete(self):
         viewpoint = ViewpointFactory(label="Test viewpoint creation")
 

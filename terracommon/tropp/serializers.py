@@ -8,12 +8,6 @@ from .models import Campaign, Document, Picture, Theme, Viewpoint
 UserModel = get_user_model()
 
 
-class ViewpointSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Viewpoint
-        fields = '__all__'
-
-
 class PermissiveImageFieldSerializer(VersatileImageFieldSerializer):
     def get_attribute(self, instance):
         try:
@@ -69,6 +63,41 @@ class PictureSerializer(serializers.ModelSerializer):
     class Meta:
         model = Picture
         fields = '__all__'
+
+
+class SimplePictureSerializer(PictureSerializer):
+    class Meta:
+        model = Picture
+        fields = ('date', 'file', 'owner', )
+
+
+class ViewpointSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Viewpoint
+        fields = '__all__'
+
+
+class ViewpointSerializerWithPicture(ViewpointSerializer):
+    picture = SimplePictureSerializer(required=False)
+
+    class Meta:
+        model = Viewpoint
+        fields = ('label', 'point', 'properties', 'picture', )
+
+    def create(self, validated_data):
+        if 'picture' in validated_data:
+            return self.create_with_picture(validated_data)
+        return Viewpoint.objects.create(**validated_data)
+
+    def create_with_picture(self, validated_data):
+        picture_data = validated_data.pop('picture')
+        viewpoint = Viewpoint.objects.create(**validated_data)
+        Picture.objects.create(
+            viewpoint=viewpoint,
+            owner=self.context['request'].user,
+            **picture_data,
+        )
+        return viewpoint
 
 
 class DocumentSerializer(serializers.ModelSerializer):
