@@ -21,22 +21,22 @@ class IsOwnerOrSatffTestCase(TestCase):
         self.permission = IsOwnerOrStaff()
         self.view = TestView.as_view()
         self.request = factory.get('/')  # we don't care about the path
+        self.user = TerraUserFactory()
+        self.request.user = self.user
+        self.userrequest = UserRequestFactory()
 
     def test_has_object_permission_without_permissions(self):
-        self.request.user = TerraUserFactory()
         self.assertFalse(
             self.permission.has_object_permission(
                 self.request,
                 self.view,
-                UserRequestFactory(),  # Need an object with owner field
+                self.userrequest  # Need an object with owner field
             )
         )
 
     def test_has_object_permission_with_permissions(self):
-        user = TerraUserFactory()
         user_request = UserRequestFactory()
-        user_request.owner = user
-        self.request.user = user
+        user_request.owner = self.user
         self.assertTrue(
             self.permission.has_object_permission(
                 self.request,
@@ -48,12 +48,13 @@ class IsOwnerOrSatffTestCase(TestCase):
     def test_has_object_permission_with_staff(self):
         user = TerraUserFactory()
         user.is_staff = True
-        self.request.user = user
+        request = factory.get('/')
+        request.user = user
         self.assertTrue(
             self.permission.has_object_permission(
-                self.request,
+                request,
                 self.view,
-                UserRequestFactory(),
+                self.userrequest,
             )
         )
 
@@ -62,11 +63,12 @@ class IsOwnerOrSatffTestCase(TestCase):
             'admin@admin.com',
             'password',
         )
-        self.request.user = user
+        request = factory.get('/')
+        request.user = user
         self.assertTrue(
             self.permission.has_object_permission(
-                self.request,
+                request,
                 self.view,
-                UserRequestFactory(),
+                self.userrequest,
             )
         )
