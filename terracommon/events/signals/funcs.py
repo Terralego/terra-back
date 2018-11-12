@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 
 UserModel = get_user_model()
 
@@ -10,7 +9,7 @@ def users_of_group(group_name):
             'email': user.email,
             'properties': user.properties,
         }
-        for user in Group.objects.get(name=group_name)
+        for user in UserModel.objects.filter(groups__name=group_name)
     ]
 
 
