@@ -1,3 +1,6 @@
+import csv
+import io
+
 from django.test import TestCase
 
 from terracommon.core.renderers import CSVRenderer
@@ -17,3 +20,9 @@ class CSVRendererTestCase(TestCase):
         csv_renderer = CSVRenderer()
         csv_content = csv_renderer.render(self.data)
         self.assertTrue(isinstance(csv_content, str))
+
+        reader = csv.DictReader(io.StringIO(csv_content))
+        self.assertEqual(
+            {'letters_vowels', 'letters_last_letter', 'number'},
+            set(reader.fieldnames),
+        )
