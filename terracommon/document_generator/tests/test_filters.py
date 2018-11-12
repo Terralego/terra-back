@@ -15,22 +15,22 @@ class FilterTestCase(TestCase):
     def test_timedelta_filter(self):
         # test with not value for delta_days
         date_result = timedelta_filter(str(self.date))
-        self.assertEqual(date_result, self.date.date())
+        self.assertEqual(date_result, self.date)
 
         # test with a delta_days value
         delta_days = 7
-        date_result = timedelta_filter(str(self.date), delta_days=delta_days)
+        date_result = timedelta_filter(str(self.date), days=delta_days)
         self.assertEqual(
             date_result,
-            (self.date - timedelta(days=delta_days)).date()
+            (self.date - timedelta(days=delta_days))
         )
 
         # test with a negative delat_days value
         delta_days = -7
-        date_result = timedelta_filter(str(self.date), delta_days=delta_days)
+        date_result = timedelta_filter(str(self.date), days=delta_days)
         self.assertEqual(
             date_result,
-            (self.date - timedelta(days=delta_days)).date()
+            (self.date - timedelta(days=delta_days))
         )
 
     def test_translate_filter(self):
