@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlencode
 
 from django.urls import reverse
 from django.utils import timezone
@@ -95,6 +96,17 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         self.assertEqual(
             response.data.get('label'),
             self.viewpoint_without_picture.label,
+        )
+
+    def test_viewpoint_search(self):
+        # Quick test for the simple viewpoint search feature
+        data = self.client.get(
+            reverse('tropp:viewpoint-list') + '?' +
+            urlencode({'search': 'With accepted picture'})
+        ).json()
+        self.assertEqual(
+            data.get('count'),
+            1
         )
 
     def test_viewpoint_create_with_no_auth(self):

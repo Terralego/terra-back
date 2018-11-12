@@ -14,6 +14,8 @@ class ViewpointViewSet(viewsets.ModelViewSet):
     permission_classes = [
         permissions.DjangoModelPermissionsOrAnonReadOnly,
     ]
+    filter_backends = (SearchFilter, DjangoFilterBackend, )
+    search_fields = ('label', )
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
