@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 
 from django.urls import reverse
 from django.utils import timezone
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.test import APITestCase
 
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.core.settings import STATES
@@ -13,8 +13,6 @@ from terracommon.trrequests.tests.mixins import TestPermissionsMixin
 
 
 class ViewpointTestCase(APITestCase, TestPermissionsMixin):
-    client_class = APIClient
-
     @classmethod
     def setUpTestData(cls):
         cls.feature = FeatureFactory()
@@ -53,11 +51,13 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
     def tearDown(self):
         self.fp.close()
 
-    def test_viewpoint_get_list_with_no_auth(self):
-        # User is not authenticated yet
-        data = self.client.get(
+    def _viewpoint_get_list(self):
+        return self.client.get(
             reverse('tropp:viewpoint-list')
         ).json()
+
+    def test_viewpoint_get_list_anonymous(self):
+        data = self._viewpoint_get_list()
         # List must contain all viewpoints WITHOUT those with no pictures
         # Pictures must also be ACCEPTED
         self.assertEqual(1, data.get('count'))
@@ -65,33 +65,29 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
     def test_viewpoint_get_list_with_auth(self):
         # User is now authenticated
         self.client.force_authenticate(user=self.user)
-        data = self.client.get(
-            reverse('tropp:viewpoint-list')
-        ).json()
-        # List must still contain ALL viewpoints even those with no pictures
-        #  and pictures with other states than ACCEPTED
+        data = self._viewpoint_get_list()
+        # List must still contain ALL viewpoints even those with no
+        # pictures and pictures with other states than ACCEPTED
         self.assertEqual(3, data.get('count'))
 
-    def test_viewpoint_get_with_no_auth(self):
-        # User is not authenticated yet
-        response = self.client.get(
+    def _viewpoint_get(self):
+        return self.client.get(
             reverse(
                 'tropp:viewpoint-detail',
                 args=[self.viewpoint_without_picture.pk],
             )
         )
+
+    def test_viewpoint_get_anonymous(self):
+        # User is not authenticated yet
+        response = self._viewpoint_get()
         # There is no picture on the viewpoint
         self.assertEqual(404, response.status_code)
 
     def test_viewpoint_get_with_auth(self):
         # User is now authenticated
         self.client.force_authenticate(user=self.user)
-        response = self.client.get(
-            reverse(
-                'tropp:viewpoint-detail',
-                args=[self.viewpoint_without_picture.pk],
-            )
-        )
+        response = self._viewpoint_get()
         self.assertEqual(200, response.status_code)
         self.assertEqual(
             response.data.get('label'),
@@ -109,86 +105,77 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
             1
         )
 
-    def test_viewpoint_create_with_no_auth(self):
-        response = self.client.post(
+    def _viewpoint_create(self):
+        return self.client.post(
             reverse('tropp:viewpoint-list'),
             self.data_create,
         )
+
+    def test_viewpoint_create_anonymous(self):
+        response = self._viewpoint_create()
         # User is not authenticated
         self.assertEqual(401, response.status_code)
 
     def test_viewpoint_create_with_auth(self):
         self.client.force_authenticate(user=self.user)
-        response = self.client.post(
-            reverse('tropp:viewpoint-list'),
-            self.data_create,
-        )
+        response = self._viewpoint_create()
         # User doesn't have permission
         self.assertEqual(403, response.status_code)
 
     def test_viewpoint_create_with_auth_and_perms(self):
         self.client.force_authenticate(user=self.user)
         self._set_permissions(['add_viewpoint', ])
-        response = self.client.post(
-            reverse('tropp:viewpoint-list'),
-            self.data_create,
-        )
+        response = self._viewpoint_create()
         # Request is correctly constructed and viewpoint has been created
         self.assertEqual(201, response.status_code)
         self._clean_permissions()  # Don't forget that !
 
-    def test_viewpoint_create_with_picture_with_no_auth(self):
-        response = self.client.post(
+    def _viewpoint_create_with_picture(self):
+        return self.client.post(
             reverse('tropp:viewpoint-list'),
             self.data_create_with_picture,
             format="multipart",
         )
+
+    def test_viewpoint_create_with_picture_anonymous(self):
+        response = self._viewpoint_create_with_picture()
         # User is not authenticated
         self.assertEqual(401, response.status_code)
 
     def test_viewpoint_create_with_picture_with_auth(self):
         self.client.force_authenticate(user=self.user)
-        response = self.client.post(
-            reverse('tropp:viewpoint-list'),
-            self.data_create_with_picture,
-            format="multipart",
-        )
+        response = self._viewpoint_create_with_picture()
         # User doesn't have permission
         self.assertEqual(403, response.status_code)
 
     def test_viewpoint_create_with_picture_with_auth_and_perms(self):
         self.client.force_authenticate(user=self.user)
         self._set_permissions(['add_viewpoint', ])
-        response = self.client.post(
-            reverse('tropp:viewpoint-list'),
-            self.data_create_with_picture,
-            format="multipart",
-        )
+        response = self._viewpoint_create_with_picture()
         # Request is correctly constructed and viewpoint has been created
         self.assertEqual(201, response.status_code)
         self._clean_permissions()
 
-    def test_viewpoint_delete_with_no_auth(self):
-        response = self.client.delete(
+    def _viewpoint_delete(self):
+        return self.client.delete(
             reverse('tropp:viewpoint-detail', args=[self.viewpoint.pk])
         )
+
+    def test_viewpoint_delete_anonymous(self):
+        response = self._viewpoint_delete()
         # User is not authenticated
         self.assertEqual(401, response.status_code)
 
     def test_viewpoint_delete_with_auth(self):
         self.client.force_authenticate(user=self.user)
-        response = self.client.delete(
-            reverse('tropp:viewpoint-detail', args=[self.viewpoint.pk])
-        )
+        response = self._viewpoint_delete()
         # User doesn't have permission
         self.assertEqual(403, response.status_code)
 
     def test_viewpoint_delete_with_auth_and_perms(self):
         self.client.force_authenticate(user=self.user)
         self._set_permissions(['delete_viewpoint', ])
-        response = self.client.delete(
-            reverse('tropp:viewpoint-detail', args=[self.viewpoint.pk])
-        )
+        response = self._viewpoint_delete()
         # User have permission
         self.assertEqual(204, response.status_code)
         self._clean_permissions()
