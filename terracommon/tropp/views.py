@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from url_filter.integrations.drf import DjangoFilterBackend
 
+from .filters import PictureDateFilterBackend, PictureIdFilterBackend
 from .models import Campaign, Document, Picture, Theme, Viewpoint
 from .serializers import (CampaignSerializer, DetailCampaignNestedSerializer,
                           DocumentSerializer, ListCampaignNestedSerializer,
@@ -19,8 +20,13 @@ class ViewpointViewSet(viewsets.ModelViewSet):
     permission_classes = [
         permissions.DjangoModelPermissionsOrAnonReadOnly,
     ]
-    filter_backends = (SearchFilter, DjangoFilterBackend, )
-    search_fields = ('label', )
+    filter_backends = (
+        SearchFilter,
+        DjangoFilterBackend,
+        PictureDateFilterBackend,
+        PictureIdFilterBackend,
+    )
+    search_fields = ('id', )
 
     def get_queryset(self):
         if self.request.user.is_authenticated:

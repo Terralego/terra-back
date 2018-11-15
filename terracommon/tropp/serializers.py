@@ -84,25 +84,31 @@ class ThemeLabelSerializer(serializers.ModelSerializer):
 
 
 class ViewpointSerializerWithPicture(ViewpointSerializer):
-    picture = SimplePictureSerializer(required=False)
+    picture = SimplePictureSerializer(required=False, write_only=True)
+    pictures = SimplePictureSerializer(many=True, read_only=True)
+    themes = ThemeLabelSerializer(many=True, read_only=True)
+    themes_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Theme.objects.all(),
+        source='themes',
+        write_only=True,
+        required=False,
+        many=True,
+    )
 
     class Meta:
         model = Viewpoint
-        fields = ('label', 'point', 'properties', 'picture', )
+        fields = ('id', 'label', 'point', 'properties', 'themes',
+                  'themes_ids', 'picture', 'pictures')
 
     def create(self, validated_data):
-        if 'picture' in validated_data:
-            return self.create_with_picture(validated_data)
-        return Viewpoint.objects.create(**validated_data)
-
-    def create_with_picture(self, validated_data):
-        picture_data = validated_data.pop('picture')
-        viewpoint = Viewpoint.objects.create(**validated_data)
-        Picture.objects.create(
-            viewpoint=viewpoint,
-            owner=self.context['request'].user,
-            **picture_data,
-        )
+        picture_data = validated_data.pop('picture', None)
+        viewpoint = super().create(validated_data)
+        if picture_data is not None:
+            Picture.objects.create(
+                viewpoint=viewpoint,
+                owner=self.context['request'].user,
+                **picture_data,
+            )
         return viewpoint
 
 
