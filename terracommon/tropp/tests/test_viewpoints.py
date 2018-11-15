@@ -53,7 +53,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
 
     def _viewpoint_get_list(self):
         return self.client.get(
-            reverse('tropp:viewpoint-list')
+            reverse('tropp:viewpoints-list')
         ).json()
 
     def test_viewpoint_get_list_anonymous(self):
@@ -73,7 +73,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
     def _viewpoint_get(self):
         return self.client.get(
             reverse(
-                'tropp:viewpoint-detail',
+                'tropp:viewpoints-detail',
                 args=[self.viewpoint_without_picture.pk],
             )
         )
@@ -97,8 +97,8 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
     def test_viewpoint_search(self):
         # Quick test for the simple viewpoint search feature
         data = self.client.get(
-            reverse('tropp:viewpoint-list') + '?' +
-            urlencode({'search': 'With accepted picture'})
+            reverse('tropp:viewpoints-list') + '?' +
+            urlencode({'search': self.viewpoint_with_accepted_picture.pk})
         ).json()
         self.assertEqual(
             data.get('count'),
@@ -107,7 +107,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
 
     def _viewpoint_create(self):
         return self.client.post(
-            reverse('tropp:viewpoint-list'),
+            reverse('tropp:viewpoints-list'),
             self.data_create,
         )
 
@@ -132,7 +132,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
 
     def _viewpoint_create_with_picture(self):
         return self.client.post(
-            reverse('tropp:viewpoint-list'),
+            reverse('tropp:viewpoints-list'),
             self.data_create_with_picture,
             format="multipart",
         )
@@ -158,7 +158,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
 
     def _viewpoint_delete(self):
         return self.client.delete(
-            reverse('tropp:viewpoint-detail', args=[self.viewpoint.pk])
+            reverse('tropp:viewpoints-detail', args=[self.viewpoint.pk])
         )
 
     def test_viewpoint_delete_anonymous(self):
