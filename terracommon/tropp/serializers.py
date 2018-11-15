@@ -25,7 +25,7 @@ class SimpleViewpointSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Viewpoint
-        fields = ('pk', 'label', 'photo', 'latlon', 'status')
+        fields = ('id', 'label', 'photo', 'latlon', 'status')
         geo_field = 'latlon'
 
 
@@ -68,13 +68,19 @@ class PictureSerializer(serializers.ModelSerializer):
 class SimplePictureSerializer(PictureSerializer):
     class Meta:
         model = Picture
-        fields = ('date', 'file', 'owner', )
+        fields = ('id', 'date', 'file', 'owner', )
 
 
 class ViewpointSerializer(serializers.ModelSerializer):
     class Meta:
         model = Viewpoint
         fields = '__all__'
+
+
+class ThemeLabelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Theme
+        fields = ('id', 'label', )
 
 
 class ViewpointSerializerWithPicture(ViewpointSerializer):
@@ -112,3 +118,15 @@ class ThemeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Theme
         fields = '__all__'
+
+
+class ViewpointLabelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Viewpoint
+        fields = ('id', 'label', )
+
+
+class PhotographerLabelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ('id', 'email', )

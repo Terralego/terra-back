@@ -1,3 +1,4 @@
+from django.urls import path
 from rest_framework.routers import SimpleRouter
 
 from . import views
@@ -13,3 +14,10 @@ router.register(r'documents', views.DocumentViewSet, base_name='documents')
 router.register(r'themes', views.ThemeViewSet, base_name='themes')
 
 urlpatterns = router.urls
+
+urlpatterns += [
+    path(
+        'viewpoint_advanced_search/',
+        views.ViewpointAdvancedSearchOptions.as_view()
+    ),
+]

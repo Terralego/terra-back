@@ -1,11 +1,16 @@
+from django.contrib.auth import get_user_model
 from rest_framework import permissions, viewsets
 from rest_framework.filters import SearchFilter
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from url_filter.integrations.drf import DjangoFilterBackend
 
 from .models import Campaign, Document, Picture, Theme, Viewpoint
 from .serializers import (CampaignSerializer, DetailCampaignNestedSerializer,
                           DocumentSerializer, ListCampaignNestedSerializer,
-                          PictureSerializer, ThemeSerializer,
+                          PhotographerLabelSerializer, PictureSerializer,
+                          ThemeLabelSerializer, ThemeSerializer,
+                          ViewpointLabelSerializer,
                           ViewpointSerializerWithPicture)
 
 
@@ -21,6 +26,26 @@ class ViewpointViewSet(viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             return Viewpoint.objects.all()
         return Viewpoint.objects.with_accepted_pictures()
+
+
+class ViewpointAdvancedSearchOptions(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, format=None):
+        viewpoint_labels = ViewpointLabelSerializer(
+            Viewpoint.objects.all(), many=True
+        ).data
+        theme_labels = ThemeLabelSerializer(
+            Theme.objects.all(), many=True
+        ).data
+        photographers = PhotographerLabelSerializer(
+            get_user_model().objects.all(), many=True
+        ).data
+        return Response({
+            'viewpoints': viewpoint_labels,
+            'themes': theme_labels,
+            'photographers': photographers,
+        })
 
 
 class CampaignViewSet(viewsets.ModelViewSet):
