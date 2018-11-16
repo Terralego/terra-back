@@ -1,6 +1,9 @@
+from collections import OrderedDict
+
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, viewsets
 from rest_framework.filters import SearchFilter
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from url_filter.integrations.drf import DjangoFilterBackend
@@ -15,6 +18,25 @@ from .serializers import (CampaignSerializer, DetailCampaignNestedSerializer,
                           ViewpointSerializerWithPicture)
 
 
+class RestPageNumberPagination(PageNumberPagination):
+    page_size_query_param = 'page_size'
+
+    def get_paginated_response(self, data):
+        page = self.page
+
+        next = page.next_page_number() if page.has_next() else None
+        previous = page.previous_page_number() if page.has_previous() else None
+
+        return Response(OrderedDict([
+            ('count', page.paginator.count),
+            ('num_pages', page.paginator.num_pages),
+            ('next', next),
+            ('previous', previous),
+            ('page_size', self.get_page_size(self.request)),
+            ('results', data),
+        ]))
+
+
 class ViewpointViewSet(viewsets.ModelViewSet):
     serializer_class = ViewpointSerializerWithPicture
     permission_classes = [
@@ -27,6 +49,7 @@ class ViewpointViewSet(viewsets.ModelViewSet):
         PictureIdFilterBackend,
     )
     search_fields = ('id', )
+    pagination_class = RestPageNumberPagination
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
@@ -61,6 +84,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
     filter_backends = (SearchFilter, DjangoFilterBackend)
     search_fields = ('label', )
     filter_fields = ('created_at', )  # TODO add state see CallableFilter
+    pagination_class = RestPageNumberPagination
 
     def get_queryset(self):
         # Filter only on assigned campaigns for photographs
@@ -92,6 +116,7 @@ class PictureViewSet(viewsets.ModelViewSet):
     queryset = Picture.objects.all()
     serializer_class = PictureSerializer
     permission_classes = [permissions.DjangoModelPermissions]
+    pagination_class = RestPageNumberPagination
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -101,6 +126,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = RestPageNumberPagination
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -109,3 +135,4 @@ class DocumentViewSet(viewsets.ModelViewSet):
 class ThemeViewSet(viewsets.ModelViewSet):
     queryset = Theme.objects.all()
     serializer_class = ThemeSerializer
+    pagination_class = RestPageNumberPagination
