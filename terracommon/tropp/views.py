@@ -6,8 +6,9 @@ from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from terracommon.tropp.serializers import SimpleViewpointSerializer
 from url_filter.integrations.drf import DjangoFilterBackend
+
+from terracommon.tropp.serializers import SimpleViewpointSerializer
 
 from ..core.filters import DateFilterBackend
 from .filters import PhotographerFilterBackend, PictureIdFilterBackend
