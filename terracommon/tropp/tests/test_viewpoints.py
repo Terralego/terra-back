@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from django.urls import reverse
 from django.utils import timezone
@@ -110,12 +111,59 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
 
     def test_viewpoint_photographer_filter(self):
         # Quick test for the simple viewpoint search feature
+        picture = self.viewpoint_with_accepted_picture.pictures.first()
         data = self.client.get(
             reverse('tropp:viewpoints-list'),
-            {'photographer': self.viewpoint_with_accepted_picture.pictures
-                .first().owner.email},
+            {'photographer': picture.owner.email},
         ).json()
         self.assertEqual(data.get('count'), 1)
+
+    def test_viewpoint_search_date(self):
+        list_url = reverse('tropp:viewpoints-list')
+        picture = self.viewpoint_with_accepted_picture.pictures.first()
+        data = self.client.get(
+            list_url,
+            {'date_from': (picture.date - timedelta(days=1)).date()}
+        ).json()
+        self.assertEqual(data.get('count'), 1)
+        data = self.client.get(
+            list_url,
+            {'date_from': (picture.date + timedelta(days=1)).date()}
+        ).json()
+        self.assertEqual(data.get('count'), 0)
+        data = self.client.get(
+            list_url,
+            {'date_to': (picture.date + timedelta(days=1)).date()}
+        ).json()
+        self.assertEqual(data.get('count'), 1)
+        data = self.client.get(
+            list_url,
+            {'date_to': (picture.date - timedelta(days=1)).date()}
+        ).json()
+        self.assertEqual(data.get('count'), 0)
+        data = self.client.get(
+            list_url,
+            {
+                'date_from': (picture.date - timedelta(days=1)).date(),
+                'date_to': (picture.date + timedelta(days=1)).date(),
+            }
+        ).json()
+        self.assertEqual(data.get('count'), 1)
+
+        # Errors
+        response = self.client.get(
+            list_url,
+            {
+                'date_from': (picture.date + timedelta(days=1)).date(),
+                'date_to': (picture.date - timedelta(days=1)).date(),
+            }
+        )
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+        response = self.client.get(
+            list_url,
+            {'date_to': 'haha'}
+        )
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def _viewpoint_create(self):
         return self.client.post(

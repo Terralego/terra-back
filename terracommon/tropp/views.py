@@ -8,8 +8,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from url_filter.integrations.drf import DjangoFilterBackend
 
-from .filters import (PhotographerFilterBackend, PictureDateFilterBackend,
-                      PictureIdFilterBackend)
+from ..core.filters import DateFilterBackend
+from .filters import PhotographerFilterBackend, PictureIdFilterBackend
 from .models import Campaign, Document, Picture, Theme, Viewpoint
 from .serializers import (CampaignSerializer, DetailCampaignNestedSerializer,
                           DocumentSerializer, ListCampaignNestedSerializer,
@@ -46,11 +46,12 @@ class ViewpointViewSet(viewsets.ModelViewSet):
     filter_backends = (
         SearchFilter,
         DjangoFilterBackend,
-        PictureDateFilterBackend,
+        DateFilterBackend,
         PictureIdFilterBackend,
         PhotographerFilterBackend,
     )
     search_fields = ('id', )
+    date_search_field = 'pictures__date__date'
     pagination_class = RestPageNumberPagination
 
     def get_queryset(self):
@@ -83,9 +84,10 @@ class CampaignViewSet(viewsets.ModelViewSet):
     queryset = Campaign.objects.all()
     permission_classes = [permissions.DjangoModelPermissions]
     http_method_names = ['get', 'post', 'put', 'delete', 'options']
-    filter_backends = (SearchFilter, DjangoFilterBackend)
+    filter_backends = (SearchFilter, DjangoFilterBackend, DateFilterBackend)
+    date_search_field = 'created_at'
     search_fields = ('label', )
-    filter_fields = ('created_at', )  # TODO add state see CallableFilter
+    filter_fields = ()  # TODO add state see CallableFilter
     pagination_class = RestPageNumberPagination
 
     def get_queryset(self):
