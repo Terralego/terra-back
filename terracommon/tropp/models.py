@@ -24,8 +24,10 @@ class Theme(BaseLabelModel):
 
 
 class ViewpointsManager(models.Manager):
-    def with_pictures(self):
-        return super().get_queryset().filter(pictures__isnull=False)
+    def with_accepted_pictures(self):
+        return super().get_queryset().filter(
+            pictures__state=settings.STATES.ACCEPTED,
+        )
 
 
 class Viewpoint(BaseLabelModel):
