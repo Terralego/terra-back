@@ -1,5 +1,6 @@
 from django.shortcuts import resolve_url
 from django.urls import reverse
+from rest_framework import status
 from rest_framework.test import APITestCase
 
 from terracommon.accounts.tests.factories import TerraUserFactory
@@ -30,14 +31,17 @@ class CampaignTestCase(TestPermissionsMixin, APITestCase):
                                          pk=campaign_other.pk)
 
         # First we try as anonymous
-        self.assertEqual(401, self.client.get(list_url).status_code)
-        self.assertEqual(401, self.client.get(campaign_url).status_code)
-        self.assertEqual(401, self.client.get(campaign_other_url).status_code)
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED,
+                         self.client.get(list_url).status_code)
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED,
+                         self.client.get(campaign_url).status_code)
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED,
+                         self.client.get(campaign_other_url).status_code)
 
         # Then with no rights
         self.client.force_authenticate(user=self.photograph)
         response = self.client.get(list_url)
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(1, response.data.get('count'))
         self.assertEqual(
             viewpoint.pictures.first().file.url,
@@ -45,21 +49,24 @@ class CampaignTestCase(TestPermissionsMixin, APITestCase):
         )
 
         response = self.client.get(campaign_url)
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(
             viewpoint.pictures.first().file.url,
             response.data.get('viewpoints')[0].get('photo').get('full_size')
         )
-        self.assertEqual(403, self.client.get(campaign_other_url).status_code)
+        self.assertEqual(status.HTTP_403_FORBIDDEN,
+                         self.client.get(campaign_other_url).status_code)
 
         # Then as admin
         self.client.force_authenticate(user=self.user)
         response = self.client.get(list_url)
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(2, response.data.get('count'))
 
-        self.assertEqual(200, self.client.get(campaign_url).status_code)
-        self.assertEqual(200, self.client.get(campaign_other_url).status_code)
+        self.assertEqual(status.HTTP_200_OK,
+                         self.client.get(campaign_url).status_code)
+        self.assertEqual(status.HTTP_200_OK,
+                         self.client.get(campaign_other_url).status_code)
 
     def test_get_campaign(self):
         campaign = CampaignFactory(assignee=self.photograph)
@@ -103,8 +110,8 @@ class CampaignTestCase(TestPermissionsMixin, APITestCase):
 
         self.client.force_authenticate(user=self.photograph)
         response = self.client.post(reverse('tropp:campaigns-list'), data)
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
         self.client.force_authenticate(user=self.user)
         response = self.client.post(reverse('tropp:campaigns-list'), data)
-        self.assertEqual(201, response.status_code)
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)

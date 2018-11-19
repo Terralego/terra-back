@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 
 from django.urls import reverse
 from django.utils import timezone
+from rest_framework import status
 from rest_framework.test import APITestCase
 
 from terracommon.accounts.tests.factories import TerraUserFactory
@@ -82,13 +83,13 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         # User is not authenticated yet
         response = self._viewpoint_get()
         # There is no picture on the viewpoint
-        self.assertEqual(404, response.status_code)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
     def test_viewpoint_get_with_auth(self):
         # User is now authenticated
         self.client.force_authenticate(user=self.user)
         response = self._viewpoint_get()
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(
             response.data.get('label'),
             self.viewpoint_without_picture.label,
@@ -114,20 +115,20 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
     def test_viewpoint_create_anonymous(self):
         response = self._viewpoint_create()
         # User is not authenticated
-        self.assertEqual(401, response.status_code)
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
 
     def test_viewpoint_create_with_auth(self):
         self.client.force_authenticate(user=self.user)
         response = self._viewpoint_create()
         # User doesn't have permission
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
     def test_viewpoint_create_with_auth_and_perms(self):
         self.client.force_authenticate(user=self.user)
         self._set_permissions(['add_viewpoint', ])
         response = self._viewpoint_create()
         # Request is correctly constructed and viewpoint has been created
-        self.assertEqual(201, response.status_code)
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self._clean_permissions()  # Don't forget that !
 
     def _viewpoint_create_with_picture(self):
@@ -140,20 +141,20 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
     def test_viewpoint_create_with_picture_anonymous(self):
         response = self._viewpoint_create_with_picture()
         # User is not authenticated
-        self.assertEqual(401, response.status_code)
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
 
     def test_viewpoint_create_with_picture_with_auth(self):
         self.client.force_authenticate(user=self.user)
         response = self._viewpoint_create_with_picture()
         # User doesn't have permission
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
     def test_viewpoint_create_with_picture_with_auth_and_perms(self):
         self.client.force_authenticate(user=self.user)
         self._set_permissions(['add_viewpoint', ])
         response = self._viewpoint_create_with_picture()
         # Request is correctly constructed and viewpoint has been created
-        self.assertEqual(201, response.status_code)
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self._clean_permissions()
 
     def _viewpoint_delete(self):
@@ -164,18 +165,18 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
     def test_viewpoint_delete_anonymous(self):
         response = self._viewpoint_delete()
         # User is not authenticated
-        self.assertEqual(401, response.status_code)
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
 
     def test_viewpoint_delete_with_auth(self):
         self.client.force_authenticate(user=self.user)
         response = self._viewpoint_delete()
         # User doesn't have permission
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
     def test_viewpoint_delete_with_auth_and_perms(self):
         self.client.force_authenticate(user=self.user)
         self._set_permissions(['delete_viewpoint', ])
         response = self._viewpoint_delete()
         # User have permission
-        self.assertEqual(204, response.status_code)
+        self.assertEqual(status.HTTP_204_NO_CONTENT, response.status_code)
         self._clean_permissions()
