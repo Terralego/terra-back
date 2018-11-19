@@ -1,5 +1,4 @@
 import os
-from urllib.parse import urlencode
 
 from django.urls import reverse
 from django.utils import timezone
@@ -51,13 +50,10 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
     def tearDown(self):
         self.fp.close()
 
-    def _viewpoint_get_list(self):
-        return self.client.get(
+    def test_viewpoint_get_list_anonymous(self):
+        data = self.client.get(
             reverse('tropp:viewpoints-list')
         ).json()
-
-    def test_viewpoint_get_list_anonymous(self):
-        data = self._viewpoint_get_list()
         # List must contain all viewpoints WITHOUT those with no pictures
         # Pictures must also be ACCEPTED
         self.assertEqual(1, data.get('count'))
@@ -65,29 +61,33 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
     def test_viewpoint_get_list_with_auth(self):
         # User is now authenticated
         self.client.force_authenticate(user=self.user)
-        data = self._viewpoint_get_list()
+        data = self.client.get(
+            reverse('tropp:viewpoints-list')
+        ).json()
         # List must still contain ALL viewpoints even those with no
         # pictures and pictures with other states than ACCEPTED
         self.assertEqual(3, data.get('count'))
 
-    def _viewpoint_get(self):
-        return self.client.get(
+    def test_viewpoint_get_anonymous(self):
+        # User is not authenticated yet
+        response = self.client.get(
             reverse(
                 'tropp:viewpoints-detail',
                 args=[self.viewpoint_without_picture.pk],
             )
         )
-
-    def test_viewpoint_get_anonymous(self):
-        # User is not authenticated yet
-        response = self._viewpoint_get()
         # There is no picture on the viewpoint
         self.assertEqual(404, response.status_code)
 
     def test_viewpoint_get_with_auth(self):
         # User is now authenticated
         self.client.force_authenticate(user=self.user)
-        response = self._viewpoint_get()
+        response = self.client.get(
+            reverse(
+                'tropp:viewpoints-detail',
+                args=[self.viewpoint_without_picture.pk],
+            )
+        )
         self.assertEqual(200, response.status_code)
         self.assertEqual(
             response.data.get('label'),
@@ -97,13 +97,28 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
     def test_viewpoint_search(self):
         # Quick test for the simple viewpoint search feature
         data = self.client.get(
-            reverse('tropp:viewpoints-list') + '?' +
-            urlencode({'search': self.viewpoint_with_accepted_picture.pk})
+            reverse('tropp:viewpoints-list'),
+            {'search': self.viewpoint_with_accepted_picture.pk},
         ).json()
-        self.assertEqual(
-            data.get('count'),
-            1
-        )
+        self.assertEqual(data.get('count'), 1)
+
+    def test_viewpoint_picture_filter(self):
+        # Quick test for the simple viewpoint search feature
+        data = self.client.get(
+            reverse('tropp:viewpoints-list'),
+            {'picture_id': self.viewpoint_with_accepted_picture.pictures
+                .first().pk},
+        ).json()
+        self.assertEqual(data.get('count'), 1)
+
+    def test_viewpoint_photographer_filter(self):
+        # Quick test for the simple viewpoint search feature
+        data = self.client.get(
+            reverse('tropp:viewpoints-list'),
+            {'photographer': self.viewpoint_with_accepted_picture.pictures
+                .first().owner.email},
+        ).json()
+        self.assertEqual(data.get('count'), 1)
 
     def _viewpoint_create(self):
         return self.client.post(

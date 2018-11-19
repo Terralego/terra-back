@@ -32,13 +32,13 @@ class PictureIdFilterBackend(filters.BaseFilterBackend):
 
 class PhotographerFilterBackend(filters.BaseFilterBackend):
     """
-    Filter photographers
+    Filter viewpoint picture with photographer's email
     """
     def filter_queryset(self, request, queryset, view):
-        picture_id = request.GET.get('picture_id', None)
+        photographer = request.GET.get('photographer', None)
 
-        if picture_id is not None:
+        if photographer is not None:
             queryset = queryset.filter(
-                pictures__id=picture_id,
+                pictures__owner__email=photographer,
             )
         return queryset

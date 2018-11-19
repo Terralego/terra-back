@@ -8,7 +8,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from url_filter.integrations.drf import DjangoFilterBackend
 
-from .filters import PictureDateFilterBackend, PictureIdFilterBackend
+from .filters import (PhotographerFilterBackend, PictureDateFilterBackend,
+                      PictureIdFilterBackend)
 from .models import Campaign, Document, Picture, Theme, Viewpoint
 from .serializers import (CampaignSerializer, DetailCampaignNestedSerializer,
                           DocumentSerializer, ListCampaignNestedSerializer,
@@ -47,6 +48,7 @@ class ViewpointViewSet(viewsets.ModelViewSet):
         DjangoFilterBackend,
         PictureDateFilterBackend,
         PictureIdFilterBackend,
+        PhotographerFilterBackend,
     )
     search_fields = ('id', )
     pagination_class = RestPageNumberPagination
