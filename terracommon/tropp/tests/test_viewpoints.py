@@ -100,6 +100,12 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         ).json()
         self.assertEqual(data.get('count'), 1)
 
+        search_options_url = reverse('tropp:viewpoints-search-options')
+        data = self.client.get(search_options_url).json()
+        self.assertNotEqual(data.get('viewpoints'), [])
+        self.assertIsNone(data.get('themes'))
+        self.assertIsNone(data.get('photographers'))
+
     def test_viewpoint_picture_filter(self):
         # Quick test for the simple viewpoint search feature
         data = self.client.get(

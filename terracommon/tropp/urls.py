@@ -18,6 +18,7 @@ urlpatterns = router.urls
 urlpatterns += [
     path(
         'viewpoint_advanced_search/',
-        views.ViewpointAdvancedSearchOptions.as_view()
+        views.ViewpointAdvancedSearchOptions.as_view(),
+        name='viewpoints-search-options'
     ),
 ]
