@@ -6,6 +6,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from terracommon.tropp.serializers import SimpleViewpointSerializer
 from url_filter.integrations.drf import DjangoFilterBackend
 
 from ..core.filters import DateFilterBackend
@@ -58,6 +59,11 @@ class ViewpointViewSet(viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             return Viewpoint.objects.all()
         return Viewpoint.objects.with_accepted_pictures()
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return SimpleViewpointSerializer
+        return ViewpointSerializerWithPicture
 
 
 class ViewpointAdvancedSearchOptions(APIView):
