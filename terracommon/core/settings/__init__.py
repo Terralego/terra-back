@@ -174,13 +174,3 @@ STATES = Choices(
 TERRA_APPLIANCE_SETTINGS = {}
 FRONT_URL = os.environ.get('FRONT_URL', '')
 HOSTNAME = os.environ.get('HOSTNAME', '')
-
-# TODO move that to tropp
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
-    'tropp': [
-        ('full_size', 'url'),
-        ('thumbnail', 'thumbnail__250x190'),
-    ]
-}
