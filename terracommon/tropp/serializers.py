@@ -21,12 +21,11 @@ class SimpleViewpointSerializer(serializers.ModelSerializer):
         'tropp',
         source='pictures.first.file',
     )
-    latlon = GeometryField(source='point.geom', read_only=True)
+    geometry = GeometryField(source='point.geom', read_only=True)
 
     class Meta:
         model = Viewpoint
-        fields = ('id', 'label', 'photo', 'latlon', 'status')
-        geo_field = 'latlon'
+        fields = ('id', 'label', 'photo', 'geometry', 'status')
 
 
 class CampaignSerializer(serializers.ModelSerializer):
