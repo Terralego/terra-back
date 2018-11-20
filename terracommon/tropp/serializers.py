@@ -54,7 +54,7 @@ class ListCampaignNestedSerializer(CampaignSerializer):
 
     class Meta(CampaignSerializer.Meta):
         model = Campaign
-        fields = ('label', 'assignee', 'photo', 'status')
+        fields = ('label', 'assignee', 'photo', 'statistics', 'status')
 
 
 class PictureSerializer(serializers.ModelSerializer):

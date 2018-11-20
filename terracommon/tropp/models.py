@@ -86,19 +86,28 @@ class Campaign(BaseLabelModel):
     )
 
     @property
+    def statistics(self):
+        queryset = self.viewpoints.annotate(
+            missing=models.Count('pk', filter=models.Q(
+                pictures__isnull=True
+            )),
+            pending=models.Count('pictures', filter=models.Q(
+                pictures__state=STATES.DRAFT
+            )),
+            refused=models.Count('pictures', filter=models.Q(
+                pictures__state=STATES.REFUSED
+            )),
+        ).values('missing', 'pending', 'refused')
+        try:
+            return queryset[0]
+        except IndexError:
+            return {'missing': 0, 'pending': 0, 'refused': 0}
+
+    @property
     def status(self):
-        missing = self.viewpoints.filter(pictures__isnull=True).count()
-        pending = self.viewpoints.filter(
-            pictures__state=STATES.DRAFT
-        ).count()
-        refused = self.viewpoints.filter(
-            pictures__state=STATES.REFUSED
-        ).count()
-        return {
-            'missing': missing,
-            'pending': pending,
-            'refused': refused,
-        }
+        return not self.viewpoints.exclude(
+            pictures__state=STATES.ACCEPTED,
+        ).exists()
 
     class Meta:
         permissions = (

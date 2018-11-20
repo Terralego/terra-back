@@ -85,7 +85,7 @@ class CampaignTestCase(TestPermissionsMixin, APITestCase):
         response = self.client.get(list_url)
         self.assertEqual(
             1,
-            response.data.get('results')[0].get('status').get('missing')
+            response.data.get('results')[0].get('statistics').get('missing')
         )
 
         viewpoint = ViewpointFactory()
@@ -98,7 +98,7 @@ class CampaignTestCase(TestPermissionsMixin, APITestCase):
         response = self.client.get(list_url)
         self.assertEqual(
             1,
-            response.data.get('results')[0].get('status').get('pending')
+            response.data.get('results')[0].get('statistics').get('pending')
         )
 
     def test_post_campaign(self):
