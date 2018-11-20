@@ -5,12 +5,12 @@ from django.utils.dateparse import parse_datetime
 from terracommon.datastore.models import DataStore
 
 
-def timedelta_filter(date_value, delta_days=0):
+def timedelta_filter(date_value, **kwargs):
     """ custom filter that will add a positive or negative value, timedelta
         to the day of a date in string format """
 
     current_date = parse_datetime(date_value)
-    return (current_date - timedelta(days=delta_days)).date()
+    return (current_date - timedelta(**kwargs))
 
 
 def translate_filter(value, datastorekey=''):
