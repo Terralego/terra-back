@@ -32,7 +32,6 @@ INSTALLED_APPS = (
     'drf_yasg',
     'corsheaders',
     'storages',
-    'versatileimagefield',
 )
 
 MIDDLEWARE = (
