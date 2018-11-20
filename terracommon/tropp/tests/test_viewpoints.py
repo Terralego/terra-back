@@ -110,7 +110,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         # Quick test for the simple viewpoint search feature
         data = self.client.get(
             reverse('tropp:viewpoint-list'),
-            {'picture_id': self.viewpoint_with_accepted_picture.pictures
+            {'pictures__id': self.viewpoint_with_accepted_picture.pictures
                 .first().pk},
         ).json()
         self.assertEqual(data.get('count'), 1)
@@ -120,7 +120,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         picture = self.viewpoint_with_accepted_picture.pictures.first()
         data = self.client.get(
             reverse('tropp:viewpoint-list'),
-            {'photographer': picture.owner.email},
+            {'pictures__owner__id': picture.owner.pk},
         ).json()
         self.assertEqual(data.get('count'), 1)
 

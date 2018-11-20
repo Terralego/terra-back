@@ -5,6 +5,7 @@ from django.utils.dateparse import parse_date
 from rest_framework import filters
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
+from url_filter.integrations.drf import DjangoFilterBackend
 
 
 class JSONFieldOrderingFilter(OrderingFilter):
@@ -119,3 +120,14 @@ class DateFilterBackend(filters.BaseFilterBackend):
             raise ValidationError
 
         raise ValidationError
+
+
+class SchemaAwareDjangoFilterBackend(DjangoFilterBackend):
+    def get_schema_fields(self, view):
+        """
+        Get coreapi filter definitions
+
+        Returns all schemas defined in filter_fields_schema attribute.
+        """
+        super().get_schema_fields(view)
+        return getattr(view, 'filter_fields_schema', [])

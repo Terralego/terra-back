@@ -1,25 +1,16 @@
 from collections import OrderedDict
 
-from django.contrib.auth import get_user_model
+import coreapi
+import coreschema
 from rest_framework import permissions, viewsets
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from url_filter.integrations.drf import DjangoFilterBackend
 
-from terracommon.tropp.filters import CampaignFilterBackend
-from terracommon.tropp.serializers import SimpleViewpointSerializer
-
-from ..core.filters import DateFilterBackend
-from .filters import PhotographerFilterBackend, PictureIdFilterBackend
-from .models import Campaign, Document, Picture, Theme, Viewpoint
-from .serializers import (CampaignSerializer, DetailCampaignNestedSerializer,
-                          DocumentSerializer, ListCampaignNestedSerializer,
-                          PhotographerLabelSerializer, PictureSerializer,
-                          ThemeLabelSerializer, ThemeSerializer,
-                          ViewpointLabelSerializer,
-                          ViewpointSerializerWithPicture)
+from ..core.filters import DateFilterBackend, SchemaAwareDjangoFilterBackend
+from .filters import CampaignFilterBackend
+from .serializers import *
 
 
 class RestPageNumberPagination(PageNumberPagination):
@@ -49,11 +40,29 @@ class ViewpointViewSet(viewsets.ModelViewSet):
     ]
     filter_backends = (
         SearchFilter,
-        DjangoFilterBackend,
+        SchemaAwareDjangoFilterBackend,
         DateFilterBackend,
-        PictureIdFilterBackend,
-        PhotographerFilterBackend,
     )
+    filter_fields_schema = [
+        coreapi.Field(
+            name='pictures__id',
+            required=False,
+            location='query',
+            schema=coreschema.Integer(
+                title="Picture id",
+                description="Picture id to filter on",
+            ),
+        ),
+        coreapi.Field(
+            name='pictures__owner__id',
+            required=False,
+            location='query',
+            schema=coreschema.Integer(
+                title="Photographer id",
+                description="Photographer id to filter on",
+            ),
+        ),
+    ]
     search_fields = ('id', )
     date_search_field = 'pictures__date__date'
     pagination_class = RestPageNumberPagination
