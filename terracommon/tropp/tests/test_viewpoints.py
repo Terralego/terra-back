@@ -54,7 +54,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
 
     def test_viewpoint_get_list_anonymous(self):
         data = self.client.get(
-            reverse('tropp:viewpoints-list')
+            reverse('tropp:viewpoint-list')
         ).json()
         # List must contain all viewpoints WITHOUT those with no pictures
         # Pictures must also be ACCEPTED
@@ -64,7 +64,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         # User is now authenticated
         self.client.force_authenticate(user=self.user)
         data = self.client.get(
-            reverse('tropp:viewpoints-list')
+            reverse('tropp:viewpoint-list')
         ).json()
         # List must still contain ALL viewpoints even those with no
         # pictures and pictures with other states than ACCEPTED
@@ -74,7 +74,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         # User is not authenticated yet
         response = self.client.get(
             reverse(
-                'tropp:viewpoints-detail',
+                'tropp:viewpoint-detail',
                 args=[self.viewpoint_without_picture.pk],
             )
         )
@@ -86,7 +86,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         self.client.force_authenticate(user=self.user)
         response = self.client.get(
             reverse(
-                'tropp:viewpoints-detail',
+                'tropp:viewpoint-detail',
                 args=[self.viewpoint_without_picture.pk],
             )
         )
@@ -95,12 +95,12 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
     def test_viewpoint_search(self):
         # Quick test for the simple viewpoint search feature
         data = self.client.get(
-            reverse('tropp:viewpoints-list'),
+            reverse('tropp:viewpoint-list'),
             {'search': self.viewpoint_with_accepted_picture.pk},
         ).json()
         self.assertEqual(data.get('count'), 1)
 
-        search_options_url = reverse('tropp:viewpoints-search-options')
+        search_options_url = reverse('tropp:viewpoint-search-options')
         data = self.client.get(search_options_url).json()
         self.assertNotEqual(data.get('viewpoints'), [])
         self.assertIsNone(data.get('themes'))
@@ -109,7 +109,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
     def test_viewpoint_picture_filter(self):
         # Quick test for the simple viewpoint search feature
         data = self.client.get(
-            reverse('tropp:viewpoints-list'),
+            reverse('tropp:viewpoint-list'),
             {'picture_id': self.viewpoint_with_accepted_picture.pictures
                 .first().pk},
         ).json()
@@ -119,13 +119,13 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         # Quick test for the simple viewpoint search feature
         picture = self.viewpoint_with_accepted_picture.pictures.first()
         data = self.client.get(
-            reverse('tropp:viewpoints-list'),
+            reverse('tropp:viewpoint-list'),
             {'photographer': picture.owner.email},
         ).json()
         self.assertEqual(data.get('count'), 1)
 
     def test_viewpoint_search_date(self):
-        list_url = reverse('tropp:viewpoints-list')
+        list_url = reverse('tropp:viewpoint-list')
         picture = self.viewpoint_with_accepted_picture.pictures.first()
         data = self.client.get(
             list_url,
@@ -173,7 +173,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
 
     def _viewpoint_create(self):
         return self.client.post(
-            reverse('tropp:viewpoints-list'),
+            reverse('tropp:viewpoint-list'),
             self.data_create,
         )
 
@@ -198,7 +198,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
 
     def _viewpoint_create_with_picture(self):
         return self.client.post(
-            reverse('tropp:viewpoints-list'),
+            reverse('tropp:viewpoint-list'),
             self.data_create_with_picture,
             format="multipart",
         )
@@ -224,7 +224,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
 
     def _viewpoint_delete(self):
         return self.client.delete(
-            reverse('tropp:viewpoints-detail', args=[self.viewpoint.pk])
+            reverse('tropp:viewpoint-detail', args=[self.viewpoint.pk])
         )
 
     def test_viewpoint_delete_anonymous(self):

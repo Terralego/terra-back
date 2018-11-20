@@ -25,9 +25,9 @@ class CampaignTestCase(TestPermissionsMixin, APITestCase):
 
         campaign_other = CampaignFactory()  # campaign for other photograph
 
-        list_url = reverse('tropp:campaigns-list')
-        campaign_url = resolve_url('tropp:campaigns-detail', pk=campaign.pk)
-        campaign_other_url = resolve_url('tropp:campaigns-detail',
+        list_url = reverse('tropp:campaign-list')
+        campaign_url = resolve_url('tropp:campaign-detail', pk=campaign.pk)
+        campaign_other_url = resolve_url('tropp:campaign-detail',
                                          pk=campaign_other.pk)
 
         # First we try as anonymous
@@ -70,8 +70,8 @@ class CampaignTestCase(TestPermissionsMixin, APITestCase):
 
     def test_get_campaign(self):
         campaign = CampaignFactory(assignee=self.photograph)
-        campaign_url = resolve_url('tropp:campaigns-detail', pk=campaign.pk)
-        list_url = resolve_url('tropp:campaigns-list')
+        campaign_url = resolve_url('tropp:campaign-detail', pk=campaign.pk)
+        list_url = resolve_url('tropp:campaign-list')
         self.client.force_authenticate(user=self.photograph)
 
         viewpoint = ViewpointFactory()
@@ -109,9 +109,9 @@ class CampaignTestCase(TestPermissionsMixin, APITestCase):
         }
 
         self.client.force_authenticate(user=self.photograph)
-        response = self.client.post(reverse('tropp:campaigns-list'), data)
+        response = self.client.post(reverse('tropp:campaign-list'), data)
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
         self.client.force_authenticate(user=self.user)
-        response = self.client.post(reverse('tropp:campaigns-list'), data)
+        response = self.client.post(reverse('tropp:campaign-list'), data)
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
