@@ -1,4 +1,4 @@
-from pprint import pprint
+from pprint import pformat
 
 import coreapi
 import coreschema
@@ -55,20 +55,20 @@ class CampaignFilterBackend(filters.BaseFilterBackend):
         return [
             coreapi.Field(
                 name='status',
-                description="0 for closed campaign, 1 for ongoing campaign",
                 required=False,
                 location='query',
                 schema=coreschema.Boolean(
                     title="Campaign status",
+                    description="0 for closed campaign, 1 for ongoing campaign"
                 ),
             ),
             coreapi.Field(
                 name='picture_status',
-                description=str(pprint(choices)),
                 required=False,
                 location='query',
                 schema=coreschema.Enum(
                     choices,
+                    description=str(pformat(choices)),
                     title="Picture status",
                 )
             )

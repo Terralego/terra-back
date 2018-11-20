@@ -74,11 +74,11 @@ class DateFilterBackend(filters.BaseFilterBackend):
             ),
             coreapi.Field(
                 name='date_to',
-                description="End date",
                 required=False,
                 location='query',
                 schema=coreschema.String(
                     title="End date",
+                    description="End date",
                     pattern='[0-9]{2}/[0-9]{2}/[0-9]{4}'
                 )
             )
