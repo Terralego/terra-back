@@ -2,6 +2,7 @@ from django.shortcuts import resolve_url
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
+from terracommon.core.settings import STATES
 
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.tropp.tests.factories import CampaignFactory, ViewpointFactory
@@ -100,6 +101,33 @@ class CampaignTestCase(TestPermissionsMixin, APITestCase):
             1,
             response.data.get('results')[0].get('statistics').get('pending')
         )
+
+    def test_search_campaign(self):
+        campaign = CampaignFactory(assignee=self.photograph)
+        list_url = resolve_url('tropp:campaign-list')
+        self.client.force_authenticate(user=self.user)
+
+        viewpoint = ViewpointFactory()
+        campaign.viewpoints.set([viewpoint])
+        # Picture state is draft
+        response = self.client.get(list_url, {'status': 0})
+        self.assertEqual(1, response.data.get('count'))
+        response = self.client.get(list_url, {'status': 1})
+        self.assertEqual(0, response.data.get('count'))
+        response = self.client.get(list_url, {'picture_status': 100})
+        self.assertEqual(1, response.data.get('count'))
+        response = self.client.get(list_url, {'picture_status': 200})
+        self.assertEqual(0, response.data.get('count'))
+
+        viewpoint.pictures.update(state=STATES.ACCEPTED)
+        response = self.client.get(list_url, {'status': 0})
+        self.assertEqual(0, response.data.get('count'))
+        response = self.client.get(list_url, {'status': 1})
+        self.assertEqual(1, response.data.get('count'))
+        response = self.client.get(list_url, {'picture_status': 200})
+        self.assertEqual(0, response.data.get('count'))
+        response = self.client.get(list_url, {'picture_status': 300})
+        self.assertEqual(1, response.data.get('count'))
 
     def test_post_campaign(self):
         data = {

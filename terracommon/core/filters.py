@@ -1,3 +1,5 @@
+import coreapi
+import coreschema
 from django.db.models.expressions import OrderBy, RawSQL
 from django.utils.dateparse import parse_date
 from rest_framework import filters
@@ -56,6 +58,31 @@ class DateFilterBackend(filters.BaseFilterBackend):
     Example:
        date_search_field = 'created_at'
     """
+
+    def get_schema_fields(self, view):
+        super().get_schema_fields(view)
+        return [
+            coreapi.Field(
+                name='date_from',
+                required=False,
+                location='query',
+                schema=coreschema.String(
+                    title="Begin date",
+                    description="Begin date",
+                    pattern='[0-9]{2}/[0-9]{2}/[0-9]{4}'
+                )
+            ),
+            coreapi.Field(
+                name='date_to',
+                description="End date",
+                required=False,
+                location='query',
+                schema=coreschema.String(
+                    title="End date",
+                    pattern='[0-9]{2}/[0-9]{2}/[0-9]{4}'
+                )
+            )
+        ]
 
     def filter_queryset(self, request, queryset, view):
         search_field = getattr(view, 'date_search_field', None)

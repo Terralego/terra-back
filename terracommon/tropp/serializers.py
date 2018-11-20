@@ -50,6 +50,12 @@ class ListCampaignNestedSerializer(CampaignSerializer):
         'tropp',
         source='viewpoints.first.pictures.first.file',
     )
+    # Override to expose typed data
+    statistics = serializers.DictField(
+        child=serializers.IntegerField(),
+        read_only=True,
+    )
+    status = serializers.BooleanField(read_only=True)
 
     class Meta(CampaignSerializer.Meta):
         model = Campaign

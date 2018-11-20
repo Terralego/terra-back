@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from url_filter.integrations.drf import DjangoFilterBackend
 
+from terracommon.tropp.filters import CampaignFilterBackend
 from terracommon.tropp.serializers import SimpleViewpointSerializer
 
 from ..core.filters import DateFilterBackend
@@ -92,10 +93,9 @@ class CampaignViewSet(viewsets.ModelViewSet):
     queryset = Campaign.objects.all()
     permission_classes = [permissions.DjangoModelPermissions]
     http_method_names = ['get', 'post', 'put', 'delete', 'options']
-    filter_backends = (SearchFilter, DjangoFilterBackend, DateFilterBackend)
+    filter_backends = (CampaignFilterBackend, DateFilterBackend, SearchFilter)
     date_search_field = 'created_at'
     search_fields = ('label', )
-    filter_fields = ()  # TODO add state see CallableFilter
     pagination_class = RestPageNumberPagination
 
     def get_queryset(self):
