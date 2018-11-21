@@ -27,3 +27,6 @@ class UserNotifications(models.Model):
     uuid = models.UUIDField(null=True)
 
     objects = NotificationManager()
+
+    class Meta:
+        ordering = ['id']

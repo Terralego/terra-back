@@ -14,6 +14,9 @@ class DataStore(models.Model):
 
     objects = BaseManager.from_queryset(DataStoreQuerySet)()
 
+    class Meta:
+        ordering = ['key']
+
 
 class DataStorePermission(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
@@ -21,6 +24,7 @@ class DataStorePermission(models.Model):
     permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
 
     class Meta:
+        ordering = ['prefix']
         permissions = (
             ('can_read_datastore', "Is able to read all datastore's elements"),
             ('can_readwrite_datastore', 'Is able to write in datastore'),
@@ -41,4 +45,5 @@ class RelatedDocument(models.Model):
     document = models.FileField(upload_to=related_document_path, null=False)
 
     class Meta:
+        ordering = ['key']
         unique_together = ('key', 'content_type', 'object_id')

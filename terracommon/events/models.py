@@ -7,3 +7,6 @@ class EventHandler(models.Model):
     handler = models.CharField(max_length=255, blank=False, null=False)
     settings = JSONField(default={})
     priority = models.PositiveIntegerField(default=10)
+
+    class Meta:
+        ordering = ['id']

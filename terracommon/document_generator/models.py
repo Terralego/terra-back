@@ -14,6 +14,7 @@ class DocumentTemplate(models.Model):
     uid = models.CharField(max_length=256, default=uuid.uuid4)
 
     class Meta:
+        ordering = ['id']
         permissions = (
             ('can_upload_template', 'Is allowed to upload a template'),
             ('can_update_template', 'Is allowed to update a template'),
@@ -28,3 +29,6 @@ class DownloadableDocument(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
     object_id = models.PositiveIntegerField()
     linked_object = GenericForeignKey('content_type', 'object_id')
+
+    class Meta:
+        ordering = ['id']

@@ -56,6 +56,7 @@ class UserRequest(BaseUpdatableModel, ReadableModelMixin):
         return UserRequestSerializer
 
     class Meta:
+        ordering = ['id']
         permissions = (
             ('can_create_requests', 'Is able to create a new requests'),
             ('can_read_self_requests', 'Is able to get own requests'),
@@ -95,3 +96,6 @@ class Comment(BaseUpdatableModel):
             # Save the name of the new file before upload_to move & rename it
             self.filename = self.attachment.name
         super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['id']
