@@ -20,8 +20,10 @@ CUSTOM_APPS = (
     'terracommon.events',
     'terracommon.document_generator',
     'terracommon.datastore',
+    'terracommon.tropp',
 )
 
+# Import app specific settings
 for app in CUSTOM_APPS:
     try:
         app_settings = import_module(f"{app}.settings", ["settings"])

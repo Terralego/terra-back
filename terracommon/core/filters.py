@@ -1,5 +1,11 @@
+import coreapi
+import coreschema
 from django.db.models.expressions import OrderBy, RawSQL
+from django.utils.dateparse import parse_date
+from rest_framework import filters
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
+from url_filter.integrations.drf import DjangoFilterBackend
 
 
 class JSONFieldOrderingFilter(OrderingFilter):
@@ -41,3 +47,87 @@ class JSONFieldOrderingFilter(OrderingFilter):
             ordering = None
 
         return ordering
+
+
+class DateFilterBackend(filters.BaseFilterBackend):
+    """
+    Filter from date to date.
+
+    You must specify which field to search on with `date_search_field` in
+    your view.
+
+    Example:
+       date_search_field = 'created_at'
+    """
+
+    def get_schema_fields(self, view):
+        super().get_schema_fields(view)
+        return [
+            coreapi.Field(
+                name='date_from',
+                required=False,
+                location='query',
+                schema=coreschema.String(
+                    title="Begin date",
+                    description="Begin date",
+                    pattern='[0-9]{2}/[0-9]{2}/[0-9]{4}'
+                )
+            ),
+            coreapi.Field(
+                name='date_to',
+                required=False,
+                location='query',
+                schema=coreschema.String(
+                    title="End date",
+                    description="End date",
+                    pattern='[0-9]{2}/[0-9]{2}/[0-9]{4}'
+                )
+            )
+        ]
+
+    def filter_queryset(self, request, queryset, view):
+        search_field = getattr(view, 'date_search_field', None)
+        date_from = self.parse_date(request.GET.get('date_from', None))
+        date_to = self.parse_date(request.GET.get('date_to', None))
+
+        if date_from and date_to and date_from > date_to:
+            raise ValidationError
+
+        if date_from is not None:
+            queryset = queryset.filter(**{f'{search_field}__gte': date_from})
+
+        if date_to is not None:
+            queryset = queryset.filter(**{f'{search_field}__lte': date_to})
+
+        return queryset
+
+    @staticmethod
+    def parse_date(value):
+        """
+        Shamelessly taken from DateField.to_python
+
+        :param value:
+        :return:
+        """
+        if value is None:
+            return value
+
+        try:
+            parsed = parse_date(value)
+            if parsed is not None:
+                return parsed
+        except ValueError:
+            raise ValidationError
+
+        raise ValidationError
+
+
+class SchemaAwareDjangoFilterBackend(DjangoFilterBackend):
+    def get_schema_fields(self, view):
+        """
+        Get coreapi filter definitions
+
+        Returns all schemas defined in filter_fields_schema attribute.
+        """
+        super().get_schema_fields(view)
+        return getattr(view, 'filter_fields_schema', [])

@@ -6,19 +6,12 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from terracommon.accounts.mixins import ReadableModelMixin
+from terracommon.core.mixins import BaseUpdatableModel
 from terracommon.datastore.models import RelatedDocument
 from terracommon.document_generator.models import DownloadableDocument
 from terracommon.terra.models import Layer
 
 from .helpers import rename_comment_attachment
-
-
-class BaseUpdatableModel(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        abstract = True
 
 
 class UserRequest(BaseUpdatableModel, ReadableModelMixin):
@@ -49,9 +42,8 @@ class UserRequest(BaseUpdatableModel, ReadableModelMixin):
                 'trrequests.can_internal_comment_requests'):
             filter |= Q(is_internal=True)
 
-        if (not user.has_perm('trrequests.can_comment_requests')
-            and not user.has_perm(
-                        'trrequests.can_read_comment_requests')):
+        if (not user.has_perm('trrequests.can_comment_requests') and
+                not user.has_perm('trrequests.can_read_comment_requests')):
             filter |= Q(is_internal=False)
 
         return query.exclude(filter)
