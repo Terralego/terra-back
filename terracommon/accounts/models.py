@@ -43,6 +43,7 @@ class TerraUser(AbstractBaseUser, PermissionsMixin):
     objects = TerraUserManager()
 
     class Meta:
+        ordering = ['id']
         permissions = (
             ('can_manage_users', 'Is able create, delete, update users'),
         )
@@ -62,3 +63,6 @@ class ReadModel(models.Model):
 
     def read_instance(self):
         self.save()
+
+    class Meta:
+        ordering = ['id']
