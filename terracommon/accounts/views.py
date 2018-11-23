@@ -47,7 +47,9 @@ class UserRegisterView(APIView):
                 with transaction.atomic():
                     user = get_user_model().objects.create(
                         **{
-                            get_user_model().EMAIL_FIELD: request.data['email'],
+                            get_user_model().EMAIL_FIELD: (
+                                request.data['email']
+                            ),
                             'is_active': True,
                         })
                 user.set_unusable_password()
