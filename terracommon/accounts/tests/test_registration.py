@@ -122,3 +122,7 @@ class RegistrationTestCase(TestCase):
             )
 
         self.assertEqual({}, response.json())
+        self.assertEqual(
+            get_user_model().objects.filter(email=test_email).count(),
+            1
+        )

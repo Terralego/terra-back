@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
+from django.db import transaction
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status
@@ -43,11 +44,12 @@ class UserRegisterView(APIView):
         try:
             form = PasswordSetAndResetForm(data=request.data)
             if form.is_valid():
-                user = get_user_model().objects.create(
-                    **{
-                        get_user_model().EMAIL_FIELD: request.data['email'],
-                        'is_active': True,
-                    })
+                with transaction.atomic():
+                    user = get_user_model().objects.create(
+                        **{
+                            get_user_model().EMAIL_FIELD: request.data['email'],
+                            'is_active': True,
+                        })
                 user.set_unusable_password()
                 user.save()
 
