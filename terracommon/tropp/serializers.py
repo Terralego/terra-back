@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework_gis.fields import GeometryField
 from versatileimagefield.serializers import VersatileImageFieldSerializer
 
-from .models import Campaign, Document, Picture, Theme, Viewpoint
+from .models import Campaign, Document, Picture, Viewpoint
 
 UserModel = get_user_model()
 
@@ -82,28 +82,13 @@ class ViewpointSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ThemeLabelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Theme
-        fields = ('id', 'label', )
-
-
 class ViewpointSerializerWithPicture(ViewpointSerializer):
     picture = SimplePictureSerializer(required=False, write_only=True)
     pictures = SimplePictureSerializer(many=True, read_only=True)
-    themes = ThemeLabelSerializer(many=True, read_only=True)
-    themes_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Theme.objects.all(),
-        source='themes',
-        write_only=True,
-        required=False,
-        many=True,
-    )
 
     class Meta:
         model = Viewpoint
-        fields = ('id', 'label', 'point', 'properties', 'themes',
-                  'themes_ids', 'picture', 'pictures')
+        fields = ('id', 'label', 'point', 'properties', 'picture', 'pictures')
 
     def create(self, validated_data):
         picture_data = validated_data.pop('picture', None)
@@ -122,12 +107,6 @@ class DocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Document
-        fields = '__all__'
-
-
-class ThemeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Theme
         fields = '__all__'
 
 
