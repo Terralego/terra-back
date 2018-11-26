@@ -148,7 +148,8 @@ class CommentSerializer(serializers.ModelSerializer,
             return None
 
         return "{}?uidb64={}&token={}".format(
-            reverse('comment-attachment', args=[obj.userrequest_id, obj.pk]),
+            reverse('trrequests:comment-attachment',
+                    args=[obj.userrequest_id, obj.pk]),
             uidb64,
             token)
 
