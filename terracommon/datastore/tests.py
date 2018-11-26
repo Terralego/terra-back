@@ -34,13 +34,13 @@ class DataStoreTestCase(TestCase):
 
     def test_not_authenticated(self):
         client = APIClient()
-        response = client.get(reverse('datastore-list'))
+        response = client.get(reverse('datastore:datastore-list'))
         self.assertEqual(HTTP_401_UNAUTHORIZED, response.status_code)
 
     def test_no_permission(self):
         client = APIClient()
         client.force_authenticate(user=self.user)
-        response = client.get(reverse('datastore-list'))
+        response = client.get(reverse('datastore:datastore-list'))
 
         self.assertEqual(HTTP_200_OK, response.status_code)
         self.assertEqual(0, response.json()['count'])
@@ -59,14 +59,15 @@ class DataStoreTestCase(TestCase):
             prefix='terracommon.prefix',
         )
 
-        response = self.client.get(reverse('datastore-list'))
+        response = self.client.get(reverse('datastore:datastore-list'))
         self.assertEqual(HTTP_200_OK, response.status_code)
         self.assertEqual(1, response.json()['count'])
 
         # test that write is not allowed
         test_value = {'a': 'TEST'}
         ds = DataStore.objects.get(key='terracommon.prefix.dot.com')
-        response = self.client.put(reverse('datastore-detail', args=[ds.key]),
+        response = self.client.put(reverse('datastore:datastore-detail',
+                                           args=[ds.key]),
                                    data={'value': test_value})
 
         self.assertEqual(HTTP_403_FORBIDDEN, response.status_code)
@@ -86,14 +87,15 @@ class DataStoreTestCase(TestCase):
             prefix='terracommon.prefix',
         )
 
-        response = self.client.get(reverse('datastore-list'))
+        response = self.client.get(reverse('datastore:datastore-list'))
         self.assertEqual(HTTP_200_OK, response.status_code)
         self.assertEqual(1, response.json()['count'])
 
         # Test writing
         test_value = {'a': 'b'}
         ds = DataStore.objects.get(key='terracommon.prefix.dot.com')
-        response = self.client.put(reverse('datastore-detail', args=[ds.key]),
+        response = self.client.put(reverse('datastore:datastore-detail',
+                                           args=[ds.key]),
                                    data={'value': test_value})
 
         self.assertEqual(HTTP_200_OK, response.status_code)

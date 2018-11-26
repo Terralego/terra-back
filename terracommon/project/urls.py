@@ -9,7 +9,7 @@ urlpatterns = [
     path('api/', include('terracommon.accounts.urls')),
     path('api/', include('terracommon.notifications.urls')),
     path('api/', include('terracommon.document_generator.urls')),
-    path('api/', include(('terracommon.datastore.urls', 'datastore'))),
+    path('api/', include('terracommon.datastore.urls')),
     path('api/', include('terracommon.tropp.urls')),
 ]
 
