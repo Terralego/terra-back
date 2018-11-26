@@ -46,14 +46,14 @@ class CampaignTestCase(TestPermissionsMixin, APITestCase):
         self.assertEqual(1, response.data.get('count'))
         self.assertEqual(
             viewpoint.pictures.first().file.url,
-            response.data.get('results')[0].get('photo').get('full_size')
+            response.data.get('results')[0].get('picture').get('full_size')
         )
 
         response = self.client.get(campaign_url)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(
             viewpoint.pictures.first().file.url,
-            response.data.get('viewpoints')[0].get('photo').get('full_size')
+            response.data.get('viewpoints')[0].get('picture').get('full_size')
         )
         self.assertEqual(status.HTTP_403_FORBIDDEN,
                          self.client.get(campaign_other_url).status_code)

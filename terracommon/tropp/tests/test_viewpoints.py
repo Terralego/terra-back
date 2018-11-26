@@ -92,21 +92,30 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         )
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
-    def test_viewpoint_search(self):
-        # Quick test for the simple viewpoint search feature
+    def test_viewpoint_search_options(self):
+        search_options_url = reverse('tropp:viewpoint-search-options')
+        data = self.client.get(search_options_url).json()
+        self.assertNotEqual(data.get('viewpoints'), [])
+        self.assertIsNone(data.get('photographers'))
+
+    def test_viewpoint_search_anonymous(self):
+        # Simple viewpoint search feature
         data = self.client.get(
             reverse('tropp:viewpoint-list'),
             {'search': self.viewpoint_with_accepted_picture.pk},
         ).json()
         self.assertEqual(data.get('count'), 1)
 
-        search_options_url = reverse('tropp:viewpoint-search-options')
-        data = self.client.get(search_options_url).json()
-        self.assertNotEqual(data.get('viewpoints'), [])
-        self.assertIsNone(data.get('photographers'))
+    def test_viewpoint_search_with_auth(self):
+        # Simple viewpoint search feature with auth
+        self.client.force_authenticate(user=self.user)
+        data = self.client.get(
+            reverse('tropp:viewpoint-list'),
+            {'search': self.viewpoint_with_accepted_picture.pk},
+        ).json()
+        self.assertEqual(data.get('count'), 1)
 
-    def test_viewpoint_picture_filter(self):
-        # Quick test for the simple viewpoint search feature
+    def test_viewpoint_picture_filter_anonymous(self):
         data = self.client.get(
             reverse('tropp:viewpoint-list'),
             {'pictures__id': self.viewpoint_with_accepted_picture.pictures
@@ -114,8 +123,25 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         ).json()
         self.assertEqual(data.get('count'), 1)
 
-    def test_viewpoint_photographer_filter(self):
-        # Quick test for the simple viewpoint search feature
+    def test_viewpoint_picture_filter_with_auth(self):
+        self.client.force_authenticate(user=self.user)
+        data = self.client.get(
+            reverse('tropp:viewpoint-list'),
+            {'pictures__id': self.viewpoint_with_accepted_picture.pictures
+                .first().pk},
+        ).json()
+        self.assertEqual(data.get('count'), 1)
+
+    def test_viewpoint_photographer_filter_anonymous(self):
+        picture = self.viewpoint_with_accepted_picture.pictures.first()
+        data = self.client.get(
+            reverse('tropp:viewpoint-list'),
+            {'pictures__owner__id': picture.owner.pk},
+        ).json()
+        self.assertEqual(data.get('count'), 1)
+
+    def test_viewpoint_photographer_filter_with_auth(self):
+        self.client.force_authenticate(user=self.user)
         picture = self.viewpoint_with_accepted_picture.pictures.first()
         data = self.client.get(
             reverse('tropp:viewpoint-list'),

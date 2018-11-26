@@ -17,7 +17,7 @@ class PermissiveImageFieldSerializer(VersatileImageFieldSerializer):
 
 
 class SimpleViewpointSerializer(serializers.ModelSerializer):
-    photo = PermissiveImageFieldSerializer(
+    picture = PermissiveImageFieldSerializer(
         'tropp',
         source='pictures.first.file',
     )
@@ -25,7 +25,7 @@ class SimpleViewpointSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Viewpoint
-        fields = ('id', 'label', 'photo', 'geometry', 'status')
+        fields = ('id', 'label', 'picture', 'geometry', 'status')
 
 
 class CampaignSerializer(serializers.ModelSerializer):
@@ -46,7 +46,7 @@ class DetailCampaignNestedSerializer(serializers.ModelSerializer):
 
 
 class ListCampaignNestedSerializer(CampaignSerializer):
-    photo = PermissiveImageFieldSerializer(
+    picture = PermissiveImageFieldSerializer(
         'tropp',
         source='viewpoints.first.pictures.first.file',
     )
@@ -59,7 +59,7 @@ class ListCampaignNestedSerializer(CampaignSerializer):
 
     class Meta(CampaignSerializer.Meta):
         model = Campaign
-        fields = ('label', 'assignee', 'photo', 'statistics', 'status')
+        fields = ('label', 'assignee', 'picture', 'statistics', 'status')
 
 
 class PictureSerializer(serializers.ModelSerializer):
@@ -73,7 +73,7 @@ class PictureSerializer(serializers.ModelSerializer):
 class SimplePictureSerializer(PictureSerializer):
     class Meta:
         model = Picture
-        fields = ('id', 'date', 'file', 'owner', )
+        fields = ('id', 'date', 'file', 'owner',)
 
 
 class ViewpointSerializer(serializers.ModelSerializer):
@@ -85,10 +85,12 @@ class ViewpointSerializer(serializers.ModelSerializer):
 class ViewpointSerializerWithPicture(ViewpointSerializer):
     picture = SimplePictureSerializer(required=False, write_only=True)
     pictures = SimplePictureSerializer(many=True, read_only=True)
+    geometry = GeometryField(source='point.geom', read_only=True)
 
     class Meta:
         model = Viewpoint
-        fields = ('id', 'label', 'point', 'properties', 'picture', 'pictures')
+        fields = ('id', 'label', 'point', 'properties', 'picture', 'pictures',
+                  'geometry',)
 
     def create(self, validated_data):
         picture_data = validated_data.pop('picture', None)
@@ -113,10 +115,10 @@ class DocumentSerializer(serializers.ModelSerializer):
 class ViewpointLabelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Viewpoint
-        fields = ('id', 'label', )
+        fields = ('id', 'label',)
 
 
 class PhotographerLabelSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ('id', 'email', )
+        fields = ('id', 'email',)
