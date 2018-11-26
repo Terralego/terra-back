@@ -47,7 +47,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             'registration': 'AS-AS-AA-AS-AS',
             'authorization': 'okay'
         }
-        self.pdfcreator_urlname = 'document-pdf'
+        self.pdfcreator_urlname = 'document_generator:document-pdf'
 
     def test_pdf_creator_method_with_dev_settings(self):
         fake_userrequest = UserRequestFactory(properties=self.properties)
@@ -314,7 +314,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self._set_permissions(['can_upload_template', ])
 
         response = self.client.post(
-            reverse('document-list'),
+            reverse('document_generator:document-list'),
             {
                 'name': file_tpl.name,
                 'documenttemplate': file_tpl,
@@ -337,7 +337,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self._set_permissions(['can_upload_template', ])
 
         response = self.client.post(
-            reverse('document-list'),
+            reverse('document_generator:document-list'),
             {
                 'name': file_tpl.name,
                 'documenttemplate': file_tpl,
@@ -353,7 +353,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
     def test_create_document_template_without_permission(self):
         response = self.client.post(
-            reverse('document-list'),
+            reverse('document_generator:document-list'),
             {
                 'name': 'refused_doc',
                 'documenttemplate': SimpleUploadedFile(
@@ -393,7 +393,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self._set_permissions(['can_update_template', ])
 
         response = self.client.patch(
-            reverse('document-detail', kwargs={"pk": doc_tpl.pk}),
+            reverse('document_generator:document-detail',
+                    kwargs={"pk": doc_tpl.pk}),
             {
                 'name': file_tpl.name,
                 'documenttemplate': file_tpl,
@@ -433,7 +434,8 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
         self._set_permissions(['can_update_template', ])
         response = self.client.patch(
-            reverse('document-detail', kwargs={'pk': doc_tpl.pk}),
+            reverse('document_generator:document-detail',
+                    kwargs={'pk': doc_tpl.pk}),
             {
                 'name': file_tpl.name,
                 'documenttemplate': file_tpl,
@@ -492,7 +494,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self._set_permissions(['can_delete_template', ])
         response = self.client.delete(
             reverse(
-                'document-detail',
+                'document_generator:document-detail',
                 kwargs={'pk': doc_tpl.pk}
             )
         )
@@ -514,7 +516,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         self._set_permissions(['can_delete_template', ])
         response = self.client.delete(
             reverse(
-                'document-detail',
+                'document_generator:document-detail',
                 kwargs={'pk': '666'}
             )
         )
@@ -531,8 +533,10 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             documenttemplate=SimpleUploadedFile('path/to.doc', b'no content'),
             uid='document to delete',
         )
-        response = self.client.delete(reverse('document-detail',
-                                              kwargs={'pk': doc_tpl.pk}))
+        response = self.client.delete(reverse(
+            'document_generator:document-detail',
+            kwargs={'pk': doc_tpl.pk})
+        )
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
         self.assertTrue(
             DocumentTemplate.objects.filter(pk=doc_tpl.pk).exists()

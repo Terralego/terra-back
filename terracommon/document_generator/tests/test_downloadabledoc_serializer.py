@@ -39,7 +39,7 @@ class DownloadbleDocumentTestCase(TestCase):
         data = self.serializer.data
         self.assertEqual(data['title'], self.documenttemplate.name)
         self.assertIn(
-            reverse('document-pdf',
+            reverse('document_generator:document-pdf',
                     kwargs={'request_pk': self.userrequest.pk,
                             'pk': self.documenttemplate.pk}),
             data['url'],
