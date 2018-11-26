@@ -102,14 +102,14 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             'geojson': self.geojson,
         }
         """First we try with no rights"""
-        response = self.client.post(reverse('request-list'),
+        response = self.client.post(reverse('trrequests:request-list'),
                                     request,
                                     format='json')
         self.assertEqual(403, response.status_code)
 
         """Then we add the permissions to the user"""
         self._set_permissions(['can_create_requests', ])
-        response = self.client.post(reverse('request-list'),
+        response = self.client.post(reverse('trrequests:request-list'),
                                     request,
                                     format='json')
 
@@ -126,31 +126,31 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             )
 
         """Test listing requests with no can_read_self_requests permission"""
-        response = self.client.get(reverse('request-list'))
+        response = self.client.get(reverse('trrequests:request-list'))
         self.assertEqual(200, response.status_code)
         self.assertEqual(0, response.json().get('count'))
 
         response = self.client.get(
-            reverse('request-detail', args=[request.pk]),)
+            reverse('trrequests:request-detail', args=[request.pk]),)
         self.assertEqual(404, response.status_code)
 
         """And with the permission"""
         self._set_permissions(['can_read_self_requests', ])
-        response = self.client.get(reverse('request-list'))
+        response = self.client.get(reverse('trrequests:request-list'))
         self.assertEqual(200, response.status_code)
         self.assertEqual(self.user.userrequests.all().count(),
                          response.json().get('count'))
 
         request_to_review = UserRequestFactory()
         request_to_review.reviewers.add(self.user)
-        response = self.client.get(reverse('request-list'))
+        response = self.client.get(reverse('trrequests:request-list'))
         self.assertEqual(200, response.status_code)
         self.assertEqual(self.user.userrequests.all().count() + 1,
                          response.json().get('count'))
 
         """Check the detail view return also the same geojson data"""
         response = self.client.get(
-            reverse('request-detail', args=[request.pk]),)
+            reverse('trrequests:request-detail', args=[request.pk]),)
 
         self.assertEqual(200, response.status_code)
         layer_geojson = response.data.get('geojson')
@@ -164,17 +164,17 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
         request_to_review.reviewers.add(TerraUserFactory())
         request_to_review.reviewers.add(TerraUserFactory())
 
-        response = self.client.get(reverse('request-list'))
+        response = self.client.get(reverse('trrequests:request-list'))
         self.assertEqual(self.user.userrequests.all().count(),
                          response.json().get('count'))
         self._clean_permissions()
 
     def test_schema(self):
-        response = self.client.get(reverse('request-schema'))
+        response = self.client.get(reverse('trrequests:request-schema'))
         self.assertDictEqual(settings.REQUEST_SCHEMA, response.json())
 
         settings.REQUEST_SCHEMA = None
-        response = self.client.get(reverse('request-schema'))
+        response = self.client.get(reverse('trrequests:request-schema'))
         self.assertEqual(500, response.status_code)
 
     def test_request_change_state(self):
@@ -187,7 +187,7 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
         # Test with the can_change_state_requests permission
         # and tests event associated
         response = self.client.patch(
-            reverse('request-detail', args=[request.pk]),
+            reverse('trrequests:request-detail', args=[request.pk]),
             {'state': new_state},
             format='json')
 
@@ -231,7 +231,7 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
 
         receiver_callback = MagicMock()
         event.connect(receiver_callback)
-        response = self.client.patch(reverse('request-detail',
+        response = self.client.patch(reverse('trrequests:request-detail',
                                              kwargs={'pk': userrequest.pk}),
                                      {'properties': {'property': 'value'}},
                                      format='json')
@@ -259,7 +259,9 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
                 'document': ('data:image/png;base64,aGVsbG8gd29ybGQ=')
             }, ]
         }
-        response = self.client.post(reverse('request-list'),
+
+        # First we try with no rights
+        response = self.client.post(reverse('trrequests:request-list'),
                                     request,
                                     format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

@@ -462,7 +462,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             uid='initial document'
         )
         response = self.client.patch(
-            reverse('request-detail', kwargs={'pk': doc_tpl.pk}),
+            reverse('trrequests:request-detail', kwargs={'pk': doc_tpl.pk}),
             {
                 'name': 'refused.doc',
                 'documenttemplate': SimpleUploadedFile(
