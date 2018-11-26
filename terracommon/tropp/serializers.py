@@ -1,7 +1,10 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework_gis.fields import GeometryField
 from versatileimagefield.serializers import VersatileImageFieldSerializer
+
+from terracommon.terra.models import Feature, Layer
 
 from .models import Campaign, Document, Picture, Viewpoint
 
@@ -82,18 +85,34 @@ class ViewpointSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+def _get_base_opp_layer():
+    try:
+        return Layer.objects.get(name='Base opp layer')
+    except ObjectDoesNotExist:
+        return Layer.objects.create(name='Base opp layer')
+
+
 class ViewpointSerializerWithPicture(ViewpointSerializer):
     picture = SimplePictureSerializer(required=False, write_only=True)
     pictures = SimplePictureSerializer(many=True, read_only=True)
     geometry = GeometryField(source='point.geom', read_only=True)
+    point = GeometryField(write_only=True)
 
     class Meta:
         model = Viewpoint
-        fields = ('id', 'label', 'point', 'properties', 'picture', 'pictures',
-                  'geometry',)
+        fields = ('id', 'label', 'geometry', 'properties', 'point', 'picture',
+                  'pictures',)
 
     def create(self, validated_data):
         picture_data = validated_data.pop('picture', None)
+        point_data = validated_data.pop('point', None)
+        layer = _get_base_opp_layer()
+        feature = Feature.objects.create(
+            geom=point_data,
+            layer=layer,
+            properties={},
+        )
+        validated_data.setdefault('point', feature)
         viewpoint = super().create(validated_data)
         if picture_data is not None:
             Picture.objects.create(

@@ -39,11 +39,11 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         date = timezone.datetime(2018, 1, 1, tzinfo=timezone.utc)
         self.data_create = {
             "label": "Basic viewpoint created",
-            "point": self.feature.pk,
+            "point": self.feature.geom.json,
         }
         self.data_create_with_picture = {
             "label": "Viewpoint created with picture",
-            "point": self.feature.pk,
+            "point": self.feature.geom.json,
             # Cannot have nested json when working on files
             "picture.date": date,
             "picture.file": self.fp,
