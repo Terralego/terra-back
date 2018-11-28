@@ -257,3 +257,25 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
                                     request,
                                     format='json')
         self.assertEqual(len(response.json().get('documents')), 1)
+
+    def test_update_userrequest_with_wrong_document_format(self):
+        layer = LayerFactory()
+        userrequest = UserRequest.objects.create(
+            owner=self.user,
+            layer=layer,
+            properties={},
+        )
+        self._set_permissions(['can_read_self_requests', ])
+        response = self.client.put(
+            reverse('request-detail', kwargs={'pk': userrequest.pk}),
+            {
+                'geojson': {},
+                'documents': [{
+                    "key": "activity-0",
+                    "document": ("documents/trrequests_userrequest/"
+                                 f"{userrequest.pk}/activity-0")
+                }]
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self._clean_permissions()
