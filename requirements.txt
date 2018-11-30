@@ -14,6 +14,7 @@ Pillow>=5.3.0,<6.0.0
 django-storages>=1.7,<1.8
 django-versatileimagefield>=1.10,<2.0
 boto3>=1.9,<=1.10
+deepmerge<=1.0
 
 # SIG
 mercantile>=1.0,<1.1
