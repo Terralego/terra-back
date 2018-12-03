@@ -239,6 +239,7 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             old_properties=old_properties
         )
         event.disconnect(receiver_callback)
+        self._clean_permissions()
 
     def test_upload_document(self):
         self._set_permissions(['can_create_requests', ])
@@ -252,11 +253,14 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
                 'document': ('data:image/png;base64,aGVsbG8gd29ybGQ=')
             }, ]
         }
-        """First we try with no rights"""
         response = self.client.post(reverse('request-list'),
                                     request,
                                     format='json')
-        self.assertEqual(len(response.json().get('documents')), 1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(UserRequest.objects
+                                   .filter(documents__key='my_document')
+                                   .exists())
+        self._clean_permissions()
 
     def test_update_userrequest_with_wrong_document_format(self):
         layer = LayerFactory()
@@ -265,17 +269,26 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             layer=layer,
             properties={},
         )
+
         self._set_permissions(['can_read_self_requests', ])
         response = self.client.put(
             reverse('request-detail', kwargs={'pk': userrequest.pk}),
             {
+                'properties': {'noupdate': 'tada'},
                 'geojson': {},
                 'documents': [{
                     "key": "activity-0",
                     "document": ("documents/trrequests_userrequest/"
                                  f"{userrequest.pk}/activity-0")
-                }]
+                }],
             }
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self._clean_permissions()
+
+        self.assertFalse(UserRequest.objects
+                                    .filter(properties__noupdate='tada')
+                                    .exists())
+        self.assertFalse(UserRequest.objects
+                                    .filter(documents__key="activity-0")
+                                    .exists())
