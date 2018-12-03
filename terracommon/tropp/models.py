@@ -19,10 +19,6 @@ class BaseLabelModel(BaseUpdatableModel):
         return self.label
 
 
-class Theme(BaseLabelModel):
-    pass
-
-
 class ViewpointsManager(models.Manager):
     def with_accepted_pictures(self):
         return super().get_queryset().filter(
@@ -35,11 +31,6 @@ class Viewpoint(BaseLabelModel):
         Feature,
         on_delete=models.CASCADE,
         related_name='points',
-    )
-    themes = models.ManyToManyField(
-        Theme,
-        related_name='viewpoints',
-        blank=True
     )
     properties = JSONField(_('Properties'), default=dict, blank=True)
 

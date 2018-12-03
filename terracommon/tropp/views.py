@@ -63,6 +63,7 @@ class ViewpointViewSet(viewsets.ModelViewSet):
             ),
         ),
     ]
+    filter_fields = ['pictures']
     search_fields = ('id', )
     date_search_field = 'pictures__date__date'
     pagination_class = RestPageNumberPagination
@@ -85,15 +86,11 @@ class ViewpointAdvancedSearchOptions(APIView):
         viewpoint_labels = ViewpointLabelSerializer(
             Viewpoint.objects.all(), many=True
         ).data
-        theme_labels = ThemeLabelSerializer(
-            Theme.objects.all(), many=True
-        ).data
         photographers = PhotographerLabelSerializer(
             get_user_model().objects.all(), many=True
         ).data
         return Response({
             'viewpoints': viewpoint_labels,
-            'themes': theme_labels,
             'photographers': photographers,
         })
 
@@ -151,9 +148,3 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
-
-
-class ThemeViewSet(viewsets.ModelViewSet):
-    queryset = Theme.objects.all()
-    serializer_class = ThemeSerializer
-    pagination_class = RestPageNumberPagination

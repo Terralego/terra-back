@@ -11,7 +11,6 @@ router.register(r'viewpoints', views.ViewpointViewSet, base_name='viewpoint')
 router.register(r'campaigns', views.CampaignViewSet, base_name='campaign')
 router.register(r'pictures', views.PictureViewSet, base_name='picture')
 router.register(r'documents', views.DocumentViewSet, base_name='document')
-router.register(r'themes', views.ThemeViewSet, base_name='theme')
 
 urlpatterns = router.urls
 
