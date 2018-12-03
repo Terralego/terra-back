@@ -33,7 +33,8 @@ class UserRequestSerializer(serializers.ModelSerializer,
     downloadables = DownloadableDocumentSerializer(read_only=True,
                                                    many=True,
                                                    source='downloadable')
-    documents = RelatedDocumentSerializer(many=True, required=False)
+    documents = RelatedDocumentSerializer(many=True, required=False,
+                                          write_only=True)
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -124,7 +125,6 @@ class UserRequestSerializer(serializers.ModelSerializer,
         model = UserRequest
         exclude = ('layer',)
         read_only_fields = ('owner', 'expiry', )
-        extra_kwargs = {'documents': {'write_only': True}}
 
 
 class CommentSerializer(serializers.ModelSerializer,
