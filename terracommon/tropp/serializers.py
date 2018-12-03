@@ -1,5 +1,5 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework_gis.fields import GeometryField
 from versatileimagefield.serializers import VersatileImageFieldSerializer
@@ -74,22 +74,17 @@ class PictureSerializer(serializers.ModelSerializer):
 
 
 class SimplePictureSerializer(PictureSerializer):
+    file = VersatileImageFieldSerializer('tropp')
+
     class Meta:
         model = Picture
-        fields = ('id', 'date', 'file', 'owner',)
+        fields = ('id', 'date', 'file', 'owner')
 
 
 class ViewpointSerializer(serializers.ModelSerializer):
     class Meta:
         model = Viewpoint
         fields = '__all__'
-
-
-def _get_base_opp_layer():
-    try:
-        return Layer.objects.get(name='Base opp layer')
-    except ObjectDoesNotExist:
-        return Layer.objects.create(name='Base opp layer')
 
 
 class ViewpointSerializerWithPicture(ViewpointSerializer):
@@ -101,12 +96,14 @@ class ViewpointSerializerWithPicture(ViewpointSerializer):
     class Meta:
         model = Viewpoint
         fields = ('id', 'label', 'geometry', 'properties', 'point', 'picture',
-                  'pictures',)
+                  'pictures')
 
     def create(self, validated_data):
         picture_data = validated_data.pop('picture', None)
         point_data = validated_data.pop('point', None)
-        layer = _get_base_opp_layer()
+        layer, created = Layer.objects.get_or_create(
+            name=settings.TROPP_BASE_LAYER_NAME
+        )
         feature = Feature.objects.create(
             geom=point_data,
             layer=layer,
@@ -134,10 +131,10 @@ class DocumentSerializer(serializers.ModelSerializer):
 class ViewpointLabelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Viewpoint
-        fields = ('id', 'label',)
+        fields = ('id', 'label')
 
 
 class PhotographerLabelSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ('id', 'email',)
+        fields = ('id', 'email')

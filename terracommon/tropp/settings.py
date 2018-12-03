@@ -12,3 +12,5 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
         ('thumbnail', 'thumbnail__250x190'),
     ]
 }
+
+TROPP_BASE_LAYER_NAME = 'Base opp layer'

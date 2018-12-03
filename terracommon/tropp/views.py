@@ -63,7 +63,7 @@ class ViewpointViewSet(viewsets.ModelViewSet):
             ),
         ),
     ]
-    filter_fields = ['pictures', ]
+    filter_fields = ['pictures']
     search_fields = ('id', )
     date_search_field = 'pictures__date__date'
     pagination_class = RestPageNumberPagination
