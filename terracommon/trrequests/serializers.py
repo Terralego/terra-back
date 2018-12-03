@@ -1,3 +1,4 @@
+import binascii
 import json
 import logging
 import uuid
@@ -5,6 +6,7 @@ import uuid
 from django.db import transaction
 from django.urls import reverse
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from terracommon.accounts.mixins import UserTokenGeneratorMixin
 from terracommon.accounts.serializers import TerraUserSerializer
@@ -45,9 +47,14 @@ class UserRequestSerializer(serializers.ModelSerializer,
             })
             documents = validated_data.pop('documents', [])
 
-            instance = super().create(validated_data)
-
-            self._update_or_create_documents(instance, documents)
+            try:
+                # Here, if _update_or_create_documents throw an error
+                # instance.save  in update method is rollback
+                with transaction.atomic():
+                    instance = super().create(validated_data)
+                    self._update_or_create_documents(instance, documents)
+            except (IndexError, binascii.Error):
+                raise ValidationError('Documents format is not supported')
 
             try:
                 instance.user_read(self.current_user)
@@ -77,9 +84,14 @@ class UserRequestSerializer(serializers.ModelSerializer,
 
         documents = validated_data.pop('documents', [])
 
-        instance = super().update(instance, validated_data)
-
-        self._update_or_create_documents(instance, documents)
+        try:
+            # Here, if _update_or_create_documents throw an error
+            # instance.save  in update method is rollback
+            with transaction.atomic():
+                instance = super().update(instance, validated_data)
+                self._update_or_create_documents(instance, documents)
+        except (IndexError, binascii.Error):
+            raise ValidationError('Documents format is not supported')
 
         if ('state' in validated_data
                 and old_state != validated_data['state']):
