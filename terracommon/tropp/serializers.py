@@ -90,8 +90,8 @@ class ViewpointSerializer(serializers.ModelSerializer):
 class ViewpointSerializerWithPicture(ViewpointSerializer):
     picture = SimplePictureSerializer(required=False, write_only=True)
     pictures = SimplePictureSerializer(many=True, read_only=True)
+    point = GeometryField(required=False, write_only=True)
     geometry = GeometryField(source='point.geom', read_only=True)
-    point = GeometryField(write_only=True)
 
     class Meta:
         model = Viewpoint
@@ -99,7 +99,6 @@ class ViewpointSerializerWithPicture(ViewpointSerializer):
                   'pictures')
 
     def create(self, validated_data):
-        picture_data = validated_data.pop('picture', None)
         point_data = validated_data.pop('point', None)
         layer, created = Layer.objects.get_or_create(
             name=settings.TROPP_BASE_LAYER_NAME
@@ -110,14 +109,34 @@ class ViewpointSerializerWithPicture(ViewpointSerializer):
             properties={},
         )
         validated_data.setdefault('point', feature)
+
+        picture_data = validated_data.pop('picture', None)
         viewpoint = super().create(validated_data)
-        if picture_data is not None:
+        if picture_data:
             Picture.objects.create(
                 viewpoint=viewpoint,
                 owner=self.context['request'].user,
                 **picture_data,
             )
+
         return viewpoint
+
+    def update(self, instance, validated_data):
+        picture_data = validated_data.pop('picture', None)
+        if picture_data:
+            Picture.objects.create(
+                viewpoint=instance,
+                owner=self.context['request'].user,
+                **picture_data,
+            )
+
+        point_data = validated_data.pop('point', None)
+        if point_data:
+            feature = instance.point
+            feature.geom = point_data
+            feature.save()
+
+        return super().update(instance, validated_data)
 
 
 class DocumentSerializer(serializers.ModelSerializer):

@@ -24,11 +24,13 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         cls.viewpoint_with_accepted_picture = ViewpointFactory(
             label="Viewpoint with accepted picture",
             pictures__state=STATES.ACCEPTED,
+            properties={'test_update': 'ko'},
         )
         # Create viewpoints with no picture attached to it
         cls.viewpoint_without_picture = ViewpointFactory(
             label="Viewpoint without picture",
-            pictures=None
+            pictures=None,
+            properties={'test_update': 'ko'},
         )
 
     def setUp(self):
@@ -48,6 +50,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
             "picture.date": date,
             "picture.file": self.fp,
         }
+        self._clean_permissions()  # Don't forget that !
 
     def tearDown(self):
         self.fp.close()
@@ -219,7 +222,6 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         response = self._viewpoint_create()
         # Request is correctly constructed and viewpoint has been created
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
-        self._clean_permissions()  # Don't forget that !
 
     def _viewpoint_create_with_picture(self):
         return self.client.post(
@@ -245,7 +247,6 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         response = self._viewpoint_create_with_picture()
         # Request is correctly constructed and viewpoint has been created
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
-        self._clean_permissions()
 
     def _viewpoint_delete(self):
         return self.client.delete(
@@ -269,4 +270,55 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         response = self._viewpoint_delete()
         # User have permission
         self.assertEqual(status.HTTP_204_NO_CONTENT, response.status_code)
-        self._clean_permissions()
+
+    def test_viewpoint_update_anonymous(self):
+        response = self.client.patch(
+            reverse(
+                'tropp:viewpoint-detail',
+                args=[self.viewpoint_without_picture.pk],
+            ),
+            {'label': 'test'},
+            format='json',
+        )
+        # User is not authenticated
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
+
+    def test_viewpoint_update_with_auth(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch(
+            reverse(
+                'tropp:viewpoint-detail',
+                args=[self.viewpoint_without_picture.pk],
+            ),
+            {'label': 'test'},
+            format='json',
+        )
+        # User is authenticated but doesn't have permission to update the
+        # viewpoint.
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+
+    def test_viewpoint_update_with_auth_and_perms(self):
+        self.client.force_authenticate(user=self.user)
+        self._set_permissions(['change_viewpoint', ])
+        response = self.client.patch(
+            reverse('tropp:viewpoint-detail', args=[
+                self.viewpoint_without_picture.pk]),
+            {
+                'label': 'test',
+                'properties': {'test_update': 'ok'},
+                'point': {
+                    "type": "Point",
+                    "coordinates": [
+                        0.0,
+                        1.0
+                    ]
+                }
+            },
+            format='json',
+        )
+        # User is authenticated and have permission to update the viewpoint.
+        self.assertEqual('test', response.data['label'])
+        self.assertEqual('ok', response.data['properties']['test_update'])
+        self.assertEqual(0.0, response.data['geometry']['coordinates'][0])
+        self.assertEqual(1.0, response.data['geometry']['coordinates'][1])
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
