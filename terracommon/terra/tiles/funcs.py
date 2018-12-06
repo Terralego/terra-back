@@ -1,6 +1,6 @@
 from django.contrib.gis.db.models import (FloatField, GeometryField,
                                           IntegerField)
-from django.db.models import Func
+from django.db.models import Aggregate, Func
 
 
 class RawGeometryField(GeometryField):
@@ -31,6 +31,11 @@ class ST_Distance(Func):
     output_field = FloatField()
 
 
+class ST_Extent(Aggregate):
+    function = 'ST_Extent'
+    output_field = RawGeometryField()
+
+
 class ST_LineLocatePoint(Func):
     function = 'ST_LineLocatePoint'
     output_field = FloatField()
@@ -58,4 +63,19 @@ class ST_SRID(Func):
 
 class ST_HausdorffDistance(Func):
     function = 'ST_HausdorffDistance'
+    output_field = FloatField()
+
+
+class ST_SnapToGrid(Func):
+    function = 'ST_SnapToGrid'
+    output_field = RawGeometryField()
+
+
+class ST_Length(Func):
+    function = 'ST_Length'
+    output_field = FloatField()
+
+
+class ST_Area(Func):
+    function = 'ST_Area'
     output_field = FloatField()

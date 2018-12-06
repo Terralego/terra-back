@@ -2,10 +2,12 @@ import json
 import logging
 import os
 import uuid
+from functools import reduce
 from tempfile import TemporaryDirectory
 
 import fiona
 import fiona.transform
+from deepmerge import always_merger
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSException, GEOSGeometry
@@ -22,7 +24,7 @@ from terracommon.core.helpers import make_zipfile_bytesio
 from .helpers import ChunkIterator
 from .managers import FeatureQuerySet
 from .tiles.funcs import ST_SRID, ST_HausdorffDistance
-from .tiles.helpers import VectorTile
+from .tiles.helpers import VectorTile, guess_maxzoom, guess_minzoom
 
 logger = logging.getLogger(__name__)
 
@@ -32,10 +34,47 @@ ACCEPTED_PROJECTIONS = [
 ]
 
 
+def zoom_update(func):
+    def wrapper(*args, **kargs):
+        layer = args[0]
+        response = func(*args, **kargs)
+
+        try:
+            layer.layer_settings('tiles', 'minzoom')
+        except KeyError:
+            layer.set_layer_settings(
+                'tiles', 'minzoom', guess_minzoom(layer))
+            layer.save(update_fields=["settings"])
+
+        try:
+            layer.layer_settings('tiles', 'maxzoom')
+        except KeyError:
+            layer.set_layer_settings(
+                'tiles', 'maxzoom', guess_maxzoom(layer))
+            layer.save(update_fields=["settings"])
+
+        return response
+    return wrapper
+
+
 class Layer(models.Model):
     name = models.CharField(max_length=256, unique=True, default=uuid.uuid4)
     group = models.CharField(max_length=255, default="__nogroup__")
     schema = JSONField(default=dict, blank=True)
+
+    # Settings scheam
+    SETTINGS_DEFAULT = {
+        # Tilesets attributes
+        'tiles': {
+            'minzoom': 0,
+            'maxzoom': 22,
+            'pixel_buffer': 4,
+            'features_filter': None,  # Json
+            'properties_filter': None,  # Array of string
+            'features_limit': 10000,
+        }
+    }
+    settings = JSONField(default=dict, blank=True)
 
     def _initial_import_from_csv(self, chunks, options, operations):
         for chunk in chunks:
@@ -98,6 +137,7 @@ class Layer(models.Model):
                                ' empty geometry,'
                                f' row skipped : {row}')
 
+    @zoom_update
     def from_csv_dictreader(self, reader, pk_properties, options, operations,
                             init=False, chunk_size=1000, fast=False):
         """Import (create or update) features from csv.DictReader object
@@ -124,6 +164,7 @@ class Layer(models.Model):
                 fast=fast
             )
 
+    @zoom_update
     def from_geojson(self, geojson_data, id_field=None, update=False):
         """
         Import geojson raw data in a layer
@@ -195,6 +236,7 @@ class Layer(models.Model):
         else:
             return fiona.crs.to_string(projection)
 
+    @zoom_update
     def from_shapefile(self, zipped_shapefile_file, id_field=None):
         ''' Load ShapeFile content provided into a zipped archive.
 
@@ -292,6 +334,50 @@ class Layer(models.Model):
 
         return None
 
+    @cached_property
+    def settings_with_default(self):
+        return always_merger.merge(self.SETTINGS_DEFAULT, self.settings)
+
+    def layer_settings(self, *json_path):
+        ''' Return the nested value of settings at path json_path.
+            Raise an KeyError if not defined.
+        '''
+        # Dives into settings using args
+        return reduce(
+            lambda a, v: a[v],  # Let raise KeyError on missing key
+            json_path,
+            self.settings) if self.settings is not None else None
+
+    def layer_settings_with_default(self, *json_path):
+        ''' Return the nested value of settings with SETTINGS_DEFAULT as
+            falback at path json_path.
+            Raise an KeyError if not defined.
+        '''
+        # Dives into settings using args
+        return reduce(
+            lambda a, v: a[v],  # Let raise KeyError on missing key
+            json_path,
+            self.settings_with_default)
+
+    def set_layer_settings(self, *json_path_value):
+        '''Set last parameter as value at the path place into settings
+        '''
+        json_path, value = json_path_value[:-1], json_path_value[-1]
+        # Dive into settings until the last key of path,
+        # the set the value
+        settings = self.settings
+        for key in json_path[:-1]:
+            s = settings.get(key, {})
+            settings[key] = s
+            settings = s
+        settings[json_path[-1]] = value
+
+        try:
+            # Delete the cached property
+            del self.settings_with_default
+        except AttributeError:
+            pass  # Let's continue, cache was not set
+
     def is_projection_allowed(self, projection):
         return projection in ACCEPTED_PROJECTIONS
 
@@ -323,10 +409,20 @@ class Feature(models.Model):
 
     def clean_vect_tile_cache(self):
         vtile = VectorTile(self.layer)
-        vtile.clean_tiles(self.get_intersected_tiles())
+        vtile.clean_tiles(
+            self.get_intersected_tiles(),
+            self.layer.layer_settings_with_default(
+                'tiles', 'pixel_buffer'),
+            self.layer.layer_settings_with_default(
+                'tiles', 'features_filter'),
+            self.layer.layer_settings_with_default(
+                'tiles', 'properties_filter'),
+            self.layer.layer_settings_with_default(
+                'tiles', 'features_limit')
+        )
 
     def get_intersected_tiles(self):
-        zoom_range = range(settings.MIN_TILE_ZOOM, settings.MAX_TILE_ZOOM)
+        zoom_range = range(settings.MIN_TILE_ZOOM, settings.MAX_TILE_ZOOM + 1)
         try:
             return [(tile.x, tile.y, tile.z)
                     for tile in tiles(*self.get_bounding_box(), zoom_range)]

@@ -159,7 +159,7 @@ REQUEST_SCHEMA = {}
 # Note: Other projection than 4326 are not yet supported by some part of code
 INTERNAL_GEOMETRY_SRID = 4326
 
-MAX_TILE_ZOOM = 17
+MAX_TILE_ZOOM = 15 # Vector tiles are usable on display up to max zoom + 3
 MIN_TILE_ZOOM = 10
 
 STATES = Choices(

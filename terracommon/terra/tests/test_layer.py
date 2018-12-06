@@ -17,6 +17,7 @@ from rest_framework.test import APIClient
 
 from terracommon.accounts.mixins import UserTokenGeneratorMixin
 from terracommon.accounts.tests.factories import TerraUserFactory
+from terracommon.terra.models import zoom_update
 
 from .factories import FeatureFactory, LayerFactory
 
@@ -235,3 +236,43 @@ class TestLayerFeaturesUpdate(TestCase):
 
         feature.refresh_from_db()
         self.assertDictEqual(feature.properties, updated_properties)
+
+    def test_layer_settings(self):
+        with self.assertRaises(KeyError):
+            self.layer.layer_settings('foo', 'bar', '666')
+
+        with self.assertRaises(KeyError):
+            self.layer.layer_settings('tiles', 'minzoom')
+
+        self.assertEqual(
+            self.layer.layer_settings_with_default('tiles', 'minzoom'),
+            0
+        )
+
+    def test_set_layer_settings(self):
+        with self.assertRaises(KeyError):
+            self.layer.layer_settings('foo', 'bar')
+
+        self.layer.set_layer_settings('foo', 'bar', 123)
+
+        self.assertEqual(
+            self.layer.layer_settings('foo', 'bar'),
+            123
+        )
+
+        self.assertEqual(
+            self.layer.layer_settings_with_default('foo', 'bar'),
+            123
+        )
+
+    def test_zoom_update(self):
+        with self.assertRaises(KeyError):
+            self.layer.layer_settings('tiles', 'maxzoom')
+
+        # Call the decorator manualy on nop lambda
+        self.layer.beta_lambda = lambda *args, **kargs: False
+        zoom_update(self.layer.beta_lambda)(self.layer)
+
+        self.assertEqual(
+            self.layer.layer_settings('tiles', 'maxzoom') is not None,
+            True)
