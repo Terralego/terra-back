@@ -24,7 +24,8 @@ setup(
     long_description=read("README.md"),
     classifiers=[
         "Programming Language :: Python",
-        "Topic :: Software Development"
+        "Topic :: Software Development",
+        "License :: OSI Approved :: GNU Affero General Public License v3",
     ],
     install_requires=[
         "psycopg2>=2.7,<2.8",
