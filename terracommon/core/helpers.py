@@ -98,7 +98,10 @@ class CustomCsvBuilder:
                             flatten_tree.append(subtree_copy)
                             break
                     else:
-                        flatten_tree[i].update(sub_child)
+                        try:
+                            flatten_tree[i].update(sub_child)
+                        except IndexError:
+                            flatten_tree.append(sub_child)
 
     def create_csv(self, output):
         self.csv = output
