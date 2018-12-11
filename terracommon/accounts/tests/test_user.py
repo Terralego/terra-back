@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.db import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -47,3 +48,7 @@ class UserViewsetTestCase(TestCase, TestPermissionsMixin):
         self.assertListEqual(
             [g.name for g in user.groups.all()],
             response.json())
+
+    def test_create_two_user_with_same_email(self):
+        with self.assertRaises(IntegrityError):
+            UserModel.objects.create(email=self.user.email)

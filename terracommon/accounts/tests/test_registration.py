@@ -109,6 +109,7 @@ class RegistrationTestCase(TestCase):
         test_email = 'test@test.com'
         TerraUserFactory(email=test_email)
 
+        self.assertEqual(len(mail.outbox), 0)
         response = self.client.post(
             reverse('accounts:register'),
             {
@@ -122,3 +123,8 @@ class RegistrationTestCase(TestCase):
             )
 
         self.assertEqual({}, response.json())
+        self.assertEqual(
+            get_user_model().objects.filter(email=test_email).count(),
+            1
+        )
+        self.assertEqual(len(mail.outbox), 1)
