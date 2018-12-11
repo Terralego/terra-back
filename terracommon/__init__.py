@@ -1,5 +1,5 @@
-__version__ = "1.0.0"
+__version__ = "0.1.0"
 
-__author__ = "Makina Corpus"
+__author__ = "Terralego"
 
-__email__ = "contact@makina-corpus.com"
+__email__ = "terralego-pypi@makina-corpus.com"

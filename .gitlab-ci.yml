@@ -3,6 +3,7 @@ image: ubuntu:bionic
 stages:
   - linting
   - tests
+  - publish
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache"
@@ -39,3 +40,23 @@ linting:
   tags: [shared-ci-docker]
   script:
      - ./venv/bin/tox -c tox.ini -e linting
+
+publish_pypi:
+  image: python:3.6
+  stage: publish
+  when: manual
+  before_script:
+    - echo =========== Deploying on pypi ===========
+  only:
+    - /^v\d+\.\d+\.\d+([abc]\d*)?$/  # PEP-440 compliant version (tags)
+  except:
+     - branches 
+  variables:
+    TWINE_USERNAME: $PYPI_USER
+    TWINE_PASSWORD: $PYPI_PASSWORD
+    TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
+  script:
+    - pip install twine
+    - python setup.py sdist bdist_wheel
+    - twine upload -r pypi dist/*
+
