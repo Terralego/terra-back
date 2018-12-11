@@ -54,8 +54,7 @@ publish_pypi:
   variables:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASSWORD
-    TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
-
+    TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
   script:
     - pip install twine
     - python setup.py sdist bdist_wheel
