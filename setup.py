@@ -22,6 +22,7 @@ setup(
     ),
     include_package_data=True,
     long_description=read("README.md"),
+    long_description_content_type="text/markdown",
     classifiers=[
         "Programming Language :: Python",
         "Topic :: Software Development",
