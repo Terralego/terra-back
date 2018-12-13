@@ -173,3 +173,7 @@ STATES = Choices(
 TERRA_APPLIANCE_SETTINGS = {}
 FRONT_URL = os.environ.get('FRONT_URL', '')
 HOSTNAME = os.environ.get('HOSTNAME', '')
+
+TERRA_TILES_HOSTNAMES = [
+    HOSTNAME,
+]
