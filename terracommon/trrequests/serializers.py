@@ -1,4 +1,3 @@
-import binascii
 import json
 import logging
 import uuid
@@ -6,7 +5,6 @@ import uuid
 from django.db import transaction
 from django.urls import reverse
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 
 from terracommon.accounts.mixins import UserTokenGeneratorMixin
 from terracommon.accounts.serializers import TerraUserSerializer
@@ -35,8 +33,7 @@ class UserRequestSerializer(serializers.ModelSerializer,
     downloadables = DownloadableDocumentSerializer(read_only=True,
                                                    many=True,
                                                    source='downloadable')
-    documents = RelatedDocumentSerializer(many=True, required=False,
-                                          write_only=True)
+    documents = RelatedDocumentSerializer(many=True, required=False)
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -46,15 +43,8 @@ class UserRequestSerializer(serializers.ModelSerializer,
                 'layer': self._create_layer(layer),
             })
             documents = validated_data.pop('documents', [])
-
-            try:
-                # Here, if _update_or_create_documents throw an error
-                # instance.save  in update method is rollback
-                with transaction.atomic():
-                    instance = super().create(validated_data)
-                    self._update_or_create_documents(instance, documents)
-            except (IndexError, binascii.Error):
-                raise ValidationError('Documents format is not supported')
+            instance = super().create(validated_data)
+            self._update_or_create_documents(instance, documents)
 
             try:
                 instance.user_read(self.current_user)
@@ -83,15 +73,8 @@ class UserRequestSerializer(serializers.ModelSerializer,
             instance.layer.from_geojson(json.dumps(geojson), update=True)
 
         documents = validated_data.pop('documents', [])
-
-        try:
-            # Here, if _update_or_create_documents throw an error
-            # instance.save  in update method is rollback
-            with transaction.atomic():
-                instance = super().update(instance, validated_data)
-                self._update_or_create_documents(instance, documents)
-        except (IndexError, binascii.Error):
-            raise ValidationError('Documents format is not supported')
+        instance = super().update(instance, validated_data)
+        self._update_or_create_documents(instance, documents)
 
         if ('state' in validated_data
                 and old_state != validated_data['state']):
