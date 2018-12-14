@@ -142,6 +142,11 @@ class Picture(BaseUpdatableModel):
         ]
         get_latest_by = 'date'
 
+    def save(self, *args, **kwargs):
+        if not settings.TROPP_PICTURES_STATES_WORKFLOW:
+            self.state = settings.STATES.ACCEPTED
+        super().save(*args, **kwargs)
+
 
 class Document(BaseUpdatableModel):
     owner = models.ForeignKey(
