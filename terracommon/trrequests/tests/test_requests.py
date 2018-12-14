@@ -347,7 +347,8 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             'can_create_requests',
         ])
         response = self.client.get(
-            reverse('request-detail', kwargs={'pk': userrequest.pk})
+            reverse('request-detail', kwargs={'pk': userrequest.pk}),
+            format='json'
         )
         self.assertTrue(status.HTTP_200_OK, response.status_code)
         json_reponse = response.json()
