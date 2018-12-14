@@ -2,6 +2,7 @@ import base64
 import binascii
 import logging
 
+import magic
 from django.core.files import File
 from rest_framework import serializers
 
@@ -14,9 +15,9 @@ class FileBase64Field(serializers.Field):
             raise TypeError(
                 f'Expect a django File object, instead get {type(value)}'
             )
-
         with value.open(mode='rb') as f:
-            return base64.b64encode(f.read())
+            return (f'data:{magic.from_file(value.path, mime=True)};'
+                    f'base64,{base64.b64encode(f.read())}')
 
     def to_internal_value(self, data):
         try:
@@ -28,7 +29,7 @@ class FileBase64Field(serializers.Field):
                 f"cannot read document {data}"
             )
             raise serializers.ValidationError(
-                'document field must be "data/<format>;base64,<code>" format'
+                'document field must be "data:<mime>;base64,<string>" format'
             )
 
         else:
