@@ -2,8 +2,10 @@ import base64
 import os
 from unittest.mock import MagicMock
 
+import magic
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.files import File
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -307,23 +309,24 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
 
         img = os.path.join(os.path.dirname(__file__), 'files', 'img.png')
         with open(img, 'rb') as f:
-            base_64 = base64.b64encode(f.read())
-        self._set_permissions([
-            'can_read_self_requests',
-            'can_create_requests',
-        ])
-        response = self.client.patch(
-            reverse('request-detail', kwargs={'pk': userrequest.pk}),
-            {
-                'geojson': self.geojson,
-                'documents': [{
-                    'key': 'doctest',
-                    'document': f'data:image/png;base64,{base_64}',
-                }],
-            }
-        )
-        self.assertTrue(response.status_code, status.HTTP_200_OK)
-        self._clean_permissions()
+            self._set_permissions([
+                'can_read_self_requests',
+                'can_create_requests',
+            ])
+
+            response = self.client.patch(
+                reverse('request-detail', kwargs={'pk': userrequest.pk}),
+                {
+                    'geojson': self.geojson,
+                    'documents': [{
+                        'key': 'doctest',
+                        'document': (f'data:image/png;base64,'
+                                     f'{(base64.b64encode(f.read())).decode("utf-8")}'),
+                    }],
+                }
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self._clean_permissions()
 
     def test_retrieve_related_document(self):
         layer = LayerFactory()
@@ -333,14 +336,13 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             properties={},
         )
         img = os.path.join(os.path.dirname(__file__), 'files', 'img.png')
-
-        RelatedDocument.objects.create(
-            key='document_to_test',
-            object_id=userrequest.pk,
-            content_type=(ContentType.objects
-                                     .get_for_model(userrequest.__class__)),
-            document=img
-        )
+        with open(img, 'rb') as f:
+            RelatedDocument.objects.create(
+                key='document_to_test',
+                object_id=userrequest.pk,
+                content_type=ContentType.objects.get_for_model(userrequest.__class__),
+                document=File(f)
+            )
 
         self._set_permissions([
             'can_read_self_requests',
@@ -348,13 +350,11 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
         ])
         response = self.client.get(
             reverse('request-detail', kwargs={'pk': userrequest.pk}),
-            format='json'
         )
-        self.assertEqual(response.get('Content-Type'), 'application/json')
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         json_reponse = response.json()
         self.assertIn(
-            'data:image/png;base64,',
+            f'data:{magic.from_file(img, mime=True)};base64,',
             json_reponse['documents'][0]['document']
         )
         self._clean_permissions()
