@@ -350,7 +350,8 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             reverse('request-detail', kwargs={'pk': userrequest.pk}),
             format='json'
         )
-        self.assertTrue(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(response.get('Content-Type'), 'application/json')
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         json_reponse = response.json()
         self.assertIn(
             'data:image/png;base64,',
