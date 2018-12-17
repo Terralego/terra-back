@@ -3,19 +3,23 @@ import binascii
 import logging
 
 import magic
-from django.core.files import File
+from django.db.models.fields.files import FieldFile
 from rest_framework import serializers
 
 logger = logging.getLogger(__name__)
 
 
-class FileBase64Field(serializers.Field):
+class FileBase64Field(serializers.FileField):
     def to_representation(self, value):
-        if not isinstance(value, File):
+        if not value:
+            return None
+
+        if not isinstance(value, FieldFile):
             raise TypeError(
-                f'Expect a django File object, instead get {type(value)}'
+                f'Expect a django FieldFile, instead get {type(value)}'
             )
-        with value.open(mode='rb') as f:
+
+        with open(value.path, mode='rb') as f:
             return (f'data:{magic.from_file(value.path, mime=True)};'
                     f'base64,{base64.b64encode(f.read())}')
 
