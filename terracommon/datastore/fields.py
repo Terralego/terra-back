@@ -21,7 +21,7 @@ class FileBase64Field(serializers.FileField):
 
         with open(value.path, mode='rb') as f:
             return (f'data:{magic.from_file(value.path, mime=True)};'
-                    f'base64,{base64.b64encode(f.read())}')
+                    f'base64,{(base64.b64encode(f.read())).decode("utf-8")}')
 
     def to_internal_value(self, data):
         try:
