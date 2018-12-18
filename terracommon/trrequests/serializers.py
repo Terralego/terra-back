@@ -2,6 +2,8 @@ import json
 import logging
 import uuid
 
+from django.contrib.contenttypes.models import ContentType
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import transaction
 from django.urls import reverse
 from rest_framework import serializers
@@ -9,8 +11,8 @@ from rest_framework import serializers
 from terracommon.accounts.mixins import UserTokenGeneratorMixin
 from terracommon.accounts.serializers import TerraUserSerializer
 from terracommon.core.mixins import SerializerCurrentUserMixin
+from terracommon.datastore.models import RelatedDocument
 from terracommon.datastore.serializers import RelatedDocumentSerializer
-from terracommon.datastore.views_mixins import Base64RelatedDocumentsMixin
 from terracommon.document_generator.serializers import \
     DownloadableDocumentSerializer
 from terracommon.events.signals import event
@@ -22,9 +24,7 @@ from .models import Comment, UserRequest
 logger = logging.getLogger(__name__)
 
 
-class UserRequestSerializer(serializers.ModelSerializer,
-                            SerializerCurrentUserMixin,
-                            Base64RelatedDocumentsMixin):
+class UserRequestSerializer(serializers.ModelSerializer, SerializerCurrentUserMixin):
     owner = TerraUserSerializer(read_only=True)
     geojson = GeoJSONLayerSerializer(source='layer')
     reviewers = TerraUserSerializer(read_only=True, many=True)
@@ -43,9 +43,7 @@ class UserRequestSerializer(serializers.ModelSerializer,
                 'layer': self._create_layer(layer),
             })
             documents = validated_data.pop('documents', [])
-
             instance = super().create(validated_data)
-
             self._update_or_create_documents(instance, documents)
 
             try:
@@ -75,9 +73,7 @@ class UserRequestSerializer(serializers.ModelSerializer,
             instance.layer.from_geojson(json.dumps(geojson), update=True)
 
         documents = validated_data.pop('documents', [])
-
         instance = super().update(instance, validated_data)
-
         self._update_or_create_documents(instance, documents)
 
         if ('state' in validated_data
@@ -120,10 +116,23 @@ class UserRequestSerializer(serializers.ModelSerializer,
 
         return read is None or (read.last_read < obj.updated_at)
 
+    def _update_or_create_documents(self, instance, documents):
+        for document in documents:
+            RelatedDocument.objects.update_or_create(
+                key=document['key'],
+                object_id=instance.pk,
+                content_type=ContentType.objects.get_for_model(
+                                                instance.__class__),
+                defaults={
+                    'document': SimpleUploadedFile(document['key'],
+                                                   document['document']),
+                }
+            )
+
     class Meta:
         model = UserRequest
         exclude = ('layer',)
-        read_only_fields = ('owner', 'expiry')
+        read_only_fields = ('owner', 'expiry', )
 
 
 class CommentSerializer(serializers.ModelSerializer,

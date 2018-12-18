@@ -2,6 +2,7 @@ import logging
 
 from rest_framework import serializers
 
+from .fields import FileBase64Field
 from .models import DataStore, RelatedDocument
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,7 @@ class DataStoreSerializer(serializers.ModelSerializer):
 
 class RelatedDocumentSerializer(serializers.ModelSerializer):
 
-    document = serializers.CharField()
+    document = FileBase64Field()
 
     class Meta:
         model = RelatedDocument

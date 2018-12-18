@@ -1,12 +1,18 @@
+import base64
+import os
 from unittest.mock import MagicMock
 
+import magic
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+from django.core.files import File
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from terracommon.accounts.tests.factories import TerraUserFactory
+from terracommon.datastore.models import RelatedDocument
 from terracommon.events.signals import event
 from terracommon.terra.tests.factories import LayerFactory
 from terracommon.trrequests.models import UserRequest
@@ -239,6 +245,7 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             old_properties=old_properties
         )
         event.disconnect(receiver_callback)
+        self._clean_permissions()
 
     def test_upload_document(self):
         self._set_permissions(['can_create_requests', ])
@@ -252,8 +259,107 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
                 'document': ('data:image/png;base64,aGVsbG8gd29ybGQ=')
             }, ]
         }
-        """First we try with no rights"""
         response = self.client.post(reverse('request-list'),
                                     request,
                                     format='json')
-        self.assertEqual(len(response.json().get('documents')), 1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(UserRequest.objects
+                                   .filter(documents__key='my_document')
+                                   .exists())
+        self._clean_permissions()
+
+    def test_update_userrequest_with_wrong_document_format(self):
+        layer = LayerFactory()
+        userrequest = UserRequest.objects.create(
+            owner=self.user,
+            layer=layer,
+            properties={},
+        )
+
+        self._set_permissions(['can_read_self_requests', ])
+        response = self.client.put(
+            reverse('request-detail', kwargs={'pk': userrequest.pk}),
+            {
+                'properties': {'noupdate': 'tada'},
+                'geojson': {},
+                'documents': [{
+                    "key": "activity-0",
+                    "document": ("documents/trrequests_userrequest/"
+                                 f"{userrequest.pk}/activity-0")
+                }],
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self._clean_permissions()
+
+        self.assertFalse(UserRequest.objects
+                                    .filter(properties__noupdate='tada')
+                                    .exists())
+        self.assertFalse(UserRequest.objects
+                                    .filter(documents__key="activity-0")
+                                    .exists())
+
+    def test_returned_document_are_base64(self):
+        layer = LayerFactory()
+        userrequest = UserRequest.objects.create(
+            owner=self.user,
+            layer=layer,
+            properties={},
+        )
+
+        img = os.path.join(os.path.dirname(__file__), 'files', 'img.png')
+        with open(img, 'rb') as f:
+            self._set_permissions([
+                'can_read_self_requests',
+                'can_create_requests',
+            ])
+            document = (f'data:image/png;base64,'
+                        f'{(base64.b64encode(f.read())).decode("utf-8")}')
+            response = self.client.patch(
+                reverse('request-detail', kwargs={'pk': userrequest.pk}),
+                {
+                    'geojson': self.geojson,
+                    'documents': [{
+                        'key': 'doctest',
+                        'document': document,
+                    }],
+                }
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            json_response = response.json()
+            self.assertEqual(
+                document,
+                json_response['documents'][0]['document']
+            )
+            self._clean_permissions()
+
+    def test_retrieve_related_document(self):
+        layer = LayerFactory()
+        userrequest = UserRequest.objects.create(
+            owner=self.user,
+            layer=layer,
+            properties={},
+        )
+        img = os.path.join(os.path.dirname(__file__), 'files', 'img.png')
+        with open(img, 'rb') as f:
+            RelatedDocument.objects.create(
+                key='document_to_test',
+                object_id=userrequest.pk,
+                content_type=ContentType.objects.get_for_model(userrequest.__class__),
+                document=File(f)
+            )
+
+        self._set_permissions([
+            'can_read_self_requests',
+            'can_create_requests',
+        ])
+        response = self.client.get(
+            reverse('request-detail', kwargs={'pk': userrequest.pk}),
+        )
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        json_reponse = response.json()
+        self.assertIn(
+            f'data:{magic.from_file(img, mime=True)};base64,',
+            json_reponse['documents'][0]['document']
+        )
+        self._clean_permissions()
