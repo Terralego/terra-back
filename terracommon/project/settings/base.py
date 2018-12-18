@@ -37,5 +37,3 @@ for app in CUSTOM_APPS:
 
 
 INSTALLED_APPS += CUSTOM_APPS
-
-TILE_FLAVOR = 'smart'  # 'blob' or 'smart'
