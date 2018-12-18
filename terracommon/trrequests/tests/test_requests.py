@@ -313,19 +313,24 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
                 'can_read_self_requests',
                 'can_create_requests',
             ])
-
+            document = (f'data:image/png;base64,'
+                        f'{(base64.b64encode(f.read())).decode("utf-8")}')
             response = self.client.patch(
                 reverse('request-detail', kwargs={'pk': userrequest.pk}),
                 {
                     'geojson': self.geojson,
                     'documents': [{
                         'key': 'doctest',
-                        'document': (f'data:image/png;base64,'
-                                     f'{(base64.b64encode(f.read())).decode("utf-8")}'),
+                        'document': document,
                     }],
                 }
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
+            json_response = response.json()
+            self.assertEqual(
+                document,
+                json_response['documents'][0]['document']
+            )
             self._clean_permissions()
 
     def test_retrieve_related_document(self):
