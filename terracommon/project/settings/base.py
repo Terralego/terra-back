@@ -35,5 +35,6 @@ for app in CUSTOM_APPS:
     except ImportError as e:
         pass
 
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 INSTALLED_APPS += CUSTOM_APPS

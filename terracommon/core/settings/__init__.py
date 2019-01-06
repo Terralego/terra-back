@@ -10,6 +10,7 @@ from terracommon.terra.helpers import Choices
 PROJECT_DIR = os.path.abspath('.')
 PUBLIC_DIR = os.path.join(PROJECT_DIR, 'public')
 PROJECT_NAME = os.environ.get('PROJECT_PACKAGE')
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
