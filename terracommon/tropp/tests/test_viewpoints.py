@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -8,7 +9,9 @@ from rest_framework.test import APITestCase
 
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.core.settings import STATES
+from terracommon.terra.models import Feature
 from terracommon.terra.tests.factories import FeatureFactory
+from terracommon.tropp.models import Viewpoint
 from terracommon.tropp.tests.factories import ViewpointFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin
 
@@ -247,6 +250,9 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         response = self._viewpoint_create_with_picture()
         # Request is correctly constructed and viewpoint has been created
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertIn('placeholder', Feature.objects.get(
+            id=self.viewpoint_with_accepted_picture.point.id
+        ).properties['viewpoint_picture']['thumbnail'])
 
     def _viewpoint_delete(self):
         return self.client.delete(
@@ -271,28 +277,29 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         # User have permission
         self.assertEqual(status.HTTP_204_NO_CONTENT, response.status_code)
 
-    def test_viewpoint_update_anonymous(self):
-        response = self.client.patch(
-            reverse(
-                'tropp:viewpoint-detail',
-                args=[self.viewpoint_without_picture.pk],
-            ),
-            {'label': 'test'},
+    def _viewpoint_update(self):
+        return self.client.patch(
+            reverse('tropp:viewpoint-detail', args=[
+                self.viewpoint_with_accepted_picture.pk]),
+            {
+                'label': 'test',
+                'properties': {'test_update': 'ok'},
+                'point': {
+                    "type": "Point",
+                    "coordinates": [0.0, 1.0]
+                }
+            },
             format='json',
         )
+
+    def test_viewpoint_update_anonymous(self):
+        response = self._viewpoint_update()
         # User is not authenticated
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
 
     def test_viewpoint_update_with_auth(self):
         self.client.force_authenticate(user=self.user)
-        response = self.client.patch(
-            reverse(
-                'tropp:viewpoint-detail',
-                args=[self.viewpoint_without_picture.pk],
-            ),
-            {'label': 'test'},
-            format='json',
-        )
+        response = self._viewpoint_update()
         # User is authenticated but doesn't have permission to update the
         # viewpoint.
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
@@ -300,25 +307,78 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
     def test_viewpoint_update_with_auth_and_perms(self):
         self.client.force_authenticate(user=self.user)
         self._set_permissions(['change_viewpoint', ])
+
+        response = self._viewpoint_update()
+
+        # User is authenticated and have permission to update the viewpoint.
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+        # Check if the viewpoint is correctly updated
+        viewpoint = Viewpoint.objects.get(
+            pk=self.viewpoint_with_accepted_picture.pk
+        )
+        self.assertEqual(response.data['label'], viewpoint.label)
+        self.assertEqual(
+            response.data['properties']['test_update'],
+            viewpoint.properties['test_update']
+        )
+
+        # Check if the viewpoint's feature is correctly updated by the signal
+        feature = Feature.objects.get(
+            pk=self.viewpoint_with_accepted_picture.point.pk
+        )
+        self.assertEqual(
+            response.data['label'],
+            feature.properties['viewpoint_label']
+        )
+        self.assertEqual(
+            self.viewpoint_with_accepted_picture.pk,
+            feature.properties['viewpoint_id']
+        )
+        self.assertEqual(
+            response.data['geometry']['coordinates'],
+            [feature.geom.coords[0], feature.geom.coords[1]]
+        )
+
+    def test_add_picture_on_viewpoint_with_auth_and_perms(self):
+        self.client.force_authenticate(user=self.user)
+        self._set_permissions(['change_viewpoint', ])
+
+        # We add a more recent picture to the viewpoint
+        date = timezone.datetime(2019, 1, 1, tzinfo=timezone.utc)
+        file = SimpleUploadedFile(
+            name='test.jpg',
+            content=open(
+                'terracommon/tropp/tests/placeholder.jpg',
+                'rb',
+            ).read(),
+            content_type='image/jpeg',
+        )
         response = self.client.patch(
             reverse('tropp:viewpoint-detail', args=[
-                self.viewpoint_without_picture.pk]),
+                self.viewpoint_with_accepted_picture.pk]),
             {
-                'label': 'test',
-                'properties': {'test_update': 'ok'},
-                'point': {
-                    "type": "Point",
-                    "coordinates": [
-                        0.0,
-                        1.0
-                    ]
-                }
+                'picture.date': date,
+                'picture.file': file
             },
-            format='json',
+            format='multipart',
         )
-        # User is authenticated and have permission to update the viewpoint.
-        self.assertEqual('test', response.data['label'])
-        self.assertEqual('ok', response.data['properties']['test_update'])
-        self.assertEqual(0.0, response.data['geometry']['coordinates'][0])
-        self.assertEqual(1.0, response.data['geometry']['coordinates'][1])
         self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+        viewpoint = Viewpoint.objects.get(
+            pk=self.viewpoint_with_accepted_picture.pk
+        )
+        self.assertEqual(2, len(viewpoint.pictures.all()))
+        self.assertIn(
+            file.name.split('.')[0],
+            viewpoint.pictures.latest().file.name
+        )
+
+        feature = Feature.objects.get(
+            pk=self.viewpoint_with_accepted_picture.point.pk
+        )
+        # Check if the signal has been sent after patching
+        self.assertIn(
+            file.name.split('.')[0],
+            feature.properties['viewpoint_picture']['list']
+        )
