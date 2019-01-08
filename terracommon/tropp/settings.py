@@ -8,8 +8,10 @@ INSTALLED_APPS += (
 
 VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
     'tropp': [
-        ('full_size', 'url'),
-        ('thumbnail', 'thumbnail__250x190'),
+        ('original', 'url'),
+        ('full', 'thumbnail__1500x1125'),
+        ('list', 'thumbnail__300x225'),
+        ('thumbnail', 'thumbnail__120x90'),
     ]
 }
 
