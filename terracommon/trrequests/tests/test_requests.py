@@ -6,6 +6,7 @@ import magic
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.files import File
+from django.shortcuts import resolve_url
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -280,7 +281,7 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
 
         self._set_permissions(['can_read_self_requests', ])
         response = self.client.put(
-            reverse('request-detail', kwargs={'pk': userrequest.pk}),
+            resolve_url('trrequests:request-detail', pk=userrequest.pk),
             {
                 'properties': {'noupdate': 'tada'},
                 'geojson': {},
@@ -318,7 +319,7 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             document = (f'data:image/png;base64,'
                         f'{(base64.b64encode(f.read())).decode("utf-8")}')
             response = self.client.patch(
-                reverse('request-detail', kwargs={'pk': userrequest.pk}),
+                resolve_url('trrequests:request-detail', pk=userrequest.pk),
                 {
                     'geojson': self.geojson,
                     'documents': [{
@@ -356,7 +357,7 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             'can_create_requests',
         ])
         response = self.client.get(
-            reverse('request-detail', kwargs={'pk': userrequest.pk}),
+            resolve_url('trrequests:request-detail', pk=userrequest.pk),
         )
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         json_reponse = response.json()
