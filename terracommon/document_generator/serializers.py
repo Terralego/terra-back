@@ -21,7 +21,7 @@ class DownloadableDocumentSerializer(serializers.ModelSerializer,
     def get_url(self, obj):
         uidb64, token = self.get_uidb64_token_for_user(self.current_user)
         return "{}?uidb64={}&token={}".format(
-            reverse('document-pdf', kwargs={
+            reverse('document_generator:document-pdf', kwargs={
                 'request_pk': obj.linked_object.id,
                 'pk': obj.document.id
 

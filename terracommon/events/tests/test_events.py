@@ -46,7 +46,7 @@ class EventsTestCase(TestCase, TestPermissionsMixin):
         event.connect(handler)
 
         self._set_permissions(['can_create_requests', ])
-        response = self.client.post(reverse('request-list'),
+        response = self.client.post(reverse('trrequests:request-list'),
                                     request,
                                     format='json')
         self.assertEqual(201, response.status_code)

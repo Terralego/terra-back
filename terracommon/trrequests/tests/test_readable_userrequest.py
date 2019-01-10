@@ -22,7 +22,8 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
     def test_nocomment_and_unread(self):
         userrequest = UserRequestFactory(owner=self.user)
         response = self.client.get(
-            reverse('request-detail', args=[userrequest.pk, ])).json()
+            reverse('trrequests:request-detail', args=[userrequest.pk, ])
+        ).json()
 
         self.assertFalse(response['has_new_comments'])
         self.assertTrue(response['has_new_changes'])
@@ -36,7 +37,8 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
 
         # one comment but no changes to userrequest
         response = self.client.get(
-            reverse('request-detail', args=[userrequest.pk, ])).json()
+            reverse('trrequests:request-detail', args=[userrequest.pk, ])
+        ).json()
 
         self.assertFalse(response['has_new_comments'])
         self.assertFalse(response['has_new_changes'])
@@ -45,7 +47,8 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
         userrequest.user_read(self.user)
         CommentFactory(userrequest=userrequest)
         response = self.client.get(
-            reverse('request-detail', args=[userrequest.pk, ])).json()
+            reverse('trrequests:request-detail', args=[userrequest.pk, ])
+        ).json()
 
         self.assertTrue(response['has_new_comments'])
         self.assertFalse(response['has_new_changes'])
@@ -54,7 +57,8 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
         userrequest.user_read(self.user)
         CommentFactory(userrequest=userrequest, is_internal=True)
         response = self.client.get(
-            reverse('request-detail', args=[userrequest.pk, ])).json()
+            reverse('trrequests:request-detail', args=[userrequest.pk, ])
+        ).json()
 
         self.assertFalse(response['has_new_comments'])
         self.assertFalse(response['has_new_changes'])
@@ -65,25 +69,28 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
         # new userrequest, never read
         userrequest = UserRequestFactory(owner=self.user)
         response = self.client.get(
-            reverse('request-detail', args=[userrequest.pk, ])).json()
+            reverse('trrequests:request-detail', args=[userrequest.pk, ])
+        ).json()
 
         self.assertTrue(response['has_new_changes'])
 
         # read once through API
         response = self.client.get(
-            reverse('request-read', args=[userrequest.pk, ]))
+            reverse('trrequests:request-read', args=[userrequest.pk, ]))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json().get('id'), userrequest.pk)
 
         response = self.client.get(
-            reverse('request-detail', args=[userrequest.pk, ])).json()
+            reverse('trrequests:request-detail', args=[userrequest.pk, ])
+        ).json()
 
         self.assertFalse(response['has_new_changes'])
 
         # lets make a change to the userrequest
         userrequest.save()
         response = self.client.get(
-            reverse('request-detail', args=[userrequest.pk, ])).json()
+            reverse('trrequests:request-detail', args=[userrequest.pk, ])
+        ).json()
 
         self.assertTrue(response['has_new_changes'])
 
@@ -96,7 +103,7 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
         }
 
         self._set_permissions(['can_create_requests', ])
-        response = self.client.post(reverse('request-list'),
+        response = self.client.post(reverse('trrequests:request-list'),
                                     request,
                                     format='json')
         ur = UserRequest.objects.get(pk=response.json()['id'])
@@ -106,7 +113,7 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
 
         # test update
         response = self.client.patch(
-                    reverse('request-detail', args=[ur.pk, ]),
+                    reverse('trrequests:request-detail', args=[ur.pk, ]),
                     request,
                     format='json')
         read_object = ur.get_user_read(self.user)
@@ -123,7 +130,7 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
         self._set_permissions([
             'can_comment_requests',
         ])
-        response = self.client.post(reverse('comment-list',
+        response = self.client.post(reverse('trrequests:comment-list',
                                     args=[ur.pk, ]),
                                     comment_request,
                                     format='json')
@@ -137,7 +144,7 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
 
         # test with a non owner user
         UserRequestFactory(state=settings.STATES.DRAFT)
-        response = self.client.get(reverse('request-list'))
+        response = self.client.get(reverse('trrequests:request-list'))
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(response.json().get('count'), 0)
@@ -149,7 +156,7 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
 
         self._set_permissions(['can_read_self_requests', ])
 
-        response = self.client.get(reverse('request-list'))
+        response = self.client.get(reverse('trrequests:request-list'))
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertNotEqual(response.json().get('count'), 0)
 
