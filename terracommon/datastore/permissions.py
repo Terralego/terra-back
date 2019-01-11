@@ -1,7 +1,6 @@
-from django.contrib.auth.models import Permission
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 
-from .models import DataStore
+from .models import DataStorePermission
 
 
 class IsAuthenticatedAndDataStoreAllowed(IsAuthenticated):
@@ -11,7 +10,9 @@ class IsAuthenticatedAndDataStoreAllowed(IsAuthenticated):
         if request.method in SAFE_METHODS:
             permissions.append('can_read_datastore')
 
-        perms = Permission.objects.filter(codename__in=permissions)
+        perms = DataStorePermission.objects.filter(
+            permission__codename__in=permissions,
+            group__in=request.user.groups.all()
+        )
 
-        return DataStore.objects.get_datastores_for_user(
-                    request.user, perms).filter(key=obj.key).exists()
+        return any([obj.key.startswith(perm.prefix) for perm in perms])
