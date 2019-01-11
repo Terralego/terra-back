@@ -281,7 +281,8 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         ])
 
         url = "{}?token=aaa&uidb64=zzzzz".format(
-            reverse('comment-attachment', args=[self.request.pk, comment.pk]))
+            reverse('trrequests:comment-attachment',
+                    args=[self.request.pk, comment.pk]))
 
         self.assertEqual(
             self.client.get(url).status_code,
@@ -317,7 +318,8 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
             'can_internal_comment_requests',
         ])
         response = self.client.delete(
-            reverse('comment-detail', args=[self.request.pk, comment.pk]),
+            reverse('trrequests:comment-detail',
+                    args=[self.request.pk, comment.pk]),
             format=format)
         # Delete a comment is forbidden
         self.assertEqual(status.HTTP_405_METHOD_NOT_ALLOWED,
@@ -339,21 +341,22 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(1, len(comment_recovered))
         response = comment_recovered[0]
         self.assertIn(
-            reverse('comment-attachment', args=[self.request.pk, c.pk]),
+            reverse('trrequests:comment-attachment',
+                    args=[self.request.pk, c.pk]),
             response.get('attachment_url'))
 
     def _get_comment_list(self):
         return self.client.get(
-            reverse('comment-list', args=[self.request.pk, ]))
+            reverse('trrequests:comment-list', args=[self.request.pk, ]))
 
     def _post_comment(self, comment, format='json'):
-        return self.client.post(reverse('comment-list',
+        return self.client.post(reverse('trrequests:comment-list',
                                         args=[self.request.pk, ]),
                                 comment,
                                 format=format)
 
     def _patch_comment(self, pk, comment, format='json'):
-        return self.client.patch(reverse('comment-detail',
+        return self.client.patch(reverse('trrequests:comment-detail',
                                          args=[self.request.pk, pk]),
                                  comment,
                                  format=format)
@@ -362,6 +365,6 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         return self.client.get(self._get_comment_attachment_url(pk))
 
     def _get_comment_attachment_url(self, pk):
-        response = self.client.get(reverse('comment-detail',
+        response = self.client.get(reverse('trrequests:comment-detail',
                                    args=[self.request.pk, pk]))
         return response.json()['attachment_url']
