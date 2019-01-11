@@ -135,3 +135,25 @@ class DataStoreTestCase(TestCase):
                                data={'test_key': 'test value'})
         self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
         self.assertFalse(DataStore.objects.filter(key='terracommon.prefix.forbidden_creation').exists())
+
+    def test_perms(self):
+        # Add the user to a group
+        group = Group.objects.create(name='can_readwrite')
+        self.user.groups.add(group)
+
+        # Allow this group to read the terracommon.prefix prefix
+        perm = Permission.objects.get(codename='can_readwrite_datastore')
+        DataStorePermission.objects.get_or_create(
+            group=group,
+            permission=perm,
+            prefix='terracommon.testprefix',
+        )
+
+        test_value = {'test_key': 'test value'}
+        response = self.client.post(reverse('datastore:datastore-detail', args=['terracommon.testprefix.blurp']),
+                                    data=test_value)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        response = self.client.post(reverse('datastore:datastore-detail', args=['terracommon.forbiddenprefix']),
+                                    data=test_value)
+        self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
