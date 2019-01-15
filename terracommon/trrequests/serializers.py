@@ -12,7 +12,8 @@ from terracommon.accounts.mixins import UserTokenGeneratorMixin
 from terracommon.accounts.serializers import TerraUserSerializer
 from terracommon.core.mixins import SerializerCurrentUserMixin
 from terracommon.datastore.models import RelatedDocument
-from terracommon.datastore.serializers import RelatedDocumentSerializer
+from terracommon.datastore.serializers import (RelatedDocumentPDFSerializer,
+                                               RelatedDocumentSerializer)
 from terracommon.document_generator.serializers import \
     DownloadableDocumentSerializer
 from terracommon.events.signals import event
@@ -185,3 +186,7 @@ class CommentSerializer(serializers.ModelSerializer,
         extra_kwargs = {
             'attachment': {'write_only': True}
         }
+
+
+class UserRequestPDFSerializer(UserRequestSerializer):
+    documents = RelatedDocumentPDFSerializer(many=True, required=False)

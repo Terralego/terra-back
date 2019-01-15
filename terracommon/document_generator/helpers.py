@@ -5,7 +5,7 @@ import logging
 import os
 import subprocess
 import zipfile
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import jinja2
 from django.conf import settings
@@ -17,7 +17,8 @@ from jinja2 import TemplateSyntaxError
 
 from terracommon.document_generator.models import DownloadableDocument
 
-from .filters import timedelta_filter, todate_filter, translate_filter
+from .filters import (b64_to_inlineimage, timedelta_filter, todate_filter,
+                      translate_filter)
 
 logger = logging.getLogger(__name__)
 
@@ -35,10 +36,17 @@ class DocumentGenerator:
         updated_data = (self._get_image(data, doc)
                         if data.get('documents')
                         else data)
+        updated_data['tpl'] = doc  # doc is needed in a custom jinja filter
         jinja_env = jinja2.Environment()
         jinja_env.globals['now'] = datetime.datetime.now
         jinja_env.filters.update(self.filters)
-        doc.render(context=updated_data, jinja_env=jinja_env)
+
+        # render is perform in a temp dir
+        # Because some custom jinja filter used temp files
+        # which are not removed during render
+        with TemporaryDirectory() as tmpdir:
+            updated_data['tmpdir'] = tmpdir  # used by tempfile in custom filter
+            doc.render(context=updated_data, jinja_env=jinja_env)
         return doc.save()
 
     def get_pdf(self, reset_cache=False):
@@ -57,7 +65,9 @@ class DocumentGenerator:
         return cache.name
 
     def _get_docx_as_pdf(self, cache):
-        serializer = self.datamodel.get_serializer()
+        serializer = (self.datamodel.get_pdf_serializer()
+                      if hasattr(self.datamodel, 'get_pdf_serializer')
+                      else self.datamodel.get_serializer())
         serialized_model = serializer(self.datamodel)
 
         try:
@@ -124,6 +134,7 @@ class DocumentGenerator:
         'timedelta_filter': timedelta_filter,
         'translate_filter': translate_filter,
         'todate_filter': todate_filter,
+        'b64_to_inlineimage': b64_to_inlineimage,
     }
 
 

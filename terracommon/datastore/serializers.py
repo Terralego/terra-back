@@ -22,3 +22,7 @@ class RelatedDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = RelatedDocument
         fields = ('key', 'document', )
+
+
+class RelatedDocumentPDFSerializer(RelatedDocumentSerializer):
+    document = serializers.FileField(use_url=False)
