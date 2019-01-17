@@ -178,3 +178,5 @@ HOSTNAME = os.environ.get('HOSTNAME', '')
 TERRA_TILES_HOSTNAMES = [
     HOSTNAME,
 ]
+
+SWAGGER_ENABLED = False
