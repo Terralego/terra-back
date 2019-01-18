@@ -7,7 +7,8 @@ class TroppConfig(AppConfig):
     name = 'terracommon.tropp'
 
     def ready(self):
-        if 'versatileimagefield' not in settings.INSTALLED_app:
+        import terracommon.tropp.signals  # noqa
+        if 'versatileimagefield' not in settings.INSTALLED_APPS:
             raise ImproperlyConfigured(
                 f"'{self.name}' needs 'versatileimagefield' in INSTALLED_APPS"
             )
