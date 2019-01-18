@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework_gis.fields import GeometryField
 from versatileimagefield.serializers import VersatileImageFieldSerializer
@@ -15,14 +16,15 @@ class PermissiveImageFieldSerializer(VersatileImageFieldSerializer):
     def get_attribute(self, instance):
         try:
             return super().get_attribute(instance)
-        except AttributeError:
+        except (AttributeError, ObjectDoesNotExist):
+            # Will silence any NoneType or failing query on attribute
             return None
 
 
 class SimpleViewpointSerializer(serializers.ModelSerializer):
     picture = PermissiveImageFieldSerializer(
         'tropp',
-        source='pictures.first.file',
+        source='pictures.latest.file',
     )
     geometry = GeometryField(source='point.geom', read_only=True)
 
