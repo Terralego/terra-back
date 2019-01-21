@@ -3,6 +3,7 @@ import hashlib
 import io
 import logging
 import os
+import shutil
 import subprocess
 import zipfile
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -47,6 +48,10 @@ class DocumentGenerator:
         with TemporaryDirectory() as tmpdir:
             updated_data['tmpdir'] = tmpdir  # used by tempfile in custom filter
             doc.render(context=updated_data, jinja_env=jinja_env)
+
+        # tmpdir is not removed if not empty. Ensure it's cleaned anyway
+        if os.path.isdir(tmpdir):
+            shutil.rmtree(tmpdir)
         return doc.save()
 
     def get_pdf(self, reset_cache=False):
