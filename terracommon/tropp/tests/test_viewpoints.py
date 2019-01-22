@@ -11,7 +11,7 @@ from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.core.settings import STATES
 from terracommon.terra.models import Feature
 from terracommon.terra.tests.factories import FeatureFactory
-from terracommon.tropp.models import Viewpoint
+from terracommon.tropp.models import Picture, Viewpoint
 from terracommon.tropp.tests.factories import ViewpointFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin
 
@@ -373,6 +373,13 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
             file.name.split('.')[0],
             viewpoint.pictures.latest().file.name
         )
+        # Force the picture state to ACCEPTED
+        picture = Picture.objects.get(pk=viewpoint.pictures.latest().pk)
+        picture.state = STATES.ACCEPTED
+        picture.save()
+        viewpoints = Viewpoint.objects.with_accepted_pictures()
+        # Viewpoint should appears only once in the list
+        self.assertEqual(len(viewpoints), len(viewpoints.distinct()))
 
         feature = Feature.objects.get(
             pk=self.viewpoint_with_accepted_picture.point.pk
