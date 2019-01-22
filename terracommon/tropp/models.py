@@ -141,6 +141,7 @@ class Picture(BaseUpdatableModel):
             models.Index(fields=['viewpoint', 'date']),
         ]
         get_latest_by = 'date'
+        ordering = ['-date', ]
 
     def save(self, *args, **kwargs):
         if not settings.TROPP_PICTURES_STATES_WORKFLOW:
