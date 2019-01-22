@@ -1,4 +1,5 @@
 from django.shortcuts import resolve_url
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -69,6 +70,7 @@ class CampaignTestCase(TestPermissionsMixin, APITestCase):
         self.assertEqual(status.HTTP_200_OK,
                          self.client.get(campaign_other_url).status_code)
 
+    @override_settings(TROPP_PICTURES_STATES_WORKFLOW=True)
     def test_get_campaign(self):
         campaign = CampaignFactory(assignee=self.photograph)
         campaign_url = resolve_url('tropp:campaign-detail', pk=campaign.pk)
@@ -102,6 +104,7 @@ class CampaignTestCase(TestPermissionsMixin, APITestCase):
             response.data.get('results')[0].get('statistics').get('pending')
         )
 
+    @override_settings(TROPP_PICTURES_STATES_WORKFLOW=True)
     def test_search_campaign(self):
         campaign = CampaignFactory(assignee=self.photograph)
         list_url = resolve_url('tropp:campaign-list')
