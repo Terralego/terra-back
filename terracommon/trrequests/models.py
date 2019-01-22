@@ -55,6 +55,11 @@ class UserRequest(BaseUpdatableModel, ReadableModelMixin):
 
         return UserRequestSerializer
 
+    def get_pdf_serializer(self):
+        # Avoid circular dependencies
+        from .serializers import UserRequestPDFSerializer
+        return UserRequestPDFSerializer
+
     class Meta:
         ordering = ['id']
         permissions = (
