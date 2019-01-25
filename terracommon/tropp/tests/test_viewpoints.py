@@ -76,7 +76,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         # pictures and pictures with other states than ACCEPTED
         self.assertEqual(3, data.get('count'))
 
-    def test_viewpoint_get_anonymous(self):
+    def test_anonymous_access_without_accepted_picture(self):
         # User is not authenticated yet
         response = self.client.get(
             reverse(
@@ -388,4 +388,20 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         self.assertIn(
             file.name.split('.')[0],
             feature.properties['viewpoint_picture']['list']
+        )
+
+    def test_ordering_in_list_view(self):
+        self.client.force_authenticate(user=self.user)
+        data = self.client.get(
+            reverse('tropp:viewpoint-list')
+        ).json()
+        # Now test that viewpoints are ordered in chronological order
+        first_viewpoint = Viewpoint.objects.get(
+            id=data.get('results')[0]['id']
+        )
+        second_viewpoint = Viewpoint.objects.get(
+            id=data.get('results')[1]['id']
+        )
+        self.assertTrue(
+            first_viewpoint.created_at > second_viewpoint.created_at
         )

@@ -68,6 +68,12 @@ class ViewpointViewSet(viewsets.ModelViewSet):
     date_search_field = 'pictures__date__date'
     pagination_class = RestPageNumberPagination
 
+    def filter_queryset(self, queryset):
+        # We must reorder the queryset here because initial filtering in
+        # viewpoint model is not done right see
+        # https://github.com/encode/django-rest-framework/issues/1717
+        return super().filter_queryset(queryset).order_by('-created_at')
+
     def get_queryset(self):
         if self.request.user.is_authenticated:
             return Viewpoint.objects.all()
