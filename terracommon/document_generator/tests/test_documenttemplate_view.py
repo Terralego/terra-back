@@ -404,13 +404,12 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         )
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
+        doc_tpl.refresh_from_db()
 
-        doc_tpl_updated = DocumentTemplate.objects.get(pk=doc_tpl.pk)
+        self.assertEqual(file_tpl.name, doc_tpl.name)
+        self.assertEqual("test_uid", doc_tpl.uid)
 
-        self.assertEqual(file_tpl.name, doc_tpl_updated.name)
-        self.assertEqual("test_uid", doc_tpl_updated.uid)
-
-        with open(doc_tpl_updated.documenttemplate.path, "rb") as dtu:
+        with open(doc_tpl.documenttemplate.path, "rb") as dtu:
             self.assertEqual(txt_tpl, dtu.read())
 
     def test_bad_update_document_template_with_permission(self):
