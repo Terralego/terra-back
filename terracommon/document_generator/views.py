@@ -3,6 +3,7 @@ from datetime import date
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.http.response import Http404
 from django.shortcuts import get_object_or_404
 from jinja2 import TemplateSyntaxError
 from requests.exceptions import ConnectionError, HTTPError
@@ -22,9 +23,14 @@ from .serializers import DocumentTemplateSerializer
 
 
 class DocumentTemplateViewSets(viewsets.ModelViewSet):
-    queryset = DocumentTemplate.objects.all()
+    queryset = DocumentTemplate.objects.none()
     serializer_class = DocumentTemplateSerializer
     permission_classes = (IsAuthenticated, )
+
+    def get_queryset(self, *args, **kwargs):
+        if self.request.user.has_module_perms('document_generator'):
+            return DocumentTemplate.objects.all()
+        return DocumentTemplate.objects.none()
 
     def create(self, request, *args, **kwargs):
         if not request.user.has_perm(
@@ -46,6 +52,23 @@ class DocumentTemplateViewSets(viewsets.ModelViewSet):
             raise PermissionDenied
 
         return super().destroy(request, *args, **kwargs)
+
+    @detail_route(methods=['get'], permission_classes=(TokenBasedPermission,))
+    def file(self, request, pk=None):
+        document = self.get_object().documenttemplate
+        if not document:
+            raise Http404('Attachment does not exist')
+
+        response = get_media_response(
+            request, document,
+            headers={
+                'Content-Disposition': (
+                    'attachment;'
+                    f' filename={document.name}'),
+            }
+        )
+
+        return response
 
     @detail_route(methods=['get'],
                   url_name='pdf',

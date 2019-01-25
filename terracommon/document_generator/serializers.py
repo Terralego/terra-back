@@ -31,7 +31,25 @@ class DownloadableDocumentSerializer(serializers.ModelSerializer,
         )
 
 
-class DocumentTemplateSerializer(serializers.ModelSerializer):
+class DocumentTemplateSerializer(serializers.ModelSerializer,
+                                 UserTokenGeneratorMixin):
+    url = serializers.SerializerMethodField()
+
+    def get_url(self, obj):
+
+        uidb64, token = self.get_uidb64_token_for_user(self.current_user)
+        return "{}?uidb64={}&token={}".format(
+            reverse('document_generator:document-file', kwargs={
+                'pk': obj.id
+
+            }),
+            uidb64,
+            token,
+        )
+
     class Meta:
         model = DocumentTemplate
         fields = '__all__'
+        extra_kwargs = {
+            'documenttemplate': {'write_only': True}
+        }
