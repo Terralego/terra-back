@@ -23,7 +23,7 @@ class ViewpointsManager(models.Manager):
     def with_accepted_pictures(self):
         return super().get_queryset().filter(
             pictures__state=settings.STATES.ACCEPTED,
-        )
+        ).distinct()
 
 
 class Viewpoint(BaseLabelModel):
