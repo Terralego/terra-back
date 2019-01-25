@@ -41,17 +41,17 @@ def zoom_update(func):
         response = func(*args, **kargs)
 
         try:
-            layer.layer_settings('tiles', 'minzoom')
+            minzoom = layer.layer_settings('tiles', 'minzoom')
         except KeyError:
-            layer.set_layer_settings(
-                'tiles', 'minzoom', guess_minzoom(layer))
+            minzoom = guess_minzoom(layer)
+            layer.set_layer_settings('tiles', 'minzoom', minzoom)
             layer.save(update_fields=["settings"])
 
         try:
             layer.layer_settings('tiles', 'maxzoom')
         except KeyError:
-            layer.set_layer_settings(
-                'tiles', 'maxzoom', guess_maxzoom(layer))
+            maxzoom = max(guess_maxzoom(layer), minzoom)
+            layer.set_layer_settings('tiles', 'maxzoom', maxzoom)
             layer.save(update_fields=["settings"])
 
         return response
@@ -364,7 +364,7 @@ class Layer(models.Model):
 
     def layer_settings_with_default(self, *json_path):
         ''' Return the nested value of settings with SETTINGS_DEFAULT as
-            falback at path json_path.
+            fallback at path json_path.
             Raise an KeyError if not defined.
         '''
         # Dives into settings using args
@@ -378,7 +378,7 @@ class Layer(models.Model):
         '''
         json_path, value = json_path_value[:-1], json_path_value[-1]
         # Dive into settings until the last key of path,
-        # the set the value
+        # and set the corresponding value
         settings = self.settings
         for key in json_path[:-1]:
             s = settings.get(key, {})

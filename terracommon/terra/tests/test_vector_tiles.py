@@ -1,10 +1,13 @@
 import json
+import os
 
 from django.core.cache import cache
+from django.core.management import call_command
 from django.db import connection
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from terracommon.terra.models import Layer
 from terracommon.terra.tiles.helpers import (VectorTile, guess_maxzoom,
                                              guess_minzoom)
 
@@ -96,8 +99,7 @@ class VectorTilesTestCase(TestCase):
     def test_vector_tiles_view(self):
         # first query that generate the cache
         response = self.client.get(
-            reverse('terra:group-tiles',
-                    args=[self.group_name, 13, 4126, 2991]))
+            reverse('terra:group-tiles', args=[self.group_name, 10, 515, 373]))
         self.assertEqual(200, response.status_code)
         self.assertGreater(len(response.content), 0)
         query_count = len(connection.queries)
@@ -105,8 +107,7 @@ class VectorTilesTestCase(TestCase):
 
         # verify data is cached
         response = self.client.get(
-            reverse('terra:group-tiles',
-                    args=[self.group_name, 13, 4126, 2991]))
+            reverse('terra:group-tiles', args=[self.group_name, 10, 515, 373]))
         self.assertEqual(
             len(connection.queries),
             query_count - 2
@@ -117,8 +118,7 @@ class VectorTilesTestCase(TestCase):
         )
 
         response = self.client.get(
-            reverse('terra:group-tiles',
-                    args=[self.group_name, 13, 1, 1]))
+            reverse('terra:group-tiles', args=[self.group_name, 10, 1, 1]))
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(b'', response.content)
@@ -180,6 +180,26 @@ class VectorTilesTestCase(TestCase):
         self.assertEqual(
             guess_maxzoom(self.layer) is not None,
             True)
+
+        # test guess_maxzoom returns sensible value from OSM Fontainebleau paths&tracks
+        chunk_fontainebleau_geojson = os.path.join(os.path.dirname(__file__),
+                                                   'files',
+                                                   'chunk_fontainebleau.geojson')
+        schema_json = os.path.join(os.path.dirname(__file__),
+                                   'files',
+                                   'empty.json')
+
+        call_command(
+            'import_geojson',
+            f'-g{chunk_fontainebleau_geojson}',
+            f'-s{schema_json}',
+            f'--group=maxzoom_test',
+            '-lchunk_fontainebleau',
+            verbosity=0)
+
+        layer_chunk_fontainebleau = Layer.objects.get(name='chunk_fontainebleau')
+
+        self.assertEqual(guess_maxzoom(layer_chunk_fontainebleau), 13)
 
     def test_guess_minzoom(self):
 
