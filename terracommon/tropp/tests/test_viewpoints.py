@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -18,6 +19,7 @@ from terracommon.trrequests.tests.mixins import TestPermissionsMixin
 
 class ViewpointTestCase(APITestCase, TestPermissionsMixin):
     @classmethod
+    @override_settings(TROPP_PICTURES_STATES_WORKFLOW=True)
     def setUpTestData(cls):
         cls.feature = FeatureFactory()
         cls.user = TerraUserFactory()
