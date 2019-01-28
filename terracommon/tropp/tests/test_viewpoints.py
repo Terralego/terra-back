@@ -373,13 +373,6 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
             file.name.split('.')[0],
             viewpoint.pictures.latest().file.name
         )
-        # Force the picture state to ACCEPTED
-        picture = Picture.objects.get(pk=viewpoint.pictures.latest().pk)
-        picture.state = STATES.ACCEPTED
-        picture.save()
-        viewpoints = Viewpoint.objects.with_accepted_pictures()
-        # Viewpoint should appears only once in the list
-        self.assertEqual(len(viewpoints), len(viewpoints.distinct()))
 
         feature = Feature.objects.get(
             pk=self.viewpoint_with_accepted_picture.point.pk
@@ -405,3 +398,28 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         self.assertTrue(
             first_viewpoint.created_at > second_viewpoint.created_at
         )
+
+    def test_list_viewset_return_distinct_objects(self):
+        # We add a more recent picture to the viewpoint
+        date = timezone.datetime(2019, 1, 1, tzinfo=timezone.utc)
+        file = SimpleUploadedFile(
+            name='test.jpg',
+            content=open(
+                'terracommon/tropp/tests/placeholder.jpg',
+                'rb',
+            ).read(),
+            content_type='image/jpeg',
+        )
+        Picture.objects.create(
+            viewpoint=self.viewpoint_with_accepted_picture,
+            owner=self.user,
+            date=date,
+            file=file,
+            state=STATES.ACCEPTED,
+        )
+
+        # Viewpoint should appears only once in the list
+        data = self.client.get(
+            reverse('tropp:viewpoint-list')
+        ).json()
+        self.assertEqual(1, data.get('count'))
