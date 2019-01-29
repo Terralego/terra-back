@@ -59,13 +59,14 @@ class DocumentGenerator:
             self.datamodel.__class__.__name__,
             f'{self._document_checksum}_{self.datamodel.pk}.pdf'
         )
+
         cache = CachedDocument(cachepath)
         if cache.exist:
             reset_cache = self.datamodel.updated_at.timestamp() > os.path.getmtime(cache.name)
 
         if not cache.exist or reset_cache:
             if reset_cache:
-                cache.remove()
+                cache.clear()
 
             self._get_docx_as_pdf(cache)
 
@@ -134,7 +135,7 @@ class DocumentGenerator:
         else:
             content = bytes(self.template, 'utf-8')
 
-        return hashlib.md5(content)
+        return hashlib.md5(content).hexdigest()
 
     # TODO make it a function in filters.py
     filters = {
@@ -148,7 +149,7 @@ class DocumentGenerator:
 class CachedDocument(File):
     cache_root = 'cache'
 
-    def __init__(self, filename, mode='xb+'):
+    def __init__(self, filename, mode='wb+'):
         self.pathname = os.path.join(self.cache_root, filename)
 
         if not os.path.isfile(self.pathname):
@@ -161,10 +162,15 @@ class CachedDocument(File):
             super().__init__(open(self.pathname, mode=mode))
         else:
             self.exist = True
-            super().__init__(open(self.pathname))
+            super().__init__(open(self.pathname, mode=mode))
 
     def remove(self):
+        self.close()
         os.remove(self.name)
+
+    def clear(self, mode=None):
+        self.remove()
+        self.file = open(self.name, 'xb+')
 
 
 class DocxTemplator(DocxTemplate):

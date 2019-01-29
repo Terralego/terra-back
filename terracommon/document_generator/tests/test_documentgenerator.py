@@ -120,10 +120,9 @@ class DocumentGeneratorTestCase(TestCase):
 
         self.assertTrue(os.path.isfile(pdf_path))
 
-        self.userrequest.properties = {'test_key': 'test_value'}
+        # Update the updated_at date
         self.userrequest.save()
 
-        dg_bis = DocumentGenerator(self.downloadable)
-        pdf_path_bis = dg_bis.get_pdf()
+        pdf_path_bis = dg.get_pdf()
         self.assertTrue(os.path.isfile(pdf_path_bis))
         self.assertNotEqual(os.path.getmtime(pdf_path_bis), pdf_mtime)
