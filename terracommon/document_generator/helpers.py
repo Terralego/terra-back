@@ -60,6 +60,8 @@ class DocumentGenerator:
             f'{self._document_checksum}_{self.datamodel.pk}.pdf'
         )
         cache = CachedDocument(cachepath)
+        if cache.exist:
+            reset_cache = self.datamodel.updated_at.timestamp() > os.path.getmtime(cache.name)
 
         if not cache.exist or reset_cache:
             if reset_cache:
