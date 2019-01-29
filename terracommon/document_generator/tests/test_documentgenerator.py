@@ -15,7 +15,7 @@ from terracommon.trrequests.tests.factories import UserRequestFactory
 
 
 def mock_libreoffice(arguments):
-    # Get temporary direcoty passed as --out parameter value in subprocess.run
+    # Get temporary directory passed as --out parameter value in subprocess.run
     tmpdir = ''
     for i, arg in enumerate(arguments):
         if arg == '--outdir':
