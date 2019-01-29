@@ -15,8 +15,15 @@ from terracommon.trrequests.tests.factories import UserRequestFactory
 
 
 def mock_libreoffice(arguments):
+    # Get temporary direcoty passed as --out parameter value in subprocess.run
+    tmpdir = ''
+    for i, arg in enumerate(arguments):
+        if arg == '--outdir':
+            tmpdir = arguments[i+1]
+            break
+
     tmp_pdf_root = os.path.splitext(os.path.basename(arguments[-1]))[0]
-    tmp_pdf = os.path.join('/tmp', f'{tmp_pdf_root}.pdf')
+    tmp_pdf = os.path.join(tmpdir, f'{tmp_pdf_root}.pdf')
     with open(tmp_pdf, 'wb') as pdf_file:
         pdf_file.write(b'some content')
 

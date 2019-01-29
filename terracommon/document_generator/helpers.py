@@ -93,32 +93,31 @@ class DocumentGenerator:
             raise
 
         # Create a temporary docx file on disk so libreoffice can use it
-        with TemporaryDirectory() as tmpdir:
-            with NamedTemporaryFile(mode='wb',
-                                    dir=tmpdir,
-                                    suffix='.docx') as tmp_docx:
-                tmp_docx.write(docx.getvalue())  # docx is an io.BytesIO
+        with TemporaryDirectory() as tmpdir, NamedTemporaryFile(mode='wb',
+                                                                dir=tmpdir,
+                                                                suffix='.docx') as tmp_docx:
+            tmp_docx.write(docx.getvalue())  # docx is an io.BytesIO
 
-                # Call libreoffice to convert docx to pdf
-                subprocess.run([
-                    'lowriter',
-                    '--headless',
-                    '--convert-to',
-                    'pdf:writer_pdf_Export',
-                    '--outdir',
-                    '/tmp/',
-                    tmp_docx.name
-                ])
+            # Call libreoffice to convert docx to pdf
+            subprocess.run([
+                'lowriter',
+                '--headless',
+                '--convert-to',
+                'pdf:writer_pdf_Export',
+                '--outdir',
+                tmpdir,
+                tmp_docx.name
+            ])
 
-                # Get pdf name of the file created from libreoffice writer
-                tmp_pdf_root = os.path.splitext(os.path.basename(tmp_docx.name))[0]
-                tmp_pdf = os.path.join('/tmp', f'{tmp_pdf_root}.pdf')
+            # Get pdf name of the file created from libreoffice writer
+            tmp_pdf_root = os.path.splitext(os.path.basename(tmp_docx.name))[0]
+            tmp_pdf = os.path.join(tmpdir, f'{tmp_pdf_root}.pdf')
 
-                with cache.open() as cached_pdf, open(tmp_pdf, 'rb') as pdf:
-                    cached_pdf.write(pdf.read())
+            with cache.open() as cached_pdf, open(tmp_pdf, 'rb') as pdf:
+                cached_pdf.write(pdf.read())
 
-                # We don't need it anymore
-                os.remove(tmp_pdf)
+            # We don't need it anymore
+            os.remove(tmp_pdf)
 
     def _get_image(self, data, tpl):
         for document in data['documents']:
