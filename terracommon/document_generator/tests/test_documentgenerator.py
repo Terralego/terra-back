@@ -15,8 +15,11 @@ from terracommon.trrequests.tests.factories import UserRequestFactory
 
 
 def mock_libreoffice(arguments):
+    # Get temporary directory passed as --out parameter value in subprocess.run
+    tmpdir = arguments[arguments.index('--outdir') + 1]
+
     tmp_pdf_root = os.path.splitext(os.path.basename(arguments[-1]))[0]
-    tmp_pdf = os.path.join('/tmp', f'{tmp_pdf_root}.pdf')
+    tmp_pdf = os.path.join(tmpdir, f'{tmp_pdf_root}.pdf')
     with open(tmp_pdf, 'wb') as pdf_file:
         pdf_file.write(b'some content')
 
@@ -111,3 +114,18 @@ class DocumentGeneratorTestCase(TestCase):
         with self.assertRaises(TemplateSyntaxError):
             dg.get_pdf()
             mock_logger.warning.assert_called()
+
+    @patch('subprocess.run', side_effect=mock_libreoffice)
+    def test_pdf_is_generated_again_when_data_are_updated(self, mock_run):
+        dg = DocumentGenerator(self.downloadable)
+        pdf_path = dg.get_pdf()
+        pdf_mtime = os.path.getmtime(pdf_path)
+
+        self.assertTrue(os.path.isfile(pdf_path))
+
+        # Update the updated_at date
+        self.userrequest.save()
+
+        pdf_path_bis = dg.get_pdf()
+        self.assertTrue(os.path.isfile(pdf_path_bis))
+        self.assertNotEqual(os.path.getmtime(pdf_path_bis), pdf_mtime)
