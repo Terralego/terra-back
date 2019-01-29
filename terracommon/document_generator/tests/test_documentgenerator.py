@@ -111,3 +111,19 @@ class DocumentGeneratorTestCase(TestCase):
         with self.assertRaises(TemplateSyntaxError):
             dg.get_pdf()
             mock_logger.warning.assert_called()
+
+    @patch('subprocess.run', side_effect=mock_libreoffice)
+    def test_pdf_is_generated_again_when_data_are_updated(self, mock_run):
+        dg = DocumentGenerator(self.downloadable)
+        pdf_path = dg.get_pdf()
+        pdf_mtime = os.path.getmtime(pdf_path)
+
+        self.assertTrue(os.path.isfile(pdf_path))
+
+        self.userrequest.properties = {'test_key': 'test_value'}
+        self.userrequest.save()
+
+        dg_bis = DocumentGenerator(self.downloadable)
+        pdf_path_bis = dg_bis.get_pdf()
+        self.assertTrue(os.path.isfile(pdf_path_bis))
+        self.assertNotEqual(os.path.getmtime(pdf_path_bis), pdf_mtime)
