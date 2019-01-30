@@ -112,6 +112,7 @@ class UserChangePasswordView(APIView):
 
 class SettingsView(APIView):
     permission_classes = ()
+    authentication_classes = ()
 
     def get(self, request):
         terra_settings = {
