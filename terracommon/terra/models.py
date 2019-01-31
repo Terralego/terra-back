@@ -314,7 +314,7 @@ class Layer(models.Model):
 
     @cached_property
     def layer_properties(self):
-        ''' Return properties of first feature of the layer
+        ''' Return dict of properties that are used by layer's feature
         '''
         feature_table = Feature._meta.db_table
 
@@ -325,7 +325,7 @@ class Layer(models.Model):
             SELECT
                 jsonb_object_keys(properties) AS key
             FROM
-                (SELECT properties FROM {feature_table} WHERE {layer_field} = %s LIMIT 1) AS t
+                (SELECT properties FROM {feature_table} WHERE {layer_field} = %s) AS t
             GROUP BY
                 key;
             """
