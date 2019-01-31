@@ -92,7 +92,7 @@ class ViewpointSerializer(serializers.ModelSerializer):
 class ViewpointSerializerWithPicture(ViewpointSerializer):
     picture = SimplePictureSerializer(required=False, write_only=True)
     pictures = SimplePictureSerializer(many=True, read_only=True)
-    point = GeometryField(required=False, write_only=True)
+    point = GeometryField(required=True, write_only=True)
     geometry = GeometryField(source='point.geom', read_only=True)
 
     class Meta:
