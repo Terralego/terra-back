@@ -30,6 +30,21 @@ class UserViewsetTestCase(TestCase, TestPermissionsMixin):
         # List must contain all database users
         self.assertEqual(UserModel.objects.count(), response.get('count'))
 
+    def test_update_uuid(self):
+        user = TerraUserFactory()
+        self._set_permissions(['can_manage_users', ])
+
+        test_uuid = 'test-uuid'
+        self.client.patch(
+            reverse('accounts:user-detail', args=[user.pk]),
+            {
+                'uuid': test_uuid,
+            }
+        )
+
+        user.refresh_from_db()
+        self.assertEqual(user.uuid, test_uuid)
+
     def test_groups(self):
         group1 = Group.objects.create(name='test group1')
         user = TerraUserFactory()
