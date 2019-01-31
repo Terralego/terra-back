@@ -20,7 +20,6 @@ class TerraUser(AbstractBaseUser, PermissionsMixin):
     uuid = models.CharField(_('unique identifier'),
                             max_length=255,
                             default=uuid.uuid4,
-                            editable=False,
                             unique=True)
     email = models.EmailField(_('email address'), blank=True, unique=True)
     properties = JSONField(default=dict, blank=True)
