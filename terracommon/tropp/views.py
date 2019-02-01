@@ -76,7 +76,7 @@ class ViewpointViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return Viewpoint.objects.all()
+            return Viewpoint.objects.all().distinct()
         return Viewpoint.objects.with_accepted_pictures()
 
     def get_serializer_class(self):
