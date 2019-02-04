@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser, Group
 from django.core.mail import send_mail
+from django.db.models import Model
 from django.forms.models import model_to_dict
 from django.utils.functional import cached_property
 from django.utils.module_loading import import_string
@@ -23,6 +24,9 @@ class AbstractHandler(object):
     default_settings = {
         'condition': 'True',
     }
+    default_args = {
+        'instance': None,
+    }
 
     def __init__(self, event, settings, **kwargs):
         """
@@ -37,7 +41,7 @@ class AbstractHandler(object):
 
         self.event = event
         self.handler_settings = settings or {}
-        self.args = kwargs
+        self.args = {**self.default_args, **kwargs}
 
     @property
     def settings(self):
@@ -65,7 +69,13 @@ class AbstractHandler(object):
 
     @cached_property
     def serialized_instance(self):
-        return model_to_dict(self.args['instance'])
+        instance = self.args.get('instance')
+        if isinstance(instance, Model):
+            return model_to_dict(instance)
+        try:
+            return vars(instance)
+        except TypeError:
+            return {}
 
     @cached_property
     def functions(self):
