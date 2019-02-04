@@ -9,7 +9,8 @@ from rest_framework.test import APIClient
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.events.models import EventHandler
 from terracommon.events.signals import event
-from terracommon.events.signals.handlers import (ModelValueHandler,
+from terracommon.events.signals.handlers import (AbstractHandler,
+                                                 ModelValueHandler,
                                                  SendNotificationHandler,
                                                  SetGroupHandler,
                                                  TimeDeltaHandler)
@@ -52,6 +53,14 @@ class EventsTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(201, response.status_code)
         self.assertTrue(self.signal_was_called)
         event.disconnect(handler)
+
+    def test_no_instance(self):
+        def abstract_instance(self):
+            return self.serialized_instance
+        AbstractHandler.__call__ = abstract_instance
+
+        # Without instance, handler should not raise an error
+        AbstractHandler('TEST_ACTION', {})()
 
 
 class TimeDeltaHandlerTestCase(TestCase):
