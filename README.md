@@ -19,13 +19,19 @@ Create a docker.env file:
 
 ### Running the project
 `docker-compose up`
+
 `docker-compose down`
+
 `docker-compose up` (postgres image)
 
 ### Running tests
+
 `docker-compose exec django bash`
+
 `django@container_id:/code$ source venv/bin/activate`
+
 `(venv) django@353cfc271a48:/code$ tox` (global)
+
 `(venv) django@353cfc271a48:/code$ tox terracommon.terra` (pour terra)
 
 ### Applying Django migrations
