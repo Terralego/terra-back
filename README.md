@@ -14,6 +14,9 @@ Create a docker.env file:
 * `mv docker.env.dist docker.env`
 * Edit the settings
 
+### Build Container
+`docker-compose build`
+
 ### Running the project
 `docker-compose up`
 
