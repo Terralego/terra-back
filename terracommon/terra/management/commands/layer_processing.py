@@ -167,7 +167,6 @@ class Command(BaseCommand):
                     {sql}
                 ) AS t
             '''
-            self.stdout.write(sql_query)
 
             cursor.execute(sql_query, args)
 

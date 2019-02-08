@@ -1,14 +1,13 @@
-import os
-
 from django.core.management import call_command
 from django.test import TestCase
 
 from terracommon.terra.models import Layer
+from terracommon.terra.tests.utils import get_files_tests
 
 
 class LayerProcessingTestCase(TestCase):
-    def test_default_group(self):
-        empty_json = os.path.join(os.path.dirname(__file__), 'files', 'empty.json')
+    def test_layer_processing(self):
+        empty_json = get_files_tests('empty.json')
 
         call_command(
             'import_geojson',
@@ -27,9 +26,9 @@ class LayerProcessingTestCase(TestCase):
 
         self.assertEqual(len(Layer.objects.all()), 2)
 
-    def test_by_name(self):
-        empty_json = os.path.join(os.path.dirname(__file__), 'files', 'empty.json')
-        geojson = os.path.join(os.path.dirname(__file__), 'files', 'toulouse.geojson')
+    def test_layer_processing_by_name(self):
+        empty_json = get_files_tests('empty.json')
+        geojson = get_files_tests('toulouse.geojson')
 
         call_command(
             'import_geojson',

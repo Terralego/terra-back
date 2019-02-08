@@ -4,11 +4,10 @@ from rest_framework.test import APIClient
 
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.terra.models import Feature
+from terracommon.terra.tests.factories import LayerFactory
 
-from .factories import LayerFactory
 
-
-class SchemaValidationTestCase(TestCase):
+class SchemaValidationTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = TerraUserFactory()
