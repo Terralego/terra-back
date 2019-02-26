@@ -9,7 +9,7 @@ from terracommon.document_generator.helpers import CachedDocument
 
 class CachedDocumentTestCase(TestCase):
     def test_CachedDocument_create_delete(self):
-        cache_file = CachedDocument('testcreate.txt', mode='w')
+        cache_file = CachedDocument('testcreate.txt')
         self.assertTrue(os.path.isfile(cache_file.name))
 
         cache_file.remove()
@@ -35,7 +35,7 @@ class CachedDocumentTestCase(TestCase):
             tmp_file.seek(0)
             content = tmp_file.read()
 
-        cache_file = CachedDocument('test.txt', mode='wb')
+        cache_file = CachedDocument('test.txt')
         with cache_file.open(mode='wb') as f:
             f.write(content)
 
