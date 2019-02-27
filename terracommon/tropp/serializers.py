@@ -80,7 +80,7 @@ class SimplePictureSerializer(PictureSerializer):
 
     class Meta:
         model = Picture
-        fields = ('id', 'date', 'file', 'owner')
+        fields = ('id', 'date', 'file', 'owner', 'properties')
 
 
 class ViewpointSerializer(serializers.ModelSerializer):
