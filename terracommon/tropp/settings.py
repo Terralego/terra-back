@@ -11,7 +11,7 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
         ('original', 'url'),
         ('full', 'thumbnail__1500x1125'),
         ('list', 'thumbnail__300x225'),
-        ('thumbnail', 'thumbnail__120x90'),
+        ('thumbnail', 'thumbnail__180x120'),
     ]
 }
 
