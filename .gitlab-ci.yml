@@ -1,4 +1,4 @@
-image: ubuntu:bionic
+image: ubuntu:geodjango:bionic-3.7
 
 stages:
   - linting
@@ -20,9 +20,6 @@ cache:
     - venv/
 
 before_script:
-    - apt-get update
-    - apt-get install -y python3-pip
-    - apt-get install -y $(grep -vE "^\s*#" apt.txt  | tr "\n" " ")
     - python3 -m venv venv/
     - ./venv/bin/pip3 install -r test-requirements.txt
 
@@ -38,8 +35,10 @@ tests:
 linting:
   stage: linting
   tags: [shared-ci-docker]
+  before_script:
+    - pip install pylama tox isort
   script:
-     - ./venv/bin/tox -c tox.ini -e linting
+    - ./venv/bin/tox -c tox.ini -e linting
 
 publish_pypi:
   image: python:3.6
@@ -50,7 +49,7 @@ publish_pypi:
   only:
     - /^v\d+\.\d+\.\d+([abc]\d*)?$/  # PEP-440 compliant version (tags)
   except:
-     - branches 
+     - branches
   variables:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASSWORD
