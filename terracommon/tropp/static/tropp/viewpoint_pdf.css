@@ -1,0 +1,13 @@
+table {
+  width: 100%;
+}
+
+table, th, td {
+  border: 1px solid black;
+}
+.table-title {
+    border: none;
+}
+.viewpoint-picture {
+    max-height: 300px;
+}
