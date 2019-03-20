@@ -425,3 +425,14 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
             reverse('tropp:viewpoint-list')
         ).json()
         self.assertEqual(1, data.get('count'))
+
+    def test_pdf_view_must_return_pdf_when_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        data = self.client.get(
+            reverse(
+                'tropp:viewpoint-pdf',
+                args=[self.viewpoint.pk],
+            )
+        )
+        self.assertEqual(status.HTTP_200_OK, data.status_code)
+        self.assertIn('application/pdf', data['Content-Type'])
