@@ -123,7 +123,7 @@ class DocumentGenerator:
         for document in data['documents']:
             img_path = os.path.join(settings.MEDIA_ROOT, document['document'])
             # Set as image of 170mm width
-            document['document'] = InlineImage(tpl, img_path, width=Mm(70))
+            document['document'] = InlineImage(tpl, img_path, width=Mm(170))
         return data
 
     @cached_property
