@@ -5,10 +5,9 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
-from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.terra.models import Layer
 from terracommon.terra.routing.helpers import Routing
-from terracommon.terra.tests.factories import FeatureFactory
+from terracommon.terra.tests.factories import FeatureFactory, TerraUserFactory
 from terracommon.terra.tests.utils import get_files_tests
 
 
