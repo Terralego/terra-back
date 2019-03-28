@@ -13,3 +13,8 @@ def front_url():
 @register.simple_tag
 def hostname():
     return mark_safe(settings.HOSTNAME)
+
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)

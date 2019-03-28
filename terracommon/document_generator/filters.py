@@ -25,7 +25,7 @@ def translate_filter(value, datastorekey=''):
     if not datastorekey:
         return value
     correspondences = DataStore.objects.get(key=datastorekey)
-    return correspondences.value[value]
+    return correspondences.value.get(value, value)
 
 
 def todate_filter(value):

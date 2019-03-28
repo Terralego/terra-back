@@ -20,4 +20,9 @@ urlpatterns += [
         views.ViewpointAdvancedSearchOptions.as_view(),
         name='viewpoint-search-options'
     ),
+    path(
+        'viewpoints/<int:pk>/pdf',
+        views.ViewpointPdf.as_view(),
+        name='viewpoint-pdf',
+    )
 ]

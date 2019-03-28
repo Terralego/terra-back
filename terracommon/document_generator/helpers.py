@@ -123,7 +123,7 @@ class DocumentGenerator:
         for document in data['documents']:
             img_path = os.path.join(settings.MEDIA_ROOT, document['document'])
             # Set as image of 170mm width
-            document['document'] = InlineImage(tpl, img_path, width=Mm(70))
+            document['document'] = InlineImage(tpl, img_path, width=Mm(170))
         return data
 
     @cached_property
@@ -149,7 +149,7 @@ class DocumentGenerator:
 class CachedDocument(File):
     cache_root = 'cache'
 
-    def __init__(self, filename, mode='wb+'):
+    def __init__(self, filename):
         self.pathname = os.path.join(self.cache_root, filename)
 
         if not os.path.isfile(self.pathname):
@@ -159,10 +159,10 @@ class CachedDocument(File):
             if os.path.dirname(self.pathname) != '':
                 os.makedirs(os.path.dirname(self.pathname), exist_ok=True)
 
-            super().__init__(open(self.pathname, mode=mode))
+            super().__init__(open(self.pathname, mode='xb+'))
         else:
             self.exist = True
-            super().__init__(open(self.pathname, mode=mode))
+            super().__init__(open(self.pathname, mode='rb'))
 
     def remove(self):
         self.close()

@@ -1,0 +1,30 @@
+{% load i18n settings_tags static %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_language_info for LANGUAGE_CODE as lang %}
+<html lang="{{ lang.code }}">
+<head>
+  <meta charset="utf-8">
+  <title>{{ viewpoint.label }}</title>
+  <meta name="description" content="{{ viewpoint.label }} pdf">
+  <link href="{% static 'tropp/viewpoint_pdf.css' %}" rel="stylesheet">
+</head>
+<body>
+<table>
+  <tr>
+    <th class="table-title">{% trans 'Site' %} {{ viewpoint.label }} N°{{ viewpoint.id }}</th>
+  </tr>
+  {% for key,value in properties_set %}
+    {% if key in viewpoint.properties %}
+      <tr class="{{key}}">
+        <td>{% trans value %}</td>
+        <td>{{ viewpoint.properties|get_item:key }}</td>
+      </tr>
+    {% endif %}
+  {% endfor %}
+</table>
+<h2>{% trans 'Reference shooting' %}</h2>
+<img src="{{ viewpoint.pictures.earliest.file.url }}" alt="alt media" class="viewpoint-picture" />
+<h2>{% trans 'Last shot' %}</h2>
+<img src="{{ viewpoint.pictures.latest.file.url }}" alt="alt media" class="viewpoint-picture" />
+</body>
+</html>

@@ -4,13 +4,32 @@ import coreapi
 import coreschema
 from rest_framework import permissions, viewsets
 from rest_framework.filters import SearchFilter
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..core.filters import DateFilterBackend, SchemaAwareDjangoFilterBackend
+from ..core.renderers import PdfRenderer
 from .filters import CampaignFilterBackend
 from .serializers import *
+
+
+class ViewpointPdf(RetrieveAPIView):
+    """
+    Return a pdf representation of the given viewpoint by its id.
+    """
+    queryset = Viewpoint.objects.all()
+    template_name = 'tropp/viewpoint_pdf.html'
+    renderer_classes = (PdfRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        properties_set = settings.TROPP_VIEWPOINT_PROPERTIES_SET['pdf']
+        return Response({
+            'viewpoint': self.get_object(),
+            'properties_set': properties_set,
+        })
 
 
 class RestPageNumberPagination(PageNumberPagination):
@@ -76,7 +95,7 @@ class ViewpointViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return Viewpoint.objects.all()
+            return Viewpoint.objects.all().distinct()
         return Viewpoint.objects.with_accepted_pictures()
 
     def get_serializer_class(self):

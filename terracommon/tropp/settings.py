@@ -11,10 +11,18 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
         ('original', 'url'),
         ('full', 'thumbnail__1500x1125'),
         ('list', 'thumbnail__300x225'),
-        ('thumbnail', 'thumbnail__120x90'),
+        ('thumbnail', 'thumbnail__180x120'),
     ]
 }
 
 TROPP_BASE_LAYER_NAME = 'Base opp layer'
 
 TROPP_PICTURES_STATES_WORKFLOW = False
+
+TROPP_VIEWPOINT_PROPERTIES_SET = {
+    'pdf': {
+        ('camera', 'Appareil photo'),
+    },
+    'form': {},
+    'filter': {},
+}
