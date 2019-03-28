@@ -50,7 +50,7 @@ publish_pypi:
   only:
     - /^v\d+\.\d+\.\d+([abc]\d*)?$/  # PEP-440 compliant version (tags)
   except:
-     - branches 
+     - branches
   variables:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASSWORD
@@ -59,4 +59,3 @@ publish_pypi:
     - pip install twine
     - python setup.py sdist bdist_wheel
     - twine upload -r pypi dist/*
-
