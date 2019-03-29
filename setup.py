@@ -49,5 +49,6 @@ setup(
         "boto3>=1.9,<=1.10",
         "deepmerge<=1.0",
         "weasyprint>=44",
+        "jsonschema==3.0.1"
     ],
 )
