@@ -3,10 +3,11 @@ from django.db import connection, transaction
 from django.utils.module_loading import import_string
 
 from terracommon.terra import GIS_LINESTRING, GIS_POINT, GIS_POLYGON
+from terracommon.terra.management.commands.mixins import LayerCommandMixin
 from terracommon.terra.models import Feature, Layer
 
 
-class Command(BaseCommand):
+class Command(LayerCommandMixin, BaseCommand):
     help = 'Run a data processing on layers - UNSAFE command'
 
     def add_arguments(self, parser):
@@ -72,25 +73,11 @@ class Command(BaseCommand):
 
     def _get_layer_ins(self, pks, names):
         try:
-            # On Layer at time to ensure order
-            return (
-                [Layer.objects.get(id=id) for id in pks] +
-                [Layer.objects.get(name=name) for name in names]
-            )
+            return ([Layer.objects.get(id=id) for id in pks] +
+                    [Layer.objects.get(name=name) for name in names])
         except Layer.DoesNotExist:
-            raise CommandError(f"Fails open one or many layers layer-pk-ins: {', '.join(pks)}")
-
-    def _get_layer_by_pk(self, pk):
-        try:
-            return Layer.objects.get(pk=pk)
-        except Layer.DoesNotExist:
-            raise CommandError(f'Fails open layers layer-pk-out: {pk}')
-
-    def _get_layer_by_name(self, name):
-        try:
-            return Layer.objects.get(name=name)
-        except Layer.DoesNotExist:
-            raise CommandError(f'Fails open layers layer-name-out: {name}')
+            raise CommandError(f"Fails open one or many layers layer-pk-ins: {', '.join(pks)} "
+                               f"and layer-name-ins: {', '.join(names)}")
 
     def _get_layer_out(self, pk, name, clear_output, verbosity):
         if pk or name:
@@ -129,15 +116,10 @@ class Command(BaseCommand):
             self._call(python_object_name, layer_ins, layer_out, **command_args)
         elif options.get('sql_centroid'):
             self._simple_sql('ST_Centroid', layer_ins, layer_out)
-        elif options.get('sql_make_valid'):
-            self._simple_sql('ST_MakeValid', layer_ins, layer_out)
         elif sql:
             self._sql(sql, layer_ins, layer_out)
         elif options.get('make_valid'):
             self._processing_make_valid(layer_ins, layer_out)
-        else:
-            raise CommandError("Missing processing SQL or pyhton")
-
         if dryrun:
             transaction.savepoint_rollback(sp)
         else:

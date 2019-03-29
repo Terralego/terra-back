@@ -1,7 +1,11 @@
+from io import StringIO
+
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase
 
 from terracommon.terra.models import Layer
+from terracommon.terra.tests.factories import LayerFactory
 from terracommon.terra.tests.utils import get_files_tests
 
 
@@ -20,11 +24,29 @@ class ImportShapefileTest(TestCase):
         # Assert the identifier is not an UUID4
         self.assertTrue(len(str(layer.features.first().identifier)) < 32)
 
+    def test_default_group_nogroup_rollback(self):
+        # Sample ShapeFile
+        shapefile_path = get_files_tests('shapefile-WGS84.zip')
+        sample_shapefile = open(shapefile_path, 'rb')
+
+        output = StringIO()
+        call_command(
+            'import_shapefile',
+            f'-iID_PG',
+            f'--dry-run',
+            f'{sample_shapefile.name}',
+            verbosity=1, stdout=output)
+        self.assertIn("The created layer pk is", output.getvalue())
+        # Retrieve the layer
+        layer = Layer.objects.all()
+        self.assertEqual(len(layer), 0)
+
     def test_reprojection(self):
+        output = StringIO()
         call_command(
             'import_shapefile',
             get_files_tests('shapefile-RFG93.zip'),
-            verbosity=0)
+            verbosity=1, stdout=output)
 
         # Retrieve the layer
         layer = Layer.objects.all()[0]
@@ -86,3 +108,48 @@ class ImportShapefileTest(TestCase):
             ['ALTITUDE', 'ETIQUETTE', 'HAUTEUR', 'ID', 'ID_PG', 'NATURE', 'NOM',
              'ORIGIN_BAT', 'PUB_XDECAL', 'PUB_YDECAL', 'ROTATION', 'ROTATION_S',
              'XDECAL', 'XDECAL_SYM', 'YDECAL', 'YDECAL_SYM', 'Z_MAX', 'Z_MIN', ], True)
+
+    def test_import_shapefile_layer_with_bad_settings(self):
+        # Sample ShapeFile
+        shapefile_path = get_files_tests('shapefile-WGS84.zip')
+        sample_shapefile = open(shapefile_path, 'rb')
+        bad_settings_json = get_files_tests('bad.json')
+        # Change settings
+        with self.assertRaises(CommandError) as error:
+            call_command(
+                'import_shapefile',
+                '-iID_PG',
+                '-gs', sample_shapefile.name,
+                '-ls', bad_settings_json,
+                verbosity=0
+            )
+        self.assertEqual("Please provide a valid layer settings file", str(error.exception))
+
+    def test_import_shapefile_layer_with_pk_layer(self):
+        # Sample ShapeFile
+        layer = LayerFactory()
+        self.assertEqual(len(layer.features.all()), 0)
+        shapefile_path = get_files_tests('shapefile-WGS84.zip')
+        sample_shapefile = open(shapefile_path, 'rb')
+        call_command(
+            'import_shapefile',
+            f'--layer-pk={layer.pk}',
+            '-iID_PG',
+            '-gs', sample_shapefile.name,
+            verbosity=0
+        )
+        self.assertEqual(len(layer.features.all()), 8)
+
+    def test_import_shapefile_layer_with_wrong_pk_layer(self):
+        # Sample ShapeFile
+        shapefile_path = get_files_tests('shapefile-WGS84.zip')
+        sample_shapefile = open(shapefile_path, 'rb')
+        with self.assertRaises(CommandError) as error:
+            call_command(
+                'import_shapefile',
+                f'--layer-pk=999',
+                '-iID_PG',
+                '-gs', sample_shapefile.name,
+                verbosity=0
+            )
+        self.assertIn("Layer with pk 999 doesn't exist", str(error.exception))
