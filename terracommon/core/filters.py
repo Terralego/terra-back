@@ -62,6 +62,7 @@ class DateFilterBackend(filters.BaseFilterBackend):
 
     def get_schema_fields(self, view):
         super().get_schema_fields(view)
+        search_field = getattr(view, 'date_search_field', None)
         return [
             coreapi.Field(
                 name='date_from',
@@ -69,9 +70,9 @@ class DateFilterBackend(filters.BaseFilterBackend):
                 location='query',
                 schema=coreschema.String(
                     title="Begin date",
-                    description="Begin date",
-                    pattern='[0-9]{2}/[0-9]{2}/[0-9]{4}'
-                )
+                    description=f"Begin date for {search_field}",
+                    pattern='[0-9]{4}-[0-9]{2}-[0-9]{2}',
+                ),
             ),
             coreapi.Field(
                 name='date_to',
@@ -79,10 +80,10 @@ class DateFilterBackend(filters.BaseFilterBackend):
                 location='query',
                 schema=coreschema.String(
                     title="End date",
-                    description="End date",
-                    pattern='[0-9]{2}/[0-9]{2}/[0-9]{4}'
-                )
-            )
+                    description=f"End date for {search_field}",
+                    pattern='[0-9]{4}-[0-9]{2}-[0-9]{2}',
+                ),
+            ),
         ]
 
     def filter_queryset(self, request, queryset, view):
