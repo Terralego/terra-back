@@ -16,11 +16,6 @@ urlpatterns = router.urls
 
 urlpatterns += [
     path(
-        'viewpoint_advanced_search/',
-        views.ViewpointAdvancedSearchOptions.as_view(),
-        name='viewpoint-search-options'
-    ),
-    path(
         'viewpoints/<int:pk>/pdf',
         views.ViewpointPdf.as_view(),
         name='viewpoint-pdf',

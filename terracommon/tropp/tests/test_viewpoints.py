@@ -101,11 +101,30 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         )
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
-    def test_viewpoint_search_options(self):
-        search_options_url = reverse('tropp:viewpoint-search-options')
-        data = self.client.get(search_options_url).json()
-        self.assertNotEqual(data.get('viewpoints'), [])
-        self.assertIsNone(data.get('photographers'))
+    def test_anonymous_options_request_returns_correct_search_filters(self):
+        ViewpointFactory(properties={
+            'commune': 'Rouperou-le-coquet',
+            'themes': ['foo', 'Bar']
+        })
+        ViewpointFactory(properties={
+            'commune': 'Montcuq',
+            'themes': ['Bar']
+        })
+        data = self.client.options(
+            reverse('tropp:viewpoint-list')
+        ).json()
+        self.assertEqual(data.get('cities'), ['Montcuq', 'Rouperou-le-coquet'])
+        self.assertEqual(data.get('themes'), ['Bar', 'foo'])
+
+    def test_authenticated_options_request_returns_all_search_filters(self):
+        self.client.force_authenticate(user=self.user)
+        data = self.client.options(
+            reverse('tropp:viewpoint-list')
+        ).json()
+        self.assertIsNotNone(data.get('cities'))
+        self.assertIsNotNone(data.get('themes'))
+        self.assertEqual(3, len(data.get('viewpoints')))
+        self.assertEqual(3, len(data.get('photographers')))
 
     def test_viewpoint_search_anonymous(self):
         # Simple viewpoint search feature
