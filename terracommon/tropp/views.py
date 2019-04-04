@@ -94,13 +94,18 @@ class ViewpointViewSet(viewsets.ModelViewSet):
         return super().filter_queryset(queryset).order_by('-created_at')
 
     def get_queryset(self):
+        qs = Viewpoint.objects
         if self.request.user.is_authenticated:
-            return Viewpoint.objects.all().distinct()
-        return Viewpoint.objects.with_accepted_pictures()
+            qs = qs.all().distinct()
+        else:
+            qs = qs.with_accepted_pictures()
+        return qs.select_related('point').prefetch_related('pictures')
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return SimpleViewpointSerializer
+            if self.request.user.is_anonymous:
+                return SimpleViewpointSerializer
+            return SimpleAuthenticatedViewpointSerializer
         return ViewpointSerializerWithPicture
 
 
@@ -151,7 +156,9 @@ class CampaignViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return ListCampaignNestedSerializer
         if self.action == 'retrieve':
-            return DetailCampaignNestedSerializer
+            if self.request.user.is_anonymous:
+                return DetailCampaignNestedSerializer
+            return DetailAuthenticatedCampaignNestedSerializer
         return CampaignSerializer
 
 

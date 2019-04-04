@@ -61,9 +61,10 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         self.fp.close()
 
     def test_viewpoint_get_list_anonymous(self):
-        data = self.client.get(
-            reverse('tropp:viewpoint-list')
-        ).json()
+        with self.assertNumQueries(3):
+            data = self.client.get(
+                reverse('tropp:viewpoint-list')
+            ).json()
         # List must contain all viewpoints WITHOUT those with no pictures
         # Pictures must also be ACCEPTED
         self.assertEqual(1, data.get('count'))
