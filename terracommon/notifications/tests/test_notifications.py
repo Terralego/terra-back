@@ -3,12 +3,12 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from terracommon.accounts.tests.factories import TerraUserFactory
+from .factories import UserFactory
 
 
 class NotificationsTestCase(TestCase):
     def setUp(self):
-        self.user = TerraUserFactory()
+        self.user = UserFactory()
         self.client = APIClient()
         self.client.force_login(self.user)
 
