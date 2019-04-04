@@ -224,6 +224,42 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         )
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
+    def test_viewpoint_search_json(self):
+        list_url = reverse('tropp:viewpoint-list')
+        ViewpointFactory(
+            label="Viewpoint for search",
+            pictures__state=STATES.ACCEPTED,
+            properties={
+                "commune": "Rouperou-le-coquet",
+                "themes": ['foo', 'bar', 'baz'],
+                "voie": "coin d'en bas de la rue du bout",
+                "site": "Carrière des petits violoncelles",
+            },
+        )
+        self.assertEqual(self.client.get(list_url).json()['count'], 2)
+        data = self.client.get(
+            list_url, {'properties__commune': 'Rouperou-le-coquet'}
+        ).json()
+        self.assertEqual(data.get('count'), 1)
+        data = self.client.get(list_url, {'properties__voie': 'rue'}).json()
+        self.assertEqual(data.get('count'), 1)
+        data = self.client.get(
+            list_url, {'properties__themes[]': ['foo']}
+        ).json()
+        self.assertEqual(data.get('count'), 1)
+        data = self.client.get(
+            list_url, {'properties__themes[]': ['bar', 'foo']}
+        ).json()
+        self.assertEqual(data.get('count'), 1)
+        data = self.client.get(
+            list_url, {'properties__themes[]': ['bar', 'foobar']}
+        ).json()
+        self.assertEqual(data.get('count'), 0)
+        data = self.client.get(
+            list_url, {'properties__site': 'carrière'}
+        ).json()
+        self.assertEqual(data.get('count'), 1)
+
     def _viewpoint_create(self):
         return self.client.post(
             reverse('tropp:viewpoint-list'),
