@@ -14,7 +14,7 @@ from rest_framework.response import Response
 
 from ..core.filters import DateFilterBackend, SchemaAwareDjangoFilterBackend
 from ..core.renderers import PdfRenderer
-from .filters import CampaignFilterBackend
+from .filters import CampaignFilterBackend, JsonFilterBackend
 from .serializers import *
 
 
@@ -59,8 +59,7 @@ class ViewpointFilters(BaseMetadata):
     @staticmethod
     def get_anonymous_search_filters():
         filter_values = {}
-        searchable_properties = settings.TROPP_SEARCHABLE_PROPERTIES
-        for key, field in searchable_properties.items():
+        for key, field in settings.TROPP_SEARCHABLE_PROPERTIES.items():
             data = None
             transform = KeyTransform(field['json_key'], 'properties')
             queryset = (Viewpoint.objects
@@ -112,6 +111,7 @@ class ViewpointViewSet(viewsets.ModelViewSet):
         SearchFilter,
         SchemaAwareDjangoFilterBackend,
         DateFilterBackend,
+        JsonFilterBackend,
     )
     filter_fields_schema = [
         coreapi.Field(
