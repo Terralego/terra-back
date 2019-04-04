@@ -26,3 +26,22 @@ TROPP_VIEWPOINT_PROPERTIES_SET = {
     'form': {},
     'filter': {},
 }
+
+TROPP_SEARCHABLE_PROPERTIES = {
+    'cities': {
+        'json_key': 'commune',
+        'type': 'single',
+    },
+    'themes': {
+        'json_key': 'themes',
+        'type': 'many',
+    },
+    'road': {
+        'json_key': 'voie',
+        'type': 'text',
+    },
+    'site': {
+        'json_key': 'site',
+        'type': 'text',
+    },
+}
