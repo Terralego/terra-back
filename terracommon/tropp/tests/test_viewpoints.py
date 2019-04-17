@@ -310,7 +310,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertIn('placeholder', Feature.objects.get(
             id=self.viewpoint_with_accepted_picture.point.id
-        ).properties['viewpoint_picture']['thumbnail'])
+        ).properties['viewpoint_picture'])
 
     def _viewpoint_delete(self):
         return self.client.delete(
@@ -438,7 +438,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         # Check if the signal has been sent after patching
         self.assertIn(
             file.name.split('.')[0],
-            feature.properties['viewpoint_picture']['list']
+            feature.properties['viewpoint_picture']
         )
 
     def test_ordering_in_list_view(self):

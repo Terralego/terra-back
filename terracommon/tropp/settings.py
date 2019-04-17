@@ -27,6 +27,10 @@ TROPP_VIEWPOINT_PROPERTIES_SET = {
     'filter': {},
 }
 
+TROPP_FEATURES_PROPERTIES_FROM_VIEWPOINT = [
+    'commune',
+]
+
 TROPP_SEARCHABLE_PROPERTIES = {
     'cities': {
         'json_key': 'commune',
