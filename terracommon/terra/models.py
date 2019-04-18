@@ -350,7 +350,7 @@ class Layer(BaseUpdatableModel):
         Return properties based on layer features or layer schema definition
         """
         if self.schema:
-            results = self.schema.get('properties', {}).keys()
+            results = list(self.schema.get('properties', {}).keys())
 
         else:
             feature_table = Feature._meta.db_table
@@ -368,11 +368,11 @@ class Layer(BaseUpdatableModel):
                 """
 
             cursor.execute(raw_query, [self.pk, ])
-            results = cursor.fetchall()
+            results = [x[0] for x in cursor.fetchall()]
 
         return {
             prop: 'str'
-            for (prop, ) in results
+            for prop in results
         }
 
     def get_property_title(self, prop):
@@ -468,8 +468,10 @@ class Feature(BaseUpdatableModel):
                               related_name='features')
 
     source = models.IntegerField(null=True,
+                                 blank=True,
                                  help_text='Internal field used by pgRouting')
     target = models.IntegerField(null=True,
+                                 blank=True,
                                  help_text='Internal field used by pgRouting')
 
     objects = Manager.from_queryset(FeatureQuerySet)()
@@ -501,10 +503,14 @@ class Feature(BaseUpdatableModel):
         return self.geom.extent
 
     def save(self, *args, **kwargs):
-        # validate schema properties
-        validate_json_schema_data(self.properties, self.layer.schema)
         super().save(*args, **kwargs)
         self.clean_vect_tile_cache()
+
+    def clean(self):
+        """
+        Validate properties according schema if provided
+        """
+        validate_json_schema_data(self.properties, self.layer.schema)
 
     class Meta:
         ordering = ['id']
