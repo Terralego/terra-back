@@ -129,3 +129,4 @@ class DocumentGeneratorTestCase(TestCase):
         pdf_path_bis = dg.get_pdf()
         self.assertTrue(os.path.isfile(pdf_path_bis))
         self.assertNotEqual(os.path.getmtime(pdf_path_bis), pdf_mtime)
+        os.remove(pdf_path_bis)

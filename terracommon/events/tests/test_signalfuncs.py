@@ -2,15 +2,16 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.test import TestCase
 
-from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.events.signals.funcs import get_user_from_pk, users_of_group
+
+from .factories import UserFactory
 
 UserModel = get_user_model()
 
 
 class SingalFuncsTestCase(TestCase):
     def setUp(self):
-        self.user = TerraUserFactory()
+        self.user = UserFactory()
         self.group = Group.objects.create(name='testgroup')
 
     def test_get_user_from_pk(self):

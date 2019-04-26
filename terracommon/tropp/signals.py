@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from versatileimagefield.serializers import VersatileImageFieldSerializer
@@ -16,13 +17,18 @@ def update_or_create_viewpoint(instance, **kwargs):
         'viewpoint_id': instance.id,
         'viewpoint_label': instance.label,
     }
+
+    # Add thumbnail representation in the feature's properties
     if instance.pictures.exists():
-        last_picture_representation = VersatileImageFieldSerializer(
+        last_picture_sizes = VersatileImageFieldSerializer(
             'tropp'
         ).to_representation(instance.pictures.latest().file)
-        # We don't need those two representation in the feature's properties
-        del last_picture_representation['original']
-        del last_picture_representation['full']
-        point.properties['viewpoint_picture'] = last_picture_representation
+        point.properties['viewpoint_picture'] = last_picture_sizes['thumbnail']
+
+    # Add any specified viewpoint property in the feature's properties
+    for prop in settings.TROPP_FEATURES_PROPERTIES_FROM_VIEWPOINT:
+        value = instance.properties.get(prop)
+        if value is not None:
+            point.properties[f'viewpoint_{prop}'] = value
 
     point.save()

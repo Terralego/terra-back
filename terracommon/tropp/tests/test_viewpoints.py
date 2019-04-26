@@ -61,9 +61,10 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         self.fp.close()
 
     def test_viewpoint_get_list_anonymous(self):
-        data = self.client.get(
-            reverse('tropp:viewpoint-list')
-        ).json()
+        with self.assertNumQueries(3):
+            data = self.client.get(
+                reverse('tropp:viewpoint-list')
+            ).json()
         # List must contain all viewpoints WITHOUT those with no pictures
         # Pictures must also be ACCEPTED
         self.assertEqual(1, data.get('count'))
@@ -100,11 +101,30 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         )
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
-    def test_viewpoint_search_options(self):
-        search_options_url = reverse('tropp:viewpoint-search-options')
-        data = self.client.get(search_options_url).json()
-        self.assertNotEqual(data.get('viewpoints'), [])
-        self.assertIsNone(data.get('photographers'))
+    def test_anonymous_options_request_returns_correct_search_filters(self):
+        ViewpointFactory(properties={
+            'commune': 'Rouperou-le-coquet',
+            'themes': ['foo', 'Bar']
+        })
+        ViewpointFactory(properties={
+            'commune': 'Montcuq',
+            'themes': ['Bar']
+        })
+        data = self.client.options(
+            reverse('tropp:viewpoint-list')
+        ).json()
+        self.assertEqual(data.get('cities'), ['Montcuq', 'Rouperou-le-coquet'])
+        self.assertEqual(data.get('themes'), ['Bar', 'foo'])
+
+    def test_authenticated_options_request_returns_all_search_filters(self):
+        self.client.force_authenticate(user=self.user)
+        data = self.client.options(
+            reverse('tropp:viewpoint-list')
+        ).json()
+        self.assertIsNotNone(data.get('cities'))
+        self.assertIsNotNone(data.get('themes'))
+        self.assertEqual(3, len(data.get('viewpoints')))
+        self.assertEqual(3, len(data.get('photographers')))
 
     def test_viewpoint_search_anonymous(self):
         # Simple viewpoint search feature
@@ -204,6 +224,42 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         )
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
+    def test_viewpoint_search_json(self):
+        list_url = reverse('tropp:viewpoint-list')
+        ViewpointFactory(
+            label="Viewpoint for search",
+            pictures__state=STATES.ACCEPTED,
+            properties={
+                "commune": "Rouperou-le-coquet",
+                "themes": ['foo', 'bar', 'baz'],
+                "voie": "coin d'en bas de la rue du bout",
+                "site": "Carrière des petits violoncelles",
+            },
+        )
+        self.assertEqual(self.client.get(list_url).json()['count'], 2)
+        data = self.client.get(
+            list_url, {'properties__commune': 'Rouperou-le-coquet'}
+        ).json()
+        self.assertEqual(data.get('count'), 1)
+        data = self.client.get(list_url, {'properties__voie': 'rue'}).json()
+        self.assertEqual(data.get('count'), 1)
+        data = self.client.get(
+            list_url, {'properties__themes[]': ['foo']}
+        ).json()
+        self.assertEqual(data.get('count'), 1)
+        data = self.client.get(
+            list_url, {'properties__themes[]': ['bar', 'foo']}
+        ).json()
+        self.assertEqual(data.get('count'), 1)
+        data = self.client.get(
+            list_url, {'properties__themes[]': ['bar', 'foobar']}
+        ).json()
+        self.assertEqual(data.get('count'), 0)
+        data = self.client.get(
+            list_url, {'properties__site': 'carrière'}
+        ).json()
+        self.assertEqual(data.get('count'), 1)
+
     def _viewpoint_create(self):
         return self.client.post(
             reverse('tropp:viewpoint-list'),
@@ -254,7 +310,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertIn('placeholder', Feature.objects.get(
             id=self.viewpoint_with_accepted_picture.point.id
-        ).properties['viewpoint_picture']['thumbnail'])
+        ).properties['viewpoint_picture'])
 
     def _viewpoint_delete(self):
         return self.client.delete(
@@ -382,7 +438,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         # Check if the signal has been sent after patching
         self.assertIn(
             file.name.split('.')[0],
-            feature.properties['viewpoint_picture']['list']
+            feature.properties['viewpoint_picture']
         )
 
     def test_ordering_in_list_view(self):

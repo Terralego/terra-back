@@ -6,7 +6,6 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.events.models import EventHandler
 from terracommon.events.signals import event
 from terracommon.events.signals.handlers import (AbstractHandler,
@@ -14,6 +13,7 @@ from terracommon.events.signals.handlers import (AbstractHandler,
                                                  SendNotificationHandler,
                                                  SetGroupHandler,
                                                  TimeDeltaHandler)
+from terracommon.events.tests.factories import UserFactory
 from terracommon.trrequests.tests.factories import UserRequestFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin
 
@@ -22,7 +22,7 @@ class EventsTestCase(TestCase, TestPermissionsMixin):
     def setUp(self):
         self.client = APIClient()
 
-        self.user = TerraUserFactory()
+        self.user = UserFactory()
         self.client.force_authenticate(user=self.user)
 
     def test_newrequest_event(self):
@@ -149,7 +149,7 @@ class UserNotificationHandlerTestCase(TestCase):
 class SetGroupHandlerTestCase(TestCase):
 
     def setUp(self):
-        self.user = TerraUserFactory()
+        self.user = UserFactory()
         self.group = Group.objects.create(name="testgroup")
 
     def test_handler(self):

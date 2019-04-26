@@ -6,9 +6,10 @@ from django.core.management import call_command
 from django.forms.models import model_to_dict
 from django.test import TestCase, override_settings
 
-from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.events.models import EventHandler
 from terracommon.trrequests.tests.factories import UserRequestFactory
+
+from .factories import UserFactory
 
 
 class ExecuteActionTestCase(TestCase):
@@ -87,8 +88,8 @@ class ExecuteActionTestCase(TestCase):
                 )
             )
             userrequests[-1].reviewers.set([
-                TerraUserFactory(email=f'reviewer{i*2+1}@makina-corpus.com'),
-                TerraUserFactory(email=f'reviewer{i*2+2}@makina-corpus.com')
+                UserFactory(email=f'reviewer{i*2+1}@makina-corpus.com'),
+                UserFactory(email=f'reviewer{i*2+2}@makina-corpus.com')
             ])
 
         signals = [

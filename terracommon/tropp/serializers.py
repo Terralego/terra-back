@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
+from rest_framework.fields import SerializerMethodField
 from rest_framework_gis.fields import GeometryField
 from versatileimagefield.serializers import VersatileImageFieldSerializer
 
@@ -22,12 +23,23 @@ class PermissiveImageFieldSerializer(VersatileImageFieldSerializer):
 
 
 class SimpleViewpointSerializer(serializers.ModelSerializer):
-    picture = PermissiveImageFieldSerializer(
-        'tropp',
-        source='pictures.latest.file',
-    )
+    picture = SerializerMethodField()
     geometry = GeometryField(source='point.geom', read_only=True)
 
+    class Meta:
+        model = Viewpoint
+        fields = ('id', 'label', 'picture', 'geometry')
+
+    def get_picture(self, viewpoint):
+        try:
+            return VersatileImageFieldSerializer('tropp').to_native(
+                viewpoint.pictures.first().file
+            )
+        except AttributeError:
+            return None
+
+
+class SimpleAuthenticatedViewpointSerializer(SimpleViewpointSerializer):
     class Meta:
         model = Viewpoint
         fields = ('id', 'label', 'picture', 'geometry', 'status')
@@ -44,6 +56,15 @@ class CampaignSerializer(serializers.ModelSerializer):
 class DetailCampaignNestedSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.email')
     viewpoints = SimpleViewpointSerializer(many=True, read_only=True)
+
+    class Meta(CampaignSerializer.Meta):
+        model = Campaign
+        fields = '__all__'
+
+
+class DetailAuthenticatedCampaignNestedSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.email')
+    viewpoints = SimpleAuthenticatedViewpointSerializer(many=True, read_only=True)
 
     class Meta(CampaignSerializer.Meta):
         model = Campaign
