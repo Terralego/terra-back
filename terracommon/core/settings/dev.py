@@ -15,12 +15,7 @@ DEBUG = True
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 INSTALLED_APPS += (  # noqa
-    'debug_toolbar',
     'django_extensions',
-)
-
-MIDDLEWARE += (
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
 INTERNAL_IPS = ('127.0.0.1',)  # Used by app debug_toolbar
