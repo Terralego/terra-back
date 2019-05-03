@@ -4,7 +4,7 @@ from tempfile import NamedTemporaryFile
 
 from django.utils.dateparse import parse_datetime
 from docx.shared import Mm
-from docxtpl import InlineImage
+from docxtpl import InlineImage, RichText
 from jinja2 import contextfilter
 
 from terracommon.datastore.models import DataStore
@@ -40,3 +40,7 @@ def b64_to_inlineimage(context, value):
     tmp_f.write(decoded)
     tmp_f.seek(0)
     return InlineImage(context['tpl'], tmp_f.name, width=Mm(40))
+
+
+def richtext(value):
+    return RichText(value)

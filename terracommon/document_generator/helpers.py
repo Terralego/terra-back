@@ -18,8 +18,8 @@ from jinja2 import TemplateSyntaxError
 
 from terracommon.document_generator.models import DownloadableDocument
 
-from .filters import (b64_to_inlineimage, timedelta_filter, todate_filter,
-                      translate_filter)
+from .filters import (b64_to_inlineimage, richtext, timedelta_filter,
+                      todate_filter, translate_filter)
 
 logger = logging.getLogger(__name__)
 
@@ -139,6 +139,7 @@ class DocumentGenerator:
 
     # TODO make it a function in filters.py
     filters = {
+        'richtext': richtext,
         'timedelta_filter': timedelta_filter,
         'translate_filter': translate_filter,
         'todate_filter': todate_filter,
