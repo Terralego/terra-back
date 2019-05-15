@@ -1,3 +1,4 @@
+from datetime import date
 import glob
 import json
 import logging
@@ -230,6 +231,8 @@ class Layer(models.Model):
 
             # Create one shapefile by kind of geometry
             for geom_type in GIS_POINT + GIS_LINESTRING + GIS_POLYGON:
+                layer_name = f'{self.name}-{geom_type}-{date.today()}'
+
                 schema = {
                     'geometry': geom_type,
                     'properties': self.layer_properties,
@@ -237,7 +240,7 @@ class Layer(models.Model):
 
                 shapes[geom_type] = fiona.open(
                     shape_folder,
-                    layer=geom_type,
+                    layer=layer_name,
                     mode='w',
                     driver='ESRI Shapefile',
                     schema=schema,
@@ -255,11 +258,12 @@ class Layer(models.Model):
             # Close fiona files
             for geom_type, shape in shapes.items():
                 shape_size = len(shape)
+                layer_name = shape.name
                 shape.close()
 
                 # Delete empty shapes
                 if not shape_size:
-                    for filename in glob.iglob(os.path.join(shape_folder, f'{geom_type}.*')):
+                    for filename in glob.iglob(os.path.join(shape_folder, f'{layer_name}.*')):
                         os.remove(filename)
 
             # Zip to BytesIO and return shape files
