@@ -4,6 +4,7 @@ import logging
 import os
 import uuid
 from copy import deepcopy
+from enum import IntEnum
 from functools import reduce
 from tempfile import TemporaryDirectory
 
@@ -22,14 +23,14 @@ from django.utils.functional import cached_property
 from fiona.crs import from_epsg
 from mercantile import tiles
 
-from . import GIS_LINESTRING, GIS_POINT, GIS_POLYGON
 from .helpers import ChunkIterator, make_zipfile_bytesio
 from .managers import FeatureQuerySet
 from .mixins import BaseUpdatableModel
 from .routing.helpers import Routing
 from .tiles.funcs import ST_HausdorffDistance
 from .tiles.helpers import VectorTile, guess_maxzoom, guess_minzoom
-from .validators import validate_json_schema, validate_json_schema_data
+from .validators import (validate_geom_type, validate_json_schema,
+                         validate_json_schema_data)
 
 logger = logging.getLogger(__name__)
 
@@ -71,11 +72,26 @@ def topology_update(func):
     return wrapper
 
 
+class GeometryTypes(IntEnum):
+    Point = 0
+    LineString = 1
+    # LinearRing 2
+    Polygon = 3
+    MultiPoint = 4
+    MultiLineString = 5
+    MultiPolygon = 6
+    GeometryCollection = 7
+
+    @classmethod
+    def choices(cls):
+        return [(geom_type, geom_type.value) for geom_type in cls]
+
+
 class Layer(BaseUpdatableModel):
     name = models.CharField(max_length=256, unique=True, default=uuid.uuid4)
     group = models.CharField(max_length=255, default="__nogroup__")
     schema = JSONField(default=dict, blank=True, validators=[validate_json_schema])
-
+    geom_type = models.IntegerField(choices=GeometryTypes.choices(), null=True)
     # Settings scheam
     SETTINGS_DEFAULT = {
         'metadata': {
@@ -228,9 +244,14 @@ class Layer(BaseUpdatableModel):
 
         with TemporaryDirectory() as shape_folder:
             shapes = {}
-
+            if self.geom_type is None:
+                type_to_check = [GeometryTypes.Point.name, GeometryTypes.MultiPoint.name,
+                                 GeometryTypes.LineString.name, GeometryTypes.MultiLineString.name,
+                                 GeometryTypes.Polygon.name, GeometryTypes.MultiPolygon.name]
+            else:
+                type_to_check = self.get_geom_type_display()
             # Create one shapefile by kind of geometry
-            for geom_type in GIS_POINT + GIS_LINESTRING + GIS_POLYGON:
+            for geom_type in type_to_check:
                 schema = {
                     'geometry': geom_type,
                     'properties': self.layer_properties,
@@ -385,16 +406,37 @@ class Layer(BaseUpdatableModel):
 
         return prop
 
+    @property
+    def is_point(self):
+        return self.layer_geometry in (GeometryTypes.Point,
+                                       GeometryTypes.MultiPoint)
+
+    @property
+    def is_linestring(self):
+        return self.layer_geometry in (GeometryTypes.LineString,
+                                       GeometryTypes.MultiLineString)
+
+    @property
+    def is_polygon(self):
+        return self.layer_geometry in (GeometryTypes.Polygon,
+                                       GeometryTypes.MultiPolygon)
+
+    @property
+    def is_multi(self):
+        return self.layer_geometry in (GeometryTypes.MultiPoint,
+                                       GeometryTypes.MultiLineString,
+                                       GeometryTypes.MultiPolygon)
+
     @cached_property
     def layer_geometry(self):
         ''' Return the geometry type of the layer using the first feature in
-            the layer
+            the layer if the layer have no geom_type or the geom_type of the layer
         '''
-        feature = self.features.first()
-        if feature:
-            return feature.geom.geom_type
-
-        return None
+        if self.geom_type is None:
+            feature = self.features.first()
+            if feature:
+                return feature.geom.geom_typeid
+        return self.geom_type
 
     @cached_property
     def settings_with_default(self):
@@ -510,6 +552,7 @@ class Feature(BaseUpdatableModel):
         """
         Validate properties according schema if provided
         """
+        validate_geom_type(self)
         validate_json_schema_data(self.properties, self.layer.schema)
 
     class Meta:
