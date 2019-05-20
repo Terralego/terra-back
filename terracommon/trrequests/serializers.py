@@ -133,7 +133,7 @@ class UserRequestSerializer(serializers.ModelSerializer, SerializerCurrentUserMi
     class Meta:
         model = UserRequest
         fields = '__all__'
-        read_only_fields = ('owner', 'expiry', )
+        read_only_fields = ('owner', 'expiry', 'layer', )
 
 
 class CommentSerializer(serializers.ModelSerializer,
