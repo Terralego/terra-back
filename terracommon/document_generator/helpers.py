@@ -11,10 +11,15 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 import jinja2
 from django.conf import settings
 from django.core.files import File
+from django.template import Context, Template
+from django.template.exceptions import \
+    TemplateSyntaxError as DjangoTemplateSyntaxError
 from django.utils.functional import cached_property
 from docx.shared import Mm
 from docxtpl import DocxTemplate, InlineImage
 from jinja2 import TemplateSyntaxError
+from magic import from_file
+from weasyprint import HTML
 
 from terracommon.document_generator.models import DownloadableDocument
 
@@ -25,11 +30,21 @@ logger = logging.getLogger(__name__)
 
 
 class DocumentGenerator:
+
     def __init__(self, downloadabledoc):
         if not isinstance(downloadabledoc, DownloadableDocument):
             raise TypeError("downloadabledoc must be a DownloadableDocument")
         self.template = downloadabledoc.document.documenttemplate.path
+        try:
+            self.type = from_file(self.template, mime=True)
+        except FileNotFoundError:
+            logger.warning(f"File {self.template} not found.")
+            raise
         self.datamodel = downloadabledoc.linked_object
+        self.mime_type_mapping = {
+            'text/html': self._get_html_as_pdf,
+            'application/octet-stream': self._get_docx_as_pdf,
+        }
 
     def get_docx(self, data):
         doc = DocxTemplator(self.template)
@@ -54,6 +69,12 @@ class DocumentGenerator:
             shutil.rmtree(tmpdir)
         return doc.save()
 
+    def get_html(self, data):
+        with open(self.template, 'r') as read_file:
+            template = Template(read_file.read())
+        html_content = template.render(Context(data))
+        return html_content
+
     def get_pdf(self, reset_cache=False):
         cachepath = os.path.join(
             self.datamodel.__class__.__name__,
@@ -68,24 +89,29 @@ class DocumentGenerator:
             if reset_cache:
                 cache.clear()
 
-            self._get_docx_as_pdf(cache)
+            serializer = (self.datamodel.get_pdf_serializer()
+                          if hasattr(self.datamodel, 'get_pdf_serializer')
+                          else self.datamodel.get_serializer())
+            serialized_model = serializer(self.datamodel)
+
+            self.mime_type_mapping[self.type](cache, serialized_model)
 
         return cache.name
 
-    def _get_docx_as_pdf(self, cache):
-        serializer = (self.datamodel.get_pdf_serializer()
-                      if hasattr(self.datamodel, 'get_pdf_serializer')
-                      else self.datamodel.get_serializer())
-        serialized_model = serializer(self.datamodel)
+    def _get_html_as_pdf(self, cache, serialized_model):
+        try:
+            html_content = self.get_html(serialized_model.data)
+        except DjangoTemplateSyntaxError:
+            cache.remove()
+            logger.warning(f'TemplateSyntaxError for {self.template}')
+            raise
+        pdf = HTML(string=html_content).write_pdf()
+        with cache.open() as cached_pdf:
+            cached_pdf.write(pdf)
 
+    def _get_docx_as_pdf(self, cache, serialized_model):
         try:
             docx = self.get_docx(data=serialized_model.data)
-        except FileNotFoundError:
-            # remove newly created file
-            # for caching purpose
-            cache.remove()
-            logger.warning(f"File {self.template} not found.")
-            raise
         except TemplateSyntaxError as e:
             cache.remove()
             logger.warning(f'TemplateSyntaxError for {self.template} '

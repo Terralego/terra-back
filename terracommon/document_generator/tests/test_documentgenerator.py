@@ -4,6 +4,8 @@ from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.template.exceptions import \
+    TemplateSyntaxError as DjangoTemplateSyntaxError
 from django.test import TestCase
 from jinja2 import TemplateSyntaxError
 
@@ -42,6 +44,105 @@ class DocumentGeneratorTestCase(TestCase):
             document=self.template,
             linked_object=self.userrequest
         )
+
+    @patch('terracommon.document_generator.helpers.logger')
+    def test_bad_html_template(self, mock_logger):
+        html_file = os.path.join(os.path.dirname(__file__), 'simple_html_template.html')
+        with open(html_file, 'rb') as read_file:
+            html_template = DocumentTemplate.objects.create(
+                name='htmltemplate',
+                documenttemplate=SimpleUploadedFile(
+                    str(uuid4()),
+                    read_file.read()
+                )
+            )
+        html_downloadable = DownloadableDocument.objects.create(
+            user=self.user,
+            document=html_template,
+            linked_object=self.userrequest
+        )
+        dg = DocumentGenerator(html_downloadable)
+        dg.get_html = MagicMock(side_effect=DjangoTemplateSyntaxError('Error'))
+        with self.assertRaises(DjangoTemplateSyntaxError):
+            dg.get_pdf()
+            mock_logger.warning.assert_called()
+
+    def test_empty_html_template(self):
+        html_file = os.path.join(os.path.dirname(__file__), 'empty_html_template.html')
+        with open(html_file, 'rb') as read_file:
+            html_template = DocumentTemplate.objects.create(
+                name='htmltemplate',
+                documenttemplate=SimpleUploadedFile(
+                    str(uuid4()),
+                    read_file.read()
+                )
+            )
+        html_downloadable = DownloadableDocument.objects.create(
+            user=self.user,
+            document=html_template,
+            linked_object=self.userrequest
+        )
+        dg = DocumentGenerator(html_downloadable)
+        html_content = dg.get_html({})
+        self.assertEqual('', html_content)
+
+    def test_get_html_without_data(self):
+        html_file = os.path.join(os.path.dirname(__file__), 'simple_html_template.html')
+        with open(html_file, 'rb') as read_file:
+            html_template = DocumentTemplate.objects.create(
+                name='htmltemplate',
+                documenttemplate=SimpleUploadedFile(
+                    str(uuid4()),
+                    read_file.read()
+                )
+            )
+        html_downloadable = DownloadableDocument.objects.create(
+            user=self.user,
+            document=html_template,
+            linked_object=self.userrequest
+        )
+        dg = DocumentGenerator(html_downloadable)
+        html_content = dg.get_html({})
+        self.assertEqual('<html><body>It is now .</body></html>', html_content)
+
+    def test_get_html_with_data(self):
+        html_file = os.path.join(os.path.dirname(__file__), 'simple_html_template.html')
+        with open(html_file, 'rb') as read_file:
+            html_template = DocumentTemplate.objects.create(
+                name='htmltemplate',
+                documenttemplate=SimpleUploadedFile(
+                    str(uuid4()),
+                    read_file.read()
+                )
+            )
+        html_downloadable = DownloadableDocument.objects.create(
+            user=self.user,
+            document=html_template,
+            linked_object=self.userrequest
+        )
+        dg = DocumentGenerator(html_downloadable)
+        html_content = dg.get_html({'current_date': '2019-05-15'})
+        self.assertEqual('<html><body>It is now 2019-05-15.</body></html>', html_content)
+
+    def test_pdf_is_generated_from_html_template(self):
+        html_file = os.path.join(os.path.dirname(__file__), 'simple_html_template.html')
+        with open(html_file, 'rb') as read_file:
+            html_template = DocumentTemplate.objects.create(
+                name='htmltemplate',
+                documenttemplate=SimpleUploadedFile(
+                    str(uuid4()),
+                    read_file.read()
+                )
+            )
+        html_downloadable = DownloadableDocument.objects.create(
+            user=self.user,
+            document=html_template,
+            linked_object=self.userrequest
+        )
+        dg = DocumentGenerator(html_downloadable)
+        pdf_path = dg.get_pdf()
+        self.assertTrue(os.path.isfile(pdf_path))
+        os.remove(pdf_path)
 
     @patch('subprocess.run', side_effect=mock_libreoffice)
     def test_pdf_is_generated_from_enriched_docx(self, mock_run):
