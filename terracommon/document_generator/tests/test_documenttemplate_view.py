@@ -1,7 +1,7 @@
 import os
 from datetime import date
 from tempfile import NamedTemporaryFile
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
@@ -49,6 +49,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         }
         self.pdfcreator_urlname = 'document_generator:document-pdf'
 
+    @patch('terracommon.document_generator.helpers.from_file', MagicMock(return_value='DOCX'))
     def test_pdf_creator_method_with_dev_settings(self):
         fake_userrequest = UserRequestFactory(properties=self.properties)
         pks = {'request_pk': fake_userrequest.pk, 'pk': self.docx.pk}
@@ -87,6 +88,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
         os.remove(fake_pdf.name)
 
+    @patch('terracommon.document_generator.helpers.from_file', MagicMock(return_value='DOCX'))
     def test_pdf_creator_method_with_prod_settings(self):
         userrequest = UserRequestFactory(properties=self.properties)
         pks = {'request_pk': userrequest.pk, 'pk': self.docx.pk}
@@ -165,6 +167,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
 
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
 
+    @patch('terracommon.document_generator.helpers.from_file', MagicMock(return_value='DOCX'))
     def test_pdf_creator_with_all_pdf_permission(self):
         self._set_permissions(['can_download_all_pdf', ])
 
@@ -220,6 +223,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         # Reseting default test settings
         self.client.force_authenticate(user=self.user)
 
+    @patch('terracommon.document_generator.helpers.from_file', MagicMock(return_value='DOCX'))
     def test_raises_filenotfounderror_return_404(self):
         ur = UserRequestFactory()
         pks = {'request_pk': ur.pk, 'pk': self.docx.pk}
@@ -240,6 +244,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
             self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
             mock_dg.assert_called_with()
 
+    @patch('terracommon.document_generator.helpers.from_file', MagicMock(return_value='DOCX'))
     def test_raises_HTTPError_return_503(self):
         ur = UserRequestFactory()
         pks = {'request_pk': ur.pk, 'pk': self.docx.pk}
@@ -261,6 +266,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                              response.status_code)
             mock_dg.assert_called_with()
 
+    @patch('terracommon.document_generator.helpers.from_file', MagicMock(return_value='DOCX'))
     def test_raises_ConnectionError_return_503(self):
         ur = UserRequestFactory()
         pks = {'request_pk': ur.pk, 'pk': self.docx.pk}
@@ -282,6 +288,7 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
                              response.status_code)
             mock_dg.assert_called_with()
 
+    @patch('terracommon.document_generator.helpers.from_file', MagicMock(return_value='DOCX'))
     def test_raises_TemplateSyntaxError_return_500(self):
         ur = UserRequestFactory()
         pks = {'request_pk': ur.pk, 'pk': self.docx.pk}
