@@ -23,6 +23,9 @@ class TerraUserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
+    def get_by_natural_key(self, username):
+        return self.get(**{f'{self.model.USERNAME_FIELD}__iexact': username})
+
 
 class ReadModelManager(Manager):
     def get_user_read(self, user, obj):

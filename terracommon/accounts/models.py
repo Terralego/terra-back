@@ -41,9 +41,6 @@ class TerraUser(AbstractBaseUser, PermissionsMixin):
 
     objects = TerraUserManager()
 
-    def get_by_natural_key(self, username):
-        return self.get(**{f'{self.model.USERNAME_FIELD}__iexact': username})
-
     class Meta:
         ordering = ['id']
         permissions = (
