@@ -10,6 +10,5 @@ class PasswordSetAndResetForm(PasswordResetForm):
            unusable password"""
         active_users = UserModel._default_manager.filter(**{
             '%s__iexact' % UserModel.get_email_field_name(): email,
-            'is_active': True,
         })
         return (u for u in active_users)
