@@ -1,3 +1,4 @@
+import json
 from unittest.mock import MagicMock
 
 from django.contrib.auth import get_user_model
@@ -73,20 +74,23 @@ class RegistrationTestCase(TestCase):
         )
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
-        # Good password and
+        # Good password and set profile
         new_password = "azerty"
+        test_user_properties = {'test': 'property'}
         self.assertFalse(user.check_password(new_password))
         response = self.client.post(
             reverse('accounts:reset-password', args=[uidb64, token]),
             {
                 'new_password1': new_password,
                 'new_password2': new_password,
+                'properties': json.dumps(test_user_properties)
             }
         )
 
         user.refresh_from_db()
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertTrue(user.check_password(new_password))
+        self.assertDictEqual(user.properties, test_user_properties)
 
     def test_invalid_email(self):
         response = self.client.post(

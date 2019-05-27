@@ -62,7 +62,7 @@ class UserRegisterView(APIView):
                             get_user_model().EMAIL_FIELD: (
                                 request.data['email']
                             ),
-                            'is_active': True,
+                            'is_active': self._user_default_status,
                         })
                     user.set_unusable_password()
                     user.save()
@@ -84,6 +84,13 @@ class UserRegisterView(APIView):
             # If user already exists, email to reset the password instead
             form.save(**opts)
             return Response({}, status=status.HTTP_200_OK)
+
+    @property
+    def _user_default_status(self):
+        try:
+            return settings.TERRA_USER_CREATION_STATUS
+        except AttributeError:
+            return False
 
 
 class UserSetPasswordView(APIView):

@@ -12,6 +12,7 @@ class PasswordChangeSerializer(serializers.Serializer):
     old_password = serializers.CharField(max_length=128, required=False)
     new_password1 = serializers.CharField(max_length=128)
     new_password2 = serializers.CharField(max_length=128)
+    properties = serializers.JSONField(required=False)
 
     set_password_form_class = SetPasswordForm
 
@@ -38,7 +39,11 @@ class PasswordChangeSerializer(serializers.Serializer):
         return attrs
 
     def save(self):
-        return self.set_password_form.save()
+        user = self.set_password_form.save()
+        if 'properties' in self.validated_data:
+            user.properties = self.validated_data.get('properties')
+            user.save()
+        return user
 
 
 class PasswordResetSerializer(PasswordChangeSerializer):
