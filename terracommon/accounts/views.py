@@ -95,7 +95,8 @@ class UserSetPasswordView(APIView):
 
         serializer.save()
 
-        return Response({'detail': 'Password has been changed'})
+        user_serializer = UserProfileSerializer()
+        return Response(user_serializer.to_representation(serializer.user))
 
 
 class UserChangePasswordView(APIView):
@@ -107,7 +108,8 @@ class UserChangePasswordView(APIView):
 
         serializer.save()
 
-        return Response({'detail': 'Password has been changed'})
+        user_serializer = UserProfileSerializer()
+        return Response(user_serializer.to_representation(serializer.user))
 
 
 class SettingsView(APIView):
