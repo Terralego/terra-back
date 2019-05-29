@@ -151,7 +151,8 @@ class UserViewSet(ModelViewSet):
     filter_backends = (DjangoFilterBackend, JSONFieldOrderingFilter,
                        SearchFilter, )
     search_fields = ('uuid', 'email', 'properties', )
-    filter_fields = ('uuid', 'email', 'properties', 'groups')
+    filter_fields = ('uuid', 'email', 'properties', 'groups', 'is_superuser',
+                     'is_active', 'is_staff', 'date_joined')
 
     def get_queryset(self):
         if self.request.user.has_perm('accounts.can_manage_users'):
