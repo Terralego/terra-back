@@ -1,5 +1,6 @@
 import hashlib
 from math import ceil, floor, log, pi
+from random import uniform
 
 import mercantile
 from django.conf import settings
@@ -13,7 +14,15 @@ from .funcs import (ST_Area, ST_Length, ST_MakeEnvelope,
 from .sigtools import SIGTools
 
 
-def cached_tile(func, expiration=3600 * 24 * 7):
+def get_cache_version(layer):
+    try:
+        return int(layer.features.order_by('-updated_at').first().updated_at.timestamp())
+    except AttributeError:
+        # This happens when a layer is empty
+        return 1
+
+
+def cached_tile(func):
     def wrapper(self, x, y, z,
                 pixel_buffer, features_filter, properties_filter,
                 features_limit, *args, **kwargs):
@@ -22,13 +31,21 @@ def cached_tile(func, expiration=3600 * 24 * 7):
             pixel_buffer, features_filter, properties_filter,
             features_limit)
 
+        version = get_cache_version(self.layer)
+
+        expiration_factor = (log(5, z) ** 0.9)
+
+        # Cache expiry calculation is based on a logarithmic function where we add a random factor of +-10%
+        expiration = int(expiration_factor * (3600 * 24 * 7) * uniform(0.9, 1.1))
+
         def build_tile():
             (a, b) = func(
                 self, x, y, z,
                 pixel_buffer, features_filter, properties_filter,
                 features_limit, *args, **kwargs)
             return (a, b.tobytes())
-        return cache.get_or_set(cache_key, build_tile, expiration)
+        return cache.get_or_set(cache_key, build_tile, expiration, version=version)
+
     return wrapper
 
 
@@ -84,16 +101,23 @@ class VectorTile(object):
             layer_query = layer_query[:features_limit]
         return layer_query
 
+    def get_tile_bbox(self, x, y, z):
+        bounds = mercantile.bounds(x, y, z)
+        return (*mercantile.xy(bounds.west, bounds.south), *mercantile.xy(bounds.east, bounds.north))
+
+    def pixel_widths(self, xmin, ymin, xmax, ymax):
+        return (
+            (xmax - xmin) / self.TILE_WIDTH_PIXEL,
+            (ymax - ymin) / self.TILE_WIDTH_PIXEL
+        )
+
     @cached_tile
     def get_tile(self, x, y, z,
                  pixel_buffer, features_filter, properties_filter,
                  features_limit, features):
 
-        bounds = mercantile.bounds(x, y, z)
-        xmin, ymin = mercantile.xy(bounds.west, bounds.south)
-        xmax, ymax = mercantile.xy(bounds.east, bounds.north)
-        pixel_width_x = (xmax - xmin) / self.TILE_WIDTH_PIXEL
-        pixel_width_y = (ymax - ymin) / self.TILE_WIDTH_PIXEL
+        xmin, ymin, xmax, ymax = self.get_tile_bbox(x, y, z)
+        pixel_width_x, pixel_width_y = self.pixel_widths(xmin, ymin, xmax, ymax)
 
         layer_query = features.annotate(
                 bbox=ST_MakeEnvelope(
@@ -202,12 +226,13 @@ class VectorTile(object):
 
     def clean_tiles(self, tiles, pixel_buffer, features_filter,
                     properties_filter, features_limit):
-        return cache.delete_many([
-            self.get_tile_cache_key(
-                *tile, pixel_buffer, features_filter, properties_filter,
-                features_limit)
-            for tile in tiles
-        ])
+        return cache.delete_many(
+            [
+                self.get_tile_cache_key(
+                    *tile, pixel_buffer, features_filter, properties_filter,
+                    features_limit)
+                for tile in tiles
+            ], version=get_cache_version(self.layer))
 
 
 def guess_maxzoom(layer):
