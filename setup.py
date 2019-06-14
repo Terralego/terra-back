@@ -30,9 +30,9 @@ setup(
     ],
     install_requires=[
         "psycopg2>=2.7,<2.8",
-        "Django>=2.0,<2.1.0",
-        "djangorestframework>=3.7,<3.8",
-        "djangorestframework-gis==0.12",
+        "Django>=2.1,<2.2",
+        "djangorestframework>=3.8,<3.9",
+        "djangorestframework-gis>=0.14,<0.15",
         "djangorestframework-jwt>=1.11,<1.12",
         "drf-yasg>=1.9,<2.0",
         "django-cors-headers>=2.2,<2.3",
