@@ -80,7 +80,19 @@ class TerraUserSerializer(serializers.ModelSerializer):
     def get_permissions(self, obj):
         return list(obj.get_all_permissions())
 
+    def save(self):
+        super().save()
+
+        if 'password' in self.validated_data:
+            self.instance.set_password(self.validated_data['password'])
+            self.instance.save()
+
+        return self.instance
+
     class Meta:
         model = UserModel
         fields = ('id', 'is_superuser', 'email', 'uuid', 'properties',
-                  'is_staff', 'is_active', 'permissions', 'groups')
+                  'is_staff', 'is_active', 'permissions', 'groups', 'password')
+        extra_kwargs = {
+            "password": {"write_only": True, },
+        }
