@@ -73,6 +73,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class TerraUserSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField()
     groups = serializers.SerializerMethodField()
+    password = serializers.CharField(write_only=True, required=False)
 
     def get_groups(self, obj):
         return [group.name for group in obj.groups.all()]
@@ -93,6 +94,3 @@ class TerraUserSerializer(serializers.ModelSerializer):
         model = UserModel
         fields = ('id', 'is_superuser', 'email', 'uuid', 'properties',
                   'is_staff', 'is_active', 'permissions', 'groups', 'password')
-        extra_kwargs = {
-            "password": {"write_only": True, },
-        }
