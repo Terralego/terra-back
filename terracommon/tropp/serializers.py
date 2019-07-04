@@ -6,6 +6,7 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework_gis.fields import GeometryField
 from versatileimagefield.serializers import VersatileImageFieldSerializer
 
+from terracommon.core.settings import STATES
 from terracommon.terra.models import Feature, Layer
 
 from .models import Campaign, Document, Picture, Viewpoint
@@ -33,16 +34,28 @@ class SimpleViewpointSerializer(serializers.ModelSerializer):
     def get_picture(self, viewpoint):
         try:
             return VersatileImageFieldSerializer('tropp').to_native(
-                viewpoint.pictures.first().file
+                viewpoint.ordered_pics[0].file
             )
         except AttributeError:
             return None
 
 
 class SimpleAuthenticatedViewpointSerializer(SimpleViewpointSerializer):
+    status = serializers.SerializerMethodField()
+
     class Meta:
         model = Viewpoint
         fields = ('id', 'label', 'picture', 'geometry', 'status')
+
+    def get_status(self, obj):
+        """
+        :return: string (missing, draft, submitted, accepted)
+        """
+        # Get only pictures created for the campaign
+        last_pic = obj.ordered_pics[0]
+        if last_pic.created_at < obj.created_at:
+            return 'Missing'
+        return STATES.CHOICES_DICT[last_pic.state]
 
 
 class CampaignSerializer(serializers.ModelSerializer):
