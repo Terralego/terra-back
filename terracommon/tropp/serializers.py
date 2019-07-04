@@ -36,7 +36,7 @@ class SimpleViewpointSerializer(serializers.ModelSerializer):
             return VersatileImageFieldSerializer('tropp').to_native(
                 viewpoint.ordered_pics[0].file
             )
-        except AttributeError:
+        except IndexError:
             return None
 
 
@@ -52,10 +52,13 @@ class SimpleAuthenticatedViewpointSerializer(SimpleViewpointSerializer):
         :return: string (missing, draft, submitted, accepted)
         """
         # Get only pictures created for the campaign
-        last_pic = obj.ordered_pics[0]
-        if last_pic.created_at < obj.created_at:
+        try:
+            last_pic = obj.ordered_pics[0]
+            if last_pic.created_at < obj.created_at:
+                return 'Missing'
+            return STATES.CHOICES_DICT[last_pic.state]
+        except IndexError:
             return 'Missing'
-        return STATES.CHOICES_DICT[last_pic.state]
 
 
 class CampaignSerializer(serializers.ModelSerializer):
