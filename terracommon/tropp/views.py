@@ -6,9 +6,9 @@ import coreapi
 import coreschema
 from django.contrib.postgres.fields.jsonb import KeyTransform
 from rest_framework import permissions, viewsets
+from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import RetrieveAPIView
-from rest_framework.metadata import BaseMetadata
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
@@ -70,54 +70,7 @@ class RestPageNumberPagination(PageNumberPagination):
         ]))
 
 
-class ViewpointFilters(BaseMetadata):
-    @staticmethod
-    def get_anonymous_search_filters():
-        filter_values = {}
-        for key, field in settings.TROPP_SEARCHABLE_PROPERTIES.items():
-            data = None
-            transform = KeyTransform(field['json_key'], 'properties')
-            queryset = (Viewpoint.objects
-                        .annotate(**{key: transform})
-                        .exclude(**{f"{key}__isnull": True})
-                        .values_list(key, flat=True))
-            if field['type'] == 'single':
-                # Dedupe and sort with SQL
-                data = queryset.order_by(key).distinct(key)
-            elif field['type'] == 'many':
-                # Dedupe and sort programmatically
-                data = list(queryset)
-                if data:
-                    data = set(reduce(operator.concat, data))
-                    data = sorted(data, key=str.lower)
-            if data is not None:
-                filter_values[key] = data
-        return filter_values
-
-    @staticmethod
-    def get_authenticated_search_filters():
-        viewpoints = ViewpointLabelSerializer(
-            Viewpoint.objects.values('id', 'label'),
-            many=True,
-        ).data
-        photographers = PhotographerLabelSerializer(
-            get_user_model().objects.values('id', 'email'),
-            many=True,
-        ).data
-        return {
-            'viewpoints': viewpoints,
-            'photographers': photographers
-        }
-
-    def determine_metadata(self, request, view):
-        metadata = self.get_anonymous_search_filters()
-        if request.user.is_authenticated:
-            metadata.update(self.get_authenticated_search_filters())
-        return metadata
-
-
 class ViewpointViewSet(viewsets.ModelViewSet):
-    metadata_class = ViewpointFilters
     serializer_class = ViewpointSerializerWithPicture
     permission_classes = [
         permissions.DjangoModelPermissionsOrAnonReadOnly,
@@ -173,6 +126,39 @@ class ViewpointViewSet(viewsets.ModelViewSet):
                 return SimpleViewpointSerializer
             return SimpleAuthenticatedViewpointSerializer
         return ViewpointSerializerWithPicture
+
+    @action(detail=False)
+    def filters(self, request, *args, **kwargs):
+        filter_values = {}
+        for key, field in settings.TROPP_SEARCHABLE_PROPERTIES.items():
+            data = None
+            transform = KeyTransform(field['json_key'], 'properties')
+            queryset = (Viewpoint.objects
+                        .annotate(**{key: transform})
+                        .exclude(**{f"{key}__isnull": True})
+                        .values_list(key, flat=True))
+            if field['type'] == 'single':
+                # Dedupe and sort with SQL
+                data = queryset.order_by(key).distinct(key)
+            elif field['type'] == 'many':
+                # Dedupe and sort programmatically
+                data = list(queryset)
+                if data:
+                    data = set(reduce(operator.concat, data))
+                    data = sorted(data, key=str.lower)
+            if data is not None:
+                filter_values[key] = data
+
+        filter_values['viewpoints'] = ViewpointLabelSerializer(
+            Viewpoint.objects.values('id', 'label'),
+            many=True,
+        ).data
+        filter_values['photographers'] = PhotographerLabelSerializer(
+            get_user_model().objects.values('id', 'email'),
+            many=True,
+        ).data
+
+        return Response(filter_values)
 
 
 class CampaignViewSet(viewsets.ModelViewSet):
