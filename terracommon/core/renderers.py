@@ -1,4 +1,7 @@
 import mimetypes
+import os
+import tempfile
+import zipfile
 from io import StringIO
 from os.path import basename
 from urllib.parse import urlparse
@@ -74,3 +77,19 @@ class PdfRenderer(renderers.TemplateHTMLRenderer):
             base_url=base_url,
             url_fetcher=django_url_fetcher,
         ).write_pdf(**kwargs)
+
+
+class ZipRenderer(renderers.BaseRenderer):
+    media_type = 'application/zip'
+    format = 'zip'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        with tempfile.SpooledTemporaryFile() as tmp:
+            with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as archive:
+                for file in data:
+                    archive.writestr(
+                        os.path.basename(file.name),
+                        file.open().read(),
+                    )
+            tmp.seek(0)
+            return tmp.read()
