@@ -26,7 +26,7 @@ class ViewpointPdf(RetrieveAPIView):
     queryset = Viewpoint.objects.all()
     template_name = 'tropp/viewpoint_pdf.html'
     renderer_classes = (PdfRenderer,)
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, *args, **kwargs):
         properties_set = settings.TROPP_VIEWPOINT_PROPERTIES_SET['pdf']
