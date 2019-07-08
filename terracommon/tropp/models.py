@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.utils.translation import ugettext_lazy as _
@@ -33,6 +34,7 @@ class Viewpoint(BaseLabelModel):
         related_name='points',
     )
     properties = JSONField(_('Properties'), default=dict, blank=True)
+    related = GenericRelation('datastore.RelatedDocument')
 
     objects = ViewpointsManager()
 
