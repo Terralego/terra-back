@@ -107,7 +107,7 @@ class ViewpointViewSet(viewsets.ModelViewSet):
         ),
     ]
     filter_fields = ['pictures']
-    search_fields = ('id', )
+    search_fields = ('label', )
     date_search_field = 'pictures__date__date'
     pagination_class = RestPageNumberPagination
 
@@ -155,10 +155,6 @@ class ViewpointViewSet(viewsets.ModelViewSet):
             if data is not None:
                 filter_values[key] = data
 
-        filter_values['viewpoints'] = ViewpointLabelSerializer(
-            Viewpoint.objects.values('id', 'label'),
-            many=True,
-        ).data
         filter_values['photographers'] = PhotographerLabelSerializer(
             get_user_model().objects.values('id', 'email'),
             many=True,

@@ -123,14 +123,13 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         ).json()
         self.assertIsNotNone(data.get('cities'))
         self.assertIsNotNone(data.get('themes'))
-        self.assertEqual(3, len(data.get('viewpoints')))
         self.assertEqual(3, len(data.get('photographers')))
 
     def test_viewpoint_search_anonymous(self):
         # Simple viewpoint search feature
         data = self.client.get(
             reverse('tropp:viewpoint-list'),
-            {'search': self.viewpoint_with_accepted_picture.pk},
+            {'search': 'accepted'},
         ).json()
         self.assertEqual(data.get('count'), 1)
 
@@ -139,7 +138,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         self.client.force_authenticate(user=self.user)
         data = self.client.get(
             reverse('tropp:viewpoint-list'),
-            {'search': self.viewpoint_with_accepted_picture.pk},
+            {'search': 'Basic'},
         ).json()
         self.assertEqual(data.get('count'), 1)
 
