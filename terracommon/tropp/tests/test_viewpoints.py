@@ -110,16 +110,16 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
             'commune': 'Montcuq',
             'themes': ['Bar']
         })
-        data = self.client.options(
-            reverse('tropp:viewpoint-list')
+        data = self.client.get(
+            reverse('tropp:viewpoint-filters')
         ).json()
         self.assertEqual(data.get('cities'), ['Montcuq', 'Rouperou-le-coquet'])
         self.assertEqual(data.get('themes'), ['Bar', 'foo'])
 
     def test_authenticated_options_request_returns_all_search_filters(self):
         self.client.force_authenticate(user=self.user)
-        data = self.client.options(
-            reverse('tropp:viewpoint-list')
+        data = self.client.get(
+            reverse('tropp:viewpoint-filters')
         ).json()
         self.assertIsNotNone(data.get('cities'))
         self.assertIsNotNone(data.get('themes'))
