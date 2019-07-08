@@ -94,10 +94,13 @@ class DateFilterBackend(filters.BaseFilterBackend):
         if date_from and date_to and date_from > date_to:
             raise ValidationError
 
-        if date_from is not None:
+        if date_from is not None and date_to is not None:
+            queryset = queryset.filter(
+                **{f'{search_field}__range': (date_from, date_to)}
+            )
+        elif date_from is not None:
             queryset = queryset.filter(**{f'{search_field}__gte': date_from})
-
-        if date_to is not None:
+        elif date_to is not None:
             queryset = queryset.filter(**{f'{search_field}__lte': date_to})
 
         return queryset
