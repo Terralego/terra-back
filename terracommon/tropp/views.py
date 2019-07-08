@@ -13,7 +13,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from ..core.filters import DateFilterBackend, SchemaAwareDjangoFilterBackend
-from ..core.renderers import PdfRenderer
+from ..core.renderers import PdfRenderer, ZipRenderer
 from .filters import CampaignFilterBackend, JsonFilterBackend
 from .serializers import *
 
@@ -33,6 +33,21 @@ class ViewpointPdf(RetrieveAPIView):
             'viewpoint': self.get_object(),
             'properties_set': properties_set,
         })
+
+
+class ViewpointZipPictures(RetrieveAPIView):
+    """
+    Return a zip archive of all pictures
+    """
+    queryset = Viewpoint.objects.all()
+    renderer_classes = (ZipRenderer,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def get(self, request, *args, **kwargs):
+        qs = self.get_object().pictures.filter(
+            state__gte=settings.STATES.ACCEPTED,
+        ).only('file')
+        return Response([p.file for p in qs])
 
 
 class RestPageNumberPagination(PageNumberPagination):
