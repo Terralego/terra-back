@@ -46,11 +46,9 @@ class Viewpoint(BaseLabelModel):
         :return: string (missing, draft, submitted, accepted)
         """
         # Get only pictures created for the campaign
-        picture = self.pictures.filter(
-            created_at__gte=self.created_at
-        ).first()
-        if picture is None:
-            return 'Missing'
+        picture = self.pictures.latest()
+        if picture.created_at < self.created_at:
+            return settings.STATES.CHOICES_DICT[settings.STATES.MISSING]
         return STATES.CHOICES_DICT[picture.state]
 
     class Meta:

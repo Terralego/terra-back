@@ -5,6 +5,7 @@ from functools import reduce
 import coreapi
 import coreschema
 from django.contrib.postgres.fields.jsonb import KeyTransform
+from django.db.models import Prefetch
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -113,12 +114,13 @@ class ViewpointViewSet(viewsets.ModelViewSet):
         return super().filter_queryset(queryset).order_by('-created_at')
 
     def get_queryset(self):
-        qs = Viewpoint.objects
+        qs = Viewpoint.objects.with_accepted_pictures()
         if self.request.user.is_authenticated:
-            qs = qs.all().distinct()
-        else:
-            qs = qs.with_accepted_pictures()
-        return qs.select_related('point').prefetch_related('pictures')
+            qs = Viewpoint.objects.all().distinct()
+        pictures_qs = Picture.objects.order_by('-created_at')
+        return qs.select_related('point').prefetch_related(
+            Prefetch('pictures', queryset=pictures_qs, to_attr='ordered_pics')
+        )
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -173,10 +175,15 @@ class CampaignViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         # Filter only on assigned campaigns for photographs
         user = self.request.user
+        pictures_qs = Picture.objects.order_by('-created_at')
+        qs = super().get_queryset().prefetch_related(
+            Prefetch('viewpoints__pictures', queryset=pictures_qs,
+                     to_attr='ordered_pics')
+        )
         if (self.action == 'list'
                 and not user.has_perm('tropp.manage_all_campaigns')):
-            return super().get_queryset().filter(assignee=user)
-        return super().get_queryset()
+            return qs.filter(assignee=user)
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
