@@ -6,7 +6,6 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework_gis.fields import GeometryField
 from versatileimagefield.serializers import VersatileImageFieldSerializer
 
-from terracommon.core.settings import STATES
 from terracommon.terra.models import Feature, Layer
 
 from .models import Campaign, Document, Picture, Viewpoint
@@ -55,10 +54,10 @@ class SimpleAuthenticatedViewpointSerializer(SimpleViewpointSerializer):
         try:
             last_pic = obj.ordered_pics[0]
             if last_pic.created_at < obj.created_at:
-                return 'Missing'
-            return STATES.CHOICES_DICT[last_pic.state]
+                return settings.STATES.CHOICES_DICT[settings.STATES.MISSING]
+            return settings.STATES.CHOICES_DICT[last_pic.state]
         except IndexError:
-            return 'Missing'
+            return settings.STATES.CHOICES_DICT[settings.STATES.MISSING]
 
 
 class CampaignSerializer(serializers.ModelSerializer):

@@ -46,7 +46,7 @@ class Viewpoint(BaseLabelModel):
         # Get only pictures created for the campaign
         picture = self.pictures.latest()
         if picture.created_at < self.created_at:
-            return 'Missing'
+            return settings.STATES.CHOICES_DICT[settings.STATES.MISSING]
         return STATES.CHOICES_DICT[picture.state]
 
     class Meta:

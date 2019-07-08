@@ -167,7 +167,15 @@ STATES = Choices(
     ('ACCEPTED', 300, 'Accepted'),
     ('REFUSED', -1, 'Refused'),
     ('CANCELLED', -100, 'Cancelled'),
+    ('MISSING', 0, 'Missing'),
 )
+STATES.add_subset('MANUAL', (
+    'DRAFT',
+    'SUBMITTED',
+    'ACCEPTED',
+    'REFUSED',
+    'CANCELLED',
+))
 
 TERRA_APPLIANCE_SETTINGS = {}
 FRONT_URL = os.environ.get('FRONT_URL', '')
