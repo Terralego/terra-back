@@ -6,6 +6,8 @@ import coreapi
 import coreschema
 from django.contrib.postgres.fields.jsonb import KeyTransform
 from django.db.models import Prefetch
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -28,6 +30,7 @@ class ViewpointPdf(RetrieveAPIView):
     renderer_classes = (PdfRenderer,)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
+    @method_decorator(cache_page(60 * 5))
     def get(self, request, *args, **kwargs):
         properties_set = settings.TROPP_VIEWPOINT_PROPERTIES_SET['pdf']
         return Response({
@@ -44,6 +47,7 @@ class ViewpointZipPictures(RetrieveAPIView):
     renderer_classes = (ZipRenderer,)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
+    @method_decorator(cache_page(60 * 5))
     def get(self, request, *args, **kwargs):
         qs = self.get_object().pictures.filter(
             state__gte=settings.STATES.ACCEPTED,
