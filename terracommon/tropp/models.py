@@ -126,7 +126,7 @@ class Picture(BaseUpdatableModel):
     file = VersatileImageField(_('File'))
 
     # Different from created_at which is the upload date
-    date = models.DateTimeField(_('Date'))
+    date = models.DateTimeField(_('Date'), null=True)
 
     # TODO maybe move that to another model with GenericFK?
     remarks = models.TextField(_('Remarks'), max_length=350)
