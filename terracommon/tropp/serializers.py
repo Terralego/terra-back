@@ -180,6 +180,8 @@ class ViewpointLabelSerializer(serializers.ModelSerializer):
 
 
 class PhotographerLabelSerializer(serializers.ModelSerializer):
+    label = serializers.CharField(source='__str__')
+
     class Meta:
         model = get_user_model()
-        fields = ('id', 'email')
+        fields = ('uuid', 'label')

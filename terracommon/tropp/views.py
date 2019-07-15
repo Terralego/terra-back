@@ -97,12 +97,12 @@ class ViewpointViewSet(viewsets.ModelViewSet):
             ),
         ),
         coreapi.Field(
-            name='pictures__owner__id',
+            name='pictures__owner__uuid',
             required=False,
             location='query',
             schema=coreschema.Integer(
-                title="Photographer id",
-                description="Photographer id to filter on",
+                title="Photographer uuid",
+                description="Photographer uuid to filter on",
             ),
         ),
     ]
@@ -156,7 +156,7 @@ class ViewpointViewSet(viewsets.ModelViewSet):
                 filter_values[key] = data
 
         filter_values['photographers'] = PhotographerLabelSerializer(
-            get_user_model().objects.values('id', 'email'),
+            get_user_model().objects.all(),
             many=True,
         ).data
 

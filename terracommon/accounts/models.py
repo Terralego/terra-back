@@ -1,5 +1,7 @@
+import importlib
 import uuid
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -44,6 +46,12 @@ class TerraUser(AbstractBaseUser, PermissionsMixin):
     def get_by_natural_key(self, username):
         return self.get(**{f'{self.model.USERNAME_FIELD}__iexact': username})
 
+    def __str__(self):
+        path = settings.TERRA_USER_STRING_FORMAT
+        module_path, attr_name = path.rsplit('.', 1)
+        module = importlib.import_module(module_path)
+        return getattr(module, attr_name)(self)
+
     class Meta:
         ordering = ['id']
         permissions = (
@@ -68,3 +76,7 @@ class ReadModel(models.Model):
 
     class Meta:
         ordering = ['id']
+
+
+def default_terra_user_format(user):
+    return user.email

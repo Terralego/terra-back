@@ -178,6 +178,7 @@ STATES.add_subset('MANUAL', (
 ))
 
 TERRA_APPLIANCE_SETTINGS = {}
+TERRA_USER_STRING_FORMAT = 'terracommon.accounts.models.default_terra_user_format'
 FRONT_URL = os.environ.get('FRONT_URL', '')
 HOSTNAME = os.environ.get('HOSTNAME', '')
 
