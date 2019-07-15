@@ -47,10 +47,13 @@ class TerraUser(AbstractBaseUser, PermissionsMixin):
         return self.get(**{f'{self.model.USERNAME_FIELD}__iexact': username})
 
     def __str__(self):
-        path = settings.TERRA_USER_STRING_FORMAT
-        module_path, attr_name = path.rsplit('.', 1)
-        module = importlib.import_module(module_path)
-        return getattr(module, attr_name)(self)
+        try:
+            path = settings.TERRA_USER_STRING_FORMAT
+            module_path, attr_name = path.rsplit('.', 1)
+            module = importlib.import_module(module_path)
+            return getattr(module, attr_name)(self)
+        except AttributeError:
+            return self.email
 
     class Meta:
         ordering = ['id']
@@ -76,7 +79,3 @@ class ReadModel(models.Model):
 
     class Meta:
         ordering = ['id']
-
-
-def default_terra_user_format(user):
-    return user.email
