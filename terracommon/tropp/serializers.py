@@ -6,6 +6,7 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework_gis.fields import GeometryField
 from versatileimagefield.serializers import VersatileImageFieldSerializer
 
+from terracommon.datastore.serializers import RelatedDocumentFileSerializer
 from terracommon.terra.models import Feature, Layer
 
 from .models import Campaign, Picture, Viewpoint
@@ -119,22 +120,17 @@ class SimplePictureSerializer(PictureSerializer):
         fields = ('id', 'date', 'file', 'owner', 'properties')
 
 
-class ViewpointSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Viewpoint
-        fields = '__all__'
-
-
-class ViewpointSerializerWithPicture(ViewpointSerializer):
+class ViewpointSerializerWithPicture(serializers.ModelSerializer):
     picture = SimplePictureSerializer(required=False, write_only=True)
     pictures = SimplePictureSerializer(many=True, read_only=True)
+    related = RelatedDocumentFileSerializer(many=True, read_only=True)
     point = GeometryField(required=True, write_only=True)
     geometry = GeometryField(source='point.geom', read_only=True)
 
     class Meta:
         model = Viewpoint
         fields = ('id', 'label', 'geometry', 'properties', 'point', 'picture',
-                  'pictures')
+                  'pictures', 'related')
 
     def create(self, validated_data):
         point_data = validated_data.pop('point', None)
