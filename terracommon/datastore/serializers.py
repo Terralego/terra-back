@@ -16,7 +16,6 @@ class DataStoreSerializer(serializers.ModelSerializer):
 
 
 class RelatedDocumentSerializer(serializers.ModelSerializer):
-
     document = FileBase64Field()
 
     class Meta:
@@ -26,3 +25,11 @@ class RelatedDocumentSerializer(serializers.ModelSerializer):
 
 class RelatedDocumentPDFSerializer(RelatedDocumentSerializer):
     document = serializers.FileField(use_url=False)
+
+
+class RelatedDocumentFileSerializer(RelatedDocumentSerializer):
+    document = serializers.FileField()
+
+    class Meta:
+        model = RelatedDocument
+        fields = ('key', 'document', 'properties')
