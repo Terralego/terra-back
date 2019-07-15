@@ -43,6 +43,7 @@ class RelatedDocument(models.Model):
     object_id = models.PositiveIntegerField()
     linked_object = GenericForeignKey('content_type', 'object_id')
     document = models.FileField(upload_to=related_document_path, null=False)
+    properties = JSONField(default=dict)
 
     class Meta:
         ordering = ['key']

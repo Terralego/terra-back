@@ -8,7 +8,7 @@ from versatileimagefield.serializers import VersatileImageFieldSerializer
 
 from terracommon.terra.models import Feature, Layer
 
-from .models import Campaign, Document, Picture, Viewpoint
+from .models import Campaign, Picture, Viewpoint
 
 UserModel = get_user_model()
 
@@ -175,14 +175,6 @@ class ViewpointSerializerWithPicture(ViewpointSerializer):
             feature.save()
 
         return super().update(instance, validated_data)
-
-
-class DocumentSerializer(serializers.ModelSerializer):
-    owner = serializers.ReadOnlyField(source='owner.email')
-
-    class Meta:
-        model = Document
-        fields = '__all__'
 
 
 class ViewpointLabelSerializer(serializers.ModelSerializer):

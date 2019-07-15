@@ -147,19 +147,3 @@ class Picture(BaseUpdatableModel):
         if not settings.TROPP_PICTURES_STATES_WORKFLOW:
             self.state = settings.STATES.ACCEPTED
         super().save(*args, **kwargs)
-
-
-class Document(BaseUpdatableModel):
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        verbose_name=_('Owner'),
-        related_name='documents',
-    )
-    viewpoint = models.ForeignKey(
-        Viewpoint,
-        on_delete=models.CASCADE,
-        related_name='documents',
-    )
-    properties = JSONField(_('Properties'), default=dict, blank=True)
-    file = models.FileField(_('File'))

@@ -213,13 +213,3 @@ class PictureViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
-
-
-class DocumentViewSet(viewsets.ModelViewSet):
-    queryset = Document.objects.all()
-    serializer_class = DocumentSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    pagination_class = RestPageNumberPagination
-
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
