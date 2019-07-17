@@ -55,17 +55,22 @@ class UserRegisterView(APIView):
                     'html_email_template_name':
                         'registration/registration_email.html',
                 }
+                try:
+                    with transaction.atomic():
+                        user = get_user_model().objects.create(
+                            **{
+                                get_user_model().EMAIL_FIELD: (
+                                    request.data['email']
+                                ),
+                                'is_active': True,
+                            })
+                        user.set_unusable_password()
+                        user.save()
+                except IntegrityError:
+                    ''' User already exist, do nothing and send a reset email '''
+                    form.save(**opts)
+                    return Response({}, status=status.HTTP_200_OK)
 
-                with transaction.atomic():
-                    user = get_user_model().objects.create(
-                        **{
-                            get_user_model().EMAIL_FIELD: (
-                                request.data['email']
-                            ),
-                            'is_active': True,
-                        })
-                    user.set_unusable_password()
-                    user.save()
 
                 form.save(**opts)
 
