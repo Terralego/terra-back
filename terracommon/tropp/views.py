@@ -156,7 +156,7 @@ class ViewpointViewSet(viewsets.ModelViewSet):
                 filter_values[key] = data
 
         filter_values['photographers'] = PhotographerLabelSerializer(
-            get_user_model().objects.all(),
+            get_user_model().objects.filter(pictures__isnull=False).distinct(),
             many=True,
         ).data
 
