@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
@@ -123,7 +124,10 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         ).json()
         self.assertIsNotNone(data.get('cities'))
         self.assertIsNotNone(data.get('themes'))
-        self.assertEqual(3, len(data.get('photographers')))
+
+        # Even if we have 3 users, we only get those who have pictures
+        self.assertEqual(3, get_user_model().objects.count())
+        self.assertEqual(2, len(data.get('photographers')))
 
     def test_viewpoint_search_anonymous(self):
         # Simple viewpoint search feature
