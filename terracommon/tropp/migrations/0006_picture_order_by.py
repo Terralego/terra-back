@@ -7,7 +7,7 @@ import django.db.models.expressions
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('tropp', '0004_auto_20190711_1801'),
+        ('tropp', '0005_remove_document'),
     ]
 
     operations = [
