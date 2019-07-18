@@ -46,7 +46,7 @@ class Viewpoint(BaseLabelModel):
         :return: string (missing, draft, submitted, accepted)
         """
         # Get only pictures created for the campaign
-        picture = self.pictures.latest()
+        picture = self.pictures.without_null_dates().latest()
         if picture.created_at < self.created_at:
             return settings.STATES.CHOICES_DICT[settings.STATES.MISSING]
         return STATES.CHOICES_DICT[picture.state]
@@ -107,6 +107,11 @@ class Campaign(BaseLabelModel):
         ordering = ['-created_at']
 
 
+class PictureManager(models.Manager):
+    def without_null_dates(self):
+        return super().get_queryset().exclude(date__isnull=True)
+
+
 class Picture(BaseUpdatableModel):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -131,6 +136,8 @@ class Picture(BaseUpdatableModel):
     # TODO maybe move that to another model with GenericFK?
     remarks = models.TextField(_('Remarks'), max_length=350)
 
+    objects = PictureManager()
+
     class Meta:
         permissions = (
             ('change_state_picture', 'Is able to change the picture '
@@ -141,7 +148,7 @@ class Picture(BaseUpdatableModel):
             models.Index(fields=['viewpoint', 'date']),
         ]
         get_latest_by = 'date'
-        ordering = ['-date', ]
+        ordering = [(models.F('date').desc(nulls_last=True))]
 
     def save(self, *args, **kwargs):
         if not settings.TROPP_PICTURES_STATES_WORKFLOW:

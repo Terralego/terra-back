@@ -23,8 +23,8 @@
   {% endfor %}
 </table>
 <h2>{% trans 'Reference shooting' %}</h2>
-<img src="{{ viewpoint.pictures.earliest.file.url }}" alt="alt media" class="viewpoint-picture" />
+<img src="{{ viewpoint.pictures.without_null_dates.earliest.file.url }}" alt="alt media" class="viewpoint-picture" />
 <h2>{% trans 'Last shot' %}</h2>
-<img src="{{ viewpoint.pictures.latest.file.url }}" alt="alt media" class="viewpoint-picture" />
+<img src="{{ viewpoint.pictures.without_null_dates.latest.file.url }}" alt="alt media" class="viewpoint-picture" />
 </body>
 </html>
