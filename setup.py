@@ -26,7 +26,7 @@ setup(
     classifiers=[
         "Programming Language :: Python",
         "Topic :: Software Development",
-        "License :: OSI Approved :: GNU Affero General Public License v3",
+        "OSI Approved :: MIT License",
     ],
     install_requires=[
         "psycopg2>=2.7,<2.8",
