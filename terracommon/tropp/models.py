@@ -107,6 +107,11 @@ class Campaign(BaseLabelModel):
         ordering = ['-created_at']
 
 
+class PictureManager(models.Manager):
+    def without_null_dates(self):
+        return super().get_queryset().exclude(date__isnull=True)
+
+
 class Picture(BaseUpdatableModel):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -130,6 +135,8 @@ class Picture(BaseUpdatableModel):
 
     # TODO maybe move that to another model with GenericFK?
     remarks = models.TextField(_('Remarks'), max_length=350)
+
+    objects = PictureManager()
 
     class Meta:
         permissions = (
