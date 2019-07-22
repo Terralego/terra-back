@@ -1,3 +1,7 @@
+import smtplib
+import socket
+import logging
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -24,6 +28,7 @@ from .serializers import (PasswordChangeSerializer, PasswordResetSerializer,
                           TerraUserSerializer, UserProfileSerializer)
 
 UserModel = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class UserProfileView(RetrieveUpdateAPIView):
@@ -71,8 +76,10 @@ class UserRegisterView(APIView):
                     form.save(**opts)
                     return Response({}, status=status.HTTP_200_OK)
 
-
-                form.save(**opts)
+                try:
+                    form.save(**opts)
+                except (smtplib.SMTPException, socket.error) as e:
+                    logger.error(f'An exception occured saving user: {e}')
 
                 serializer = TerraUserSerializer(user)
                 event.send(
