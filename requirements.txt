@@ -1,3 +1,6 @@
+# Fix incompatibility between botocore and sphinx
+docutils<0.15,>=0.10
+
 psycopg2>=2.7,<2.8 --no-binary psycopg2
 Django>=2.1,<2.2
 djangorestframework>=3.8,<3.9
@@ -13,7 +16,6 @@ docxtpl>=0.5,<0.6
 Pillow>=5.3.0,<6.0.0
 django-storages>=1.7,<1.8
 django-versatileimagefield>=1.10,<2.0
-docutils<0.15
 boto3>=1.9,<=1.10
 deepmerge<=1.0
 jsonschema>=3.0,<3.1
