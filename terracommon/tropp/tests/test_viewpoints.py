@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -495,44 +495,3 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         )
         self.assertEqual(status.HTTP_200_OK, data.status_code)
         self.assertIn('application/pdf', data['Content-Type'])
-
-    def test_picture_with_null_date_appears_last(self):
-        date = datetime(2018, 1, 1, tzinfo=timezone.utc) - timedelta(seconds=3)
-        file = SimpleUploadedFile(
-            name='test.jpg',
-            content=open('terracommon/tropp/tests/placeholder.jpg', 'rb').read(),
-            content_type='image/jpeg',
-        )
-        Picture.objects.create(
-            viewpoint=self.viewpoint_with_accepted_picture,
-            owner=self.user,
-            date=date,
-            file=file,
-            state=STATES.ACCEPTED,
-        )
-        Picture.objects.create(
-            viewpoint=self.viewpoint_with_accepted_picture,
-            owner=self.user,
-            date=None,
-            file=file,
-            state=STATES.ACCEPTED,
-        )
-
-        data = self.client.get(
-            reverse(
-                'tropp:viewpoint-detail',
-                args=[self.viewpoint_with_accepted_picture.pk],
-            )
-        ).json()
-        # test the response data
-        self.assertTrue(data.get('pictures')[0].get('date') is not None)
-
-        # now test the querysets
-        all_pictures = self.viewpoint_with_accepted_picture.pictures.all()
-        latest_picture = self.viewpoint_with_accepted_picture.pictures.without_null_dates().latest()
-        earliest_picture = self.viewpoint_with_accepted_picture.pictures.without_null_dates().earliest()
-
-        self.assertEquals(all_pictures.first().date, datetime(2018, 1, 1, tzinfo=timezone.utc))
-        self.assertEquals(all_pictures.last().date, None)
-        self.assertEquals(latest_picture.date, datetime(2018, 1, 1, tzinfo=timezone.utc))
-        self.assertEquals(earliest_picture.date, date)
