@@ -34,7 +34,7 @@ setup(
         "djangorestframework>=3.8,<3.9",
         "djangorestframework-gis>=0.14,<0.15",
         "djangorestframework-jwt>=1.11,<1.12",
-        "drf-yasg>=1.9,<2.0",
+        "drf-yasg>=1.9,<1.10",
         "django-cors-headers>=2.2,<2.3",
         "simpleeval>=0.9,<1.0",
         "requests>=2.19,<2.20",
