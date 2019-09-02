@@ -16,7 +16,7 @@ django-versatileimagefield>=1.10,<2.0
 docutils<0.15
 boto3>=1.9,<=1.10
 deepmerge<=1.0
-jsonschema==3.0.*
+jsonschema>=3.0,<3.1
 weasyprint>=44
 
 # SIG
