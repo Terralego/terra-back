@@ -19,6 +19,7 @@ from django.core.serializers import serialize
 from django.db import connection, transaction
 from django.db.models import Manager
 from django.utils.functional import cached_property
+from django.utils.text import slugify
 from fiona.crs import from_epsg
 from mercantile import tiles
 
@@ -74,7 +75,6 @@ def topology_update(func):
 
 class Layer(BaseUpdatableModel):
     name = models.CharField(max_length=256, unique=True, default=uuid.uuid4)
-    group = models.CharField(max_length=255, default="__nogroup__")
     schema = JSONField(default=dict, blank=True, validators=[validate_json_schema])
     geom_type = models.IntegerField(choices=GeometryTypes.choices(), null=True)
     # Settings scheam
@@ -471,7 +471,7 @@ class Layer(BaseUpdatableModel):
         return projection in ACCEPTED_PROJECTIONS
 
     def __str__(self):
-        return f"{self.name} ({self.group})"
+        return f"{self.name}"
 
     class Meta:
         ordering = ['id']
@@ -481,6 +481,17 @@ class Layer(BaseUpdatableModel):
             ('can_export_layers', 'Is able to export layers'),
             ('can_import_layers', 'Is able to import layers'),
         )
+
+
+class LayerGroup(BaseUpdatableModel):
+    name = models.CharField(max_length=256, unique=True)
+    slug = models.SlugField(unique=True)
+    layers = models.ManyToManyField(Layer, related_name='layer_groups')
+
+    def save(self, **kwargs):
+        if self.pk is None:
+            self.slug = slugify(self.name)
+        super().save(**kwargs)
 
 
 class Feature(BaseUpdatableModel):
