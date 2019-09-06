@@ -6,8 +6,8 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework_gis.fields import GeometryField
 from versatileimagefield.serializers import VersatileImageFieldSerializer
 
-from terracommon.datastore.serializers import RelatedDocumentFileSerializer
 from terra.models import Feature, Layer
+from terracommon.datastore.serializers import RelatedDocumentFileSerializer
 
 from .models import Campaign, Picture, Viewpoint
 

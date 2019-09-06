@@ -9,10 +9,10 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from terracommon.accounts.tests.factories import TerraUserFactory
-from terracommon.core.settings import STATES
 from terra.models import Feature
 from terra.tests.factories import FeatureFactory
+from terracommon.accounts.tests.factories import TerraUserFactory
+from terracommon.core.settings import STATES
 from terracommon.tropp.models import Picture, Viewpoint
 from terracommon.tropp.tests.factories import ViewpointFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin

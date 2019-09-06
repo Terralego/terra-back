@@ -5,9 +5,9 @@ from django.contrib.postgres.fields import JSONField
 from django.utils.translation import ugettext_lazy as _
 from versatileimagefield.fields import VersatileImageField
 
+from terra.models import Feature
 from terracommon.core.mixins import BaseUpdatableModel
 from terracommon.core.settings import STATES
-from terra.models import Feature
 
 
 class BaseLabelModel(BaseUpdatableModel):

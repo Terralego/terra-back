@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path('api/', include('terracommon.terra.urls')),
+    path('api/', include('terra.urls')),
     path('api/', include('terracommon.trrequests.urls')),
     path('api/', include('terracommon.accounts.urls')),
     path('api/', include('terracommon.notifications.urls')),
