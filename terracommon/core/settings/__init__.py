@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from django.utils.log import DEFAULT_LOGGING
 
-from terracommon.terra.helpers import Choices
+from terra import Choices
 
 PROJECT_DIR = os.path.abspath('.')
 PUBLIC_DIR = os.path.join(PROJECT_DIR, 'public')
@@ -117,7 +117,7 @@ JWT_AUTH = {
 }
 
 SERIALIZATION_MODULES = {
-    'geojson': 'terracommon.terra.serializers.geojson',
+    'geojson': 'terra.serializers.geojson',
 }
 
 WSGI_APPLICATION = PROJECT_NAME + '.wsgi.application'

@@ -17,8 +17,8 @@ from terracommon.datastore.serializers import (RelatedDocumentPDFSerializer,
 from terracommon.document_generator.serializers import \
     DownloadableDocumentSerializer
 from terracommon.events.signals import event
-from terracommon.terra.models import Layer
-from terracommon.terra.serializers import GeoJSONLayerSerializer
+from terra.models import Layer
+from terra.serializers import GeoJSONLayerSerializer
 
 from .models import Comment, UserRequest
 

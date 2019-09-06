@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from jinja2 import TemplateSyntaxError
 from requests.exceptions import ConnectionError, HTTPError
 from rest_framework import status, viewsets
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -53,7 +53,7 @@ class DocumentTemplateViewSets(viewsets.ModelViewSet):
 
         return super().destroy(request, *args, **kwargs)
 
-    @detail_route(methods=['get'], permission_classes=(TokenBasedPermission,))
+    @action(detail=True, methods=['get'], permission_classes=(TokenBasedPermission,))
     def file(self, request, pk=None):
         document = self.get_object().documenttemplate
         if not document:
@@ -70,10 +70,11 @@ class DocumentTemplateViewSets(viewsets.ModelViewSet):
 
         return response
 
-    @detail_route(methods=['get'],
-                  url_name='pdf',
-                  url_path='pdf/(?P<request_pk>[^/.]+)',
-                  permission_classes=(TokenBasedPermission,))
+    @action(detail=True,
+            methods=['get'],
+            url_name='pdf',
+            url_path='pdf/(?P<request_pk>[^/.]+)',
+            permission_classes=(TokenBasedPermission,))
     def pdf_creator(self, request, pk=None, request_pk=None):
         """ Insert data from user request into a template & convert it to pdf
 

@@ -7,7 +7,7 @@ from versatileimagefield.fields import VersatileImageField
 
 from terracommon.core.mixins import BaseUpdatableModel
 from terracommon.core.settings import STATES
-from terracommon.terra.models import Feature
+from terra.models import Feature
 
 
 class BaseLabelModel(BaseUpdatableModel):

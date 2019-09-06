@@ -36,5 +36,5 @@ for app in CUSTOM_APPS:
         pass
 
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-
+INSTALLED_APPS += ('terra', )
 INSTALLED_APPS += CUSTOM_APPS

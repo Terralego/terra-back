@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.http.response import Http404, HttpResponseServerError
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, permissions, status, viewsets
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
@@ -59,14 +59,14 @@ class RequestViewSet(viewsets.ModelViewSet):
     def patch(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
 
-    @list_route(methods=['get'])
+    @action(detail=False, methods=['get'])
     def schema(self, request):
         if isinstance(settings.REQUEST_SCHEMA, dict):
             return Response(settings.REQUEST_SCHEMA)
         else:
             return HttpResponseServerError()
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def read(self, request, pk):
         self.get_object().user_read(request.user)
         userrequest = UserRequestSerializer(
@@ -115,7 +115,7 @@ class CommentViewSet(mixins.CreateModelMixin,
 
         return serializer.save(**auto_data)
 
-    @detail_route(methods=['get'], permission_classes=(TokenBasedPermission,))
+    @action(detail=True, methods=['get'], permission_classes=(TokenBasedPermission,))
     def attachment(self, request, request_pk=None, pk=None):
         comment = self.get_object()
         if not comment.attachment:

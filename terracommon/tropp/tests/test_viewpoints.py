@@ -11,8 +11,8 @@ from rest_framework.test import APITestCase
 
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.core.settings import STATES
-from terracommon.terra.models import Feature
-from terracommon.terra.tests.factories import FeatureFactory
+from terra.models import Feature
+from terra.tests.factories import FeatureFactory
 from terracommon.tropp.models import Picture, Viewpoint
 from terracommon.tropp.tests.factories import ViewpointFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin

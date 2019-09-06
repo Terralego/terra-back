@@ -9,7 +9,7 @@ from terracommon.accounts.mixins import ReadableModelMixin
 from terracommon.core.mixins import BaseUpdatableModel
 from terracommon.datastore.models import RelatedDocument
 from terracommon.document_generator.models import DownloadableDocument
-from terracommon.terra.models import Layer
+from terra.models import Layer
 
 from .helpers import rename_comment_attachment
 

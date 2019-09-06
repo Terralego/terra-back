@@ -6,7 +6,7 @@ from django.db import transaction
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
@@ -160,7 +160,7 @@ class UserViewSet(ModelViewSet):
 
         return self.queryset
 
-    @detail_route(methods=['post', ])
+    @action(detail=True, methods=['post', ])
     def groups(self, request, pk=None):
         user = get_object_or_404(UserModel, pk=pk)
 

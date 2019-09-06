@@ -7,7 +7,7 @@ from rest_framework_gis.fields import GeometryField
 from versatileimagefield.serializers import VersatileImageFieldSerializer
 
 from terracommon.datastore.serializers import RelatedDocumentFileSerializer
-from terracommon.terra.models import Feature, Layer
+from terra.models import Feature, Layer
 
 from .models import Campaign, Picture, Viewpoint
 

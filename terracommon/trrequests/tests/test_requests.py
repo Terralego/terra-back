@@ -15,7 +15,7 @@ from rest_framework.test import APIClient
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.datastore.models import RelatedDocument
 from terracommon.events.signals import event
-from terracommon.terra.tests.factories import LayerFactory
+from terra.tests.factories import LayerFactory
 from terracommon.trrequests.models import UserRequest
 from terracommon.trrequests.serializers import UserRequestSerializer
 

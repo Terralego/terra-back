@@ -4,8 +4,8 @@ from rest_framework.settings import api_settings
 from rest_framework.test import APIRequestFactory
 
 from terracommon.core.filters import JSONFieldOrderingFilter
-from terracommon.terra.models import Layer
-from terracommon.terra.serializers import LayerSerializer
+from terra.models import Layer
+from terra.serializers import LayerSerializer
 
 factory = APIRequestFactory()
 
