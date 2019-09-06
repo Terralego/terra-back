@@ -7,9 +7,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import transaction
 from django.urls import reverse
 from rest_framework import serializers
+
 from terra.models import Layer
 from terra.serializers import GeoJSONLayerSerializer
-
 from terracommon.accounts.mixins import UserTokenGeneratorMixin
 from terracommon.accounts.serializers import TerraUserSerializer
 from terracommon.core.mixins import SerializerCurrentUserMixin

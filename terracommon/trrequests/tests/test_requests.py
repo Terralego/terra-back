@@ -11,8 +11,8 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from terra.tests.factories import LayerFactory
 
+from terra.tests.factories import LayerFactory
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.datastore.models import RelatedDocument
 from terracommon.events.signals import event
