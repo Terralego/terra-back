@@ -12,7 +12,7 @@ from url_filter.integrations.drf import DjangoFilterBackend
 from terracommon.accounts.permissions import TokenBasedPermission
 from terracommon.core.filters import JSONFieldOrderingFilter
 from terracommon.events.signals import event
-from terracommon.terra.helpers import get_media_response
+from document_generator.helpers import get_media_response
 
 from .models import UserRequest
 from .serializers import CommentSerializer, UserRequestSerializer

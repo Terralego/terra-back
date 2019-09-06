@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from terracommon.accounts.permissions import TokenBasedPermission
-from terracommon.terra.helpers import get_media_response
+from document_generator.helpers import get_media_response
 from terracommon.trrequests.models import UserRequest
 
 from .helpers import DocumentGenerator
