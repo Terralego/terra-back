@@ -13,7 +13,6 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from terra.helpers import get_media_response
 from terracommon.accounts.permissions import TokenBasedPermission
 from terracommon.document_generator.helpers import get_media_response
 from terracommon.trrequests.models import UserRequest
