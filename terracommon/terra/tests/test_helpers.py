@@ -3,7 +3,7 @@ from collections import OrderedDict
 from django.contrib.gis.geos import Point
 from django.test import TestCase
 
-from terracommon.terra.helpers import (Choices, ChunkIterator, GeometryDefiner)
+from terracommon.terra.helpers import Choices, ChunkIterator, GeometryDefiner
 
 
 class ChunkIteratorTest(TestCase):

@@ -1,10 +1,10 @@
 import os
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, RequestFactory
+from django.test import RequestFactory, TestCase
 from rest_framework import status
 
-from document_generator.helpers import get_media_response
+from terracommon.document_generator.helpers import get_media_response
 
 
 class MediaResponseTest(TestCase):

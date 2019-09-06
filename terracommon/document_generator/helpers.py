@@ -12,7 +12,7 @@ import jinja2
 import magic
 from django.conf import settings
 from django.core.files import File
-from django.http import HttpResponseForbidden, HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.template import Context, Template
 from django.template.exceptions import \
     TemplateSyntaxError as DjangoTemplateSyntaxError
