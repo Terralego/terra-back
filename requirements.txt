@@ -1,5 +1,4 @@
 django-versatileimagefield>=1.10,<2.0
-djangorestframework>=3.8,<3.10
 
 -e git+https://github.com/Terralego/terralego.backend.terra.git@master#egg=terra
 
@@ -10,6 +9,7 @@ boto3>=1.9,<=1.10
 weasyprint>=44
 simpleeval>=0.9
 docxtpl>=0.5
+python-magic>=0.4
 
 # production
 gunicorn

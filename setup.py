@@ -30,7 +30,7 @@ setup(
     ],
     install_requires=[
         "terra",
-        "djangorestframework>=3.8,<3.10", # block
+        "python-magic>=0.4",
         "django-cors-headers>=2.2,<2.3",
         "django-url-filter>=0.3,<0.4",
         "django-storages>=1.7,<1.8",
