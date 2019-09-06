@@ -12,7 +12,6 @@ from importlib import import_module
 
 CUSTOM_APPS = (
     'terracommon.core',
-    'terracommon.terra',
     'terracommon.trrequests',
     'terracommon.accounts',
     'terracommon.notifications',

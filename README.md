@@ -32,7 +32,5 @@ Create a docker.env file:
 
 `(venv) django@353cfc271a48:/code$ tox` (global)
 
-`(venv) django@353cfc271a48:/code$ tox terracommon.terra` (pour terra)
-
 ### Applying Django migrations
 `docker-compose run --rm django /code/venv/bin/python3.6 ./manage.py migrate`
