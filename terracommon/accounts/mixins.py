@@ -21,7 +21,7 @@ class ReadableModelMixin(object):
 class UserTokenGeneratorMixin(SerializerCurrentUserMixin):
     def get_uidb64_token_for_user(self, user):
         if user:
-            return (urlsafe_base64_encode(force_bytes(user.pk)).decode(),
+            return (urlsafe_base64_encode(force_bytes(user.pk)),
                     default_token_generator.make_token(self.current_user))
         else:
             return (None, None)

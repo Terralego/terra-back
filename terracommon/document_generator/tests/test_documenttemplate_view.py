@@ -549,5 +549,5 @@ class DocumentTemplateViewTestCase(TestCase, TestPermissionsMixin):
         )
 
     def get_uidb64_token_for_user(self):
-        return (urlsafe_base64_encode(force_bytes(self.user.pk)).decode(),
+        return (urlsafe_base64_encode(force_bytes(self.user.pk)),
                 default_token_generator.make_token(self.user))
