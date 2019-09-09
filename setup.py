@@ -43,6 +43,6 @@ setup(
 
     ],
     dependency_links=[
-        'git+https://github.com/Terralego/terralego.backend.terra.git@master#egg=terra'
+        'git+https://github.com/Terralego/terralego.backend.terra.git@0.3.0#egg=terra'
     ],
 )
