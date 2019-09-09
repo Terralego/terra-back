@@ -31,6 +31,7 @@ setup(
     install_requires=[
         "terra",
         "python-magic>=0.4",
+        "djangorestframework-jwt>=1.11,<1.12",
         "django-cors-headers>=2.2,<2.3",
         "django-url-filter>=0.3,<0.4",
         "django-storages>=1.7,<1.8",

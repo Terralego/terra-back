@@ -2,6 +2,7 @@ django-versatileimagefield>=1.10,<2.0
 
 -e git+https://github.com/Terralego/terralego.backend.terra.git@master#egg=terra
 
+djangorestframework-jwt>=1.11,<1.12
 django-cors-headers>=2.2,<2.3
 django-url-filter>=0.3,<0.4
 django-storages>=1.7,<1.8
