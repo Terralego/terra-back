@@ -20,8 +20,9 @@ from terracommon.core.filters import JSONFieldOrderingFilter
 from terracommon.events.signals import event
 
 from .forms import PasswordSetAndResetForm
-from .serializers import (PasswordChangeSerializer, PasswordResetSerializer,
-                          TerraUserSerializer, UserProfileSerializer)
+from .serializers import (GroupSerializer, PasswordChangeSerializer,
+                          PasswordResetSerializer, TerraUserSerializer,
+                          UserProfileSerializer)
 
 UserModel = get_user_model()
 
@@ -174,3 +175,9 @@ class UserViewSet(ModelViewSet):
         return Response(
             [g.name for g in defined_groups],
             status=status.HTTP_200_OK)
+
+
+class GroupViewSet(ModelViewSet):
+    permission_classes = (permissions.IsAuthenticated, )
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
