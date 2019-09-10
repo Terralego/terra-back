@@ -72,9 +72,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
+    users = serializers.PrimaryKeyRelatedField(
+        many=True,
+        source='user_set',
+        queryset=UserModel.objects.all(),
+        required=False,
+    )
+
     class Meta:
         model = Group
-        fields = ['name']
+        fields = ('name', 'users')
 
 
 class TerraUserSerializer(serializers.ModelSerializer):
