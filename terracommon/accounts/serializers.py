@@ -70,6 +70,19 @@ class UserProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ('uuid', UserModel.USERNAME_FIELD, )
 
 
+class GroupSerializer(serializers.ModelSerializer):
+    users = serializers.PrimaryKeyRelatedField(
+        many=True,
+        source='user_set',
+        queryset=UserModel.objects.all(),
+        required=False,
+    )
+
+    class Meta:
+        model = Group
+        fields = ('name', 'users')
+
+
 class TerraUserSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField()
     groups = serializers.SerializerMethodField()
