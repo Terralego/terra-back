@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from django.utils.log import DEFAULT_LOGGING
 
-from terra import Choices
+from terracommon.core.helpers import Choices
 
 PROJECT_DIR = os.path.abspath('.')
 PUBLIC_DIR = os.path.join(PROJECT_DIR, 'public')
@@ -32,7 +32,6 @@ INSTALLED_APPS = (
     'rest_framework_gis',
     'drf_yasg',
     'corsheaders',
-    'storages',
 )
 
 MIDDLEWARE = (
