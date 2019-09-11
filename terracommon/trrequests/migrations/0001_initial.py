@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('terra', '0001_initial'),
+        ('geostore', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                 ('is_internal', models.BooleanField(default=False)),
                 ('attachment', models.FileField(blank=True, upload_to=terracommon.trrequests.helpers.rename_comment_attachment)),
                 ('filename', models.CharField(blank=True, editable=False, help_text='Initial name of the attachment', max_length=255)),
-                ('layer', models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, to='terra.Layer')),
+                ('layer', models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, to='geostore.Layer')),
                 ('owner', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
                 ('expiry', models.DateField(default=None, null=True)),
                 ('state', models.IntegerField(default=100)),
                 ('properties', django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict)),
-                ('layer', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='userrequests', to='terra.Layer')),
+                ('layer', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='userrequests', to='geostore.Layer')),
                 ('owner', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='userrequests', to=settings.AUTH_USER_MODEL)),
                 ('reviewers', models.ManyToManyField(blank=True, related_name='to_review', to=settings.AUTH_USER_MODEL)),
             ],

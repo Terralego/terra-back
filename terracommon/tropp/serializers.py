@@ -1,13 +1,13 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from geostore.models import Feature, Layer
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework_gis.fields import GeometryField
 from versatileimagefield.serializers import VersatileImageFieldSerializer
 
 from terracommon.datastore.serializers import RelatedDocumentFileSerializer
-from terracommon.terra.models import Feature, Layer
 
 from .models import Campaign, Picture, Viewpoint
 

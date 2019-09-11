@@ -6,13 +6,13 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
+from geostore.models import Feature
+from geostore.tests.factories import FeatureFactory
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.core.settings import STATES
-from terracommon.terra.models import Feature
-from terracommon.terra.tests.factories import FeatureFactory
 from terracommon.tropp.models import Picture, Viewpoint
 from terracommon.tropp.tests.factories import ViewpointFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin

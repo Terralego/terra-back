@@ -3,11 +3,11 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.utils.translation import ugettext_lazy as _
+from geostore.models import Feature
 from versatileimagefield.fields import VersatileImageField
 
 from terracommon.core.mixins import BaseUpdatableModel
 from terracommon.core.settings import STATES
-from terracommon.terra.models import Feature
 
 
 class BaseLabelModel(BaseUpdatableModel):

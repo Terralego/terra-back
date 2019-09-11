@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from django.utils.log import DEFAULT_LOGGING
 
-from terracommon.terra.helpers import Choices
+from terracommon.core.helpers import Choices
 
 PROJECT_DIR = os.path.abspath('.')
 PUBLIC_DIR = os.path.join(PROJECT_DIR, 'public')
@@ -32,7 +32,6 @@ INSTALLED_APPS = (
     'rest_framework_gis',
     'drf_yasg',
     'corsheaders',
-    'storages',
 )
 
 MIDDLEWARE = (
@@ -70,7 +69,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS':
         'terracommon.core.pagination.PagePagination',
     'PAGE_SIZE': 100,
-
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
         'rest_framework.parsers.FormParser',
@@ -114,10 +112,6 @@ JWT_AUTH = {
     'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7),
     'JWT_AUTH_HEADER_PREFIX': 'JWT',
     'JWT_AUTH_COOKIE': None,
-}
-
-SERIALIZATION_MODULES = {
-    'geojson': 'terracommon.terra.serializers.geojson',
 }
 
 WSGI_APPLICATION = PROJECT_NAME + '.wsgi.application'

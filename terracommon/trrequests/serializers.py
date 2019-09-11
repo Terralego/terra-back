@@ -6,6 +6,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import transaction
 from django.urls import reverse
+from geostore.models import Layer
+from geostore.serializers import GeoJSONLayerSerializer
 from rest_framework import serializers
 
 from terracommon.accounts.mixins import UserTokenGeneratorMixin
@@ -17,8 +19,6 @@ from terracommon.datastore.serializers import (RelatedDocumentPDFSerializer,
 from terracommon.document_generator.serializers import \
     DownloadableDocumentSerializer
 from terracommon.events.signals import event
-from terracommon.terra.models import Layer
-from terracommon.terra.serializers import GeoJSONLayerSerializer
 
 from .models import Comment, UserRequest
 

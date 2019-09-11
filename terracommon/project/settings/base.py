@@ -12,7 +12,6 @@ from importlib import import_module
 
 CUSTOM_APPS = (
     'terracommon.core',
-    'terracommon.terra',
     'terracommon.trrequests',
     'terracommon.accounts',
     'terracommon.notifications',
@@ -36,5 +35,5 @@ for app in CUSTOM_APPS:
         pass
 
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-
+INSTALLED_APPS += ('geostore', )
 INSTALLED_APPS += CUSTOM_APPS

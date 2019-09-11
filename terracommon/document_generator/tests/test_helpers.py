@@ -1,7 +1,8 @@
 import os
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import RequestFactory, TestCase
+from django.test import TestCase
+from django.test.client import RequestFactory
 from rest_framework import status
 
 from terracommon.document_generator.helpers import get_media_response

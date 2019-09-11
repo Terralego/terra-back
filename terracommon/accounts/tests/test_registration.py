@@ -62,7 +62,7 @@ class RegistrationTestCase(TestCase):
         user = TerraUserFactory()
 
         token = default_token_generator.make_token(user)
-        uidb64 = urlsafe_base64_encode(force_bytes(user.pk)).decode()
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
 
         # Not same password
         response = self.client.post(

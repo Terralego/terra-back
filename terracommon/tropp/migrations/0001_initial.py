@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('terra', '0015_auto_20181005_1302'),
+        ('geostore', '0015_auto_20181005_1302'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -84,7 +84,7 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('label', models.CharField(max_length=100, verbose_name='Label')),
                 ('properties', django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict, verbose_name='Properties')),
-                ('point', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='points', to='terra.Feature')),
+                ('point', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='points', to='geostore.Feature')),
                 ('themes', models.ManyToManyField(blank=True, related_name='viewpoints', to='tropp.Theme')),
             ],
             options={
