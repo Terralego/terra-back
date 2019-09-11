@@ -9,9 +9,9 @@ from django.core.files import File
 from django.shortcuts import resolve_url
 from django.test import TestCase
 from django.urls import reverse
+from geostore.tests.factories import LayerFactory
 from rest_framework import status
 from rest_framework.test import APIClient
-from terra.tests.factories import LayerFactory
 
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.datastore.models import RelatedDocument

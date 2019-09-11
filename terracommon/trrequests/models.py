@@ -4,7 +4,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
-from terra.models import Layer
+from geostore.models import Layer
 
 from terracommon.accounts.mixins import ReadableModelMixin
 from terracommon.core.mixins import BaseUpdatableModel

@@ -19,7 +19,7 @@ class CampaignFactory(factory.DjangoModelFactory):
 
 class ViewpointFactory(factory.DjangoModelFactory):
     point = factory.SubFactory(
-        'terra.tests.factories.FeatureFactory'
+        'geostore.tests.factories.FeatureFactory'
     )
     pictures = factory.RelatedFactory(
         'terracommon.tropp.tests.factories.PictureFactory', 'viewpoint'
