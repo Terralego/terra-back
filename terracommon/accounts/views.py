@@ -14,10 +14,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-from terra_utils.settings import STATES
 from url_filter.integrations.drf import DjangoFilterBackend
 
 from terra_utils.filters import JSONFieldOrderingFilter
+from terra_utils.settings import STATES
 from terracommon.events.signals import event
 
 from .forms import PasswordSetAndResetForm

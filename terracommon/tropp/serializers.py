@@ -5,9 +5,9 @@ from geostore.models import Feature, Layer
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework_gis.fields import GeometryField
-from terra_utils.settings import STATES
 from versatileimagefield.serializers import VersatileImageFieldSerializer
 
+from terra_utils.settings import STATES
 from terracommon.datastore.serializers import RelatedDocumentFileSerializer
 
 from .models import Campaign, Picture, Viewpoint

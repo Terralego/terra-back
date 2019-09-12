@@ -2,8 +2,8 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from terra_utils.settings import STATES
 
+from terra_utils.settings import STATES
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.trrequests.models import UserRequest
 
