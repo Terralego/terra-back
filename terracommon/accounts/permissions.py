@@ -32,3 +32,8 @@ class IsPostOrToken(TokenBasedPermission, IsAuthenticatedPost):
     def has_permission(self, *args):
         return (TokenBasedPermission.has_permission(self, *args)
                 or IsAuthenticatedPost.has_permission(self, *args))
+
+
+class GroupAdminPermission(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.has_perm('accounts.can_manage_groups')

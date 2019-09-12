@@ -4,9 +4,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.db import transaction
 from django.db.utils import IntegrityError
-from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status
-from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
@@ -16,12 +14,14 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from url_filter.integrations.drf import DjangoFilterBackend
 
+from terracommon.accounts.permissions import GroupAdminPermission
 from terracommon.core.filters import JSONFieldOrderingFilter
 from terracommon.events.signals import event
 
 from .forms import PasswordSetAndResetForm
-from .serializers import (PasswordChangeSerializer, PasswordResetSerializer,
-                          TerraUserSerializer, UserProfileSerializer)
+from .serializers import (GroupSerializer, PasswordChangeSerializer,
+                          PasswordResetSerializer, TerraUserSerializer,
+                          UserProfileSerializer)
 
 UserModel = get_user_model()
 
@@ -128,7 +128,7 @@ class SettingsView(APIView):
             'states': {
                 y: x
                 for x, y in settings.STATES.VALUE_TO_CONST.items()
-                },
+            },
             'jwt_delta': settings.JWT_AUTH['JWT_EXPIRATION_DELTA']
         }
 
@@ -160,17 +160,8 @@ class UserViewSet(ModelViewSet):
 
         return self.queryset
 
-    @action(detail=True, methods=['post', ])
-    def groups(self, request, pk=None):
-        user = get_object_or_404(UserModel, pk=pk)
 
-        defined_groups = []
-
-        for group in request.data['groups']:
-            defined_groups.append(get_object_or_404(Group, name=group))
-
-        user.groups.set(defined_groups)
-
-        return Response(
-            [g.name for g in defined_groups],
-            status=status.HTTP_200_OK)
+class GroupViewSet(ModelViewSet):
+    permission_classes = (permissions.IsAuthenticated, GroupAdminPermission, )
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
