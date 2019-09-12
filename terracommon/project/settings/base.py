@@ -7,15 +7,13 @@ https://docs.djangoproject.com/en/2.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
-import os
-from importlib import import_module
 import copy
 import os
 from datetime import timedelta
+from importlib import import_module
 
 from django.utils.log import DEFAULT_LOGGING
-
-from terracommon.core.helpers import Choices
+from terra_utils.helpers import Choices
 
 PROJECT_DIR = os.path.abspath('.')
 PUBLIC_DIR = os.path.join(PROJECT_DIR, 'public')
@@ -63,7 +61,7 @@ TEMPLATES = [
 REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_PAGINATION_CLASS':
-        'terracommon.core.pagination.PagePagination',
+        'terra_utils.pagination.PagePagination',
     'PAGE_SIZE': 100,
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
@@ -162,7 +160,6 @@ TERRA_TILES_HOSTNAMES = [
 MEDIA_ACCEL_REDIRECT = False
 
 CUSTOM_APPS = (
-    'terra_utils',
     'terracommon.trrequests',
     'terracommon.accounts',
     'terracommon.notifications',
@@ -172,6 +169,24 @@ CUSTOM_APPS = (
     'terracommon.datastore',
     'terracommon.tropp',
 )
+
+INSTALLED_APPS = (
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.gis',
+    'rest_framework',
+    'rest_framework_gis',
+    'versatileimagefield',
+    'drf_yasg',
+    'corsheaders',
+    'geostore',
+    'terra_utils'
+)
+INSTALLED_APPS += CUSTOM_APPS
 
 # Import app specific settings
 for app in CUSTOM_APPS:
@@ -184,21 +199,3 @@ for app in CUSTOM_APPS:
 
     except ImportError as e:
         pass
-
-DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-INSTALLED_APPS = (
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.gis',
-    'rest_framework',
-    'rest_framework_gis',
-    'drf_yasg',
-    'corsheaders',
-    'geostore',
-    'terra_utils'
-)
-INSTALLED_APPS += CUSTOM_APPS
