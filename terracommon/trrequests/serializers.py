@@ -9,8 +9,8 @@ from django.urls import reverse
 from geostore.models import Layer
 from geostore.serializers import GeoJSONLayerSerializer
 from rest_framework import serializers
-
 from terra_utils.mixins import SerializerCurrentUserMixin
+
 from terracommon.accounts.mixins import UserTokenGeneratorMixin
 from terracommon.accounts.serializers import TerraUserSerializer
 from terracommon.datastore.models import RelatedDocument

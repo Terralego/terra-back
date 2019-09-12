@@ -1,7 +1,6 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-
 from terra_utils.mixins import SerializerCurrentUserMixin
 
 from .models import ReadModel

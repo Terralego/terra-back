@@ -4,10 +4,9 @@ from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.utils.translation import ugettext_lazy as _
 from geostore.models import Feature
-from versatileimagefield.fields import VersatileImageField
-
 from terra_utils.mixins import BaseUpdatableModel
 from terra_utils.settings import STATES
+from versatileimagefield.fields import VersatileImageField
 
 
 class BaseLabelModel(BaseUpdatableModel):
