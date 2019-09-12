@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from url_filter.integrations.drf import DjangoFilterBackend
 
+from terracommon.accounts.permissions import GroupAdminPermission
 from terracommon.core.filters import JSONFieldOrderingFilter
 from terracommon.events.signals import event
 
@@ -127,7 +128,7 @@ class SettingsView(APIView):
             'states': {
                 y: x
                 for x, y in settings.STATES.VALUE_TO_CONST.items()
-                },
+            },
             'jwt_delta': settings.JWT_AUTH['JWT_EXPIRATION_DELTA']
         }
 
@@ -159,7 +160,8 @@ class UserViewSet(ModelViewSet):
 
         return self.queryset
 
+
 class GroupViewSet(ModelViewSet):
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated, GroupAdminPermission, )
     queryset = Group.objects.all()
     serializer_class = GroupSerializer

@@ -23,12 +23,13 @@ class UserViewsetTestCase(TestCase, TestPermissionsMixin):
 
         self.client.force_authenticate(user=self.user)
 
+        self._set_permissions(['can_manage_groups', ])
+
     def test_group_detail(self):
         response = self.client.get(
             reverse('accounts:group-detail', args=[self.group.pk])
         )
-
-        self.user.refresh_from_db()
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         # The user must be in the group
         self.assertIn(self.user.id, response.data['users'])
         # and we must have the group name in the response
@@ -57,10 +58,22 @@ class UserViewsetTestCase(TestCase, TestPermissionsMixin):
             reverse('accounts:group-list'),
             data,
         )
-        self.user.refresh_from_db()
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertIn(self.user.id, response.data['users'])
         # And also test than the user is in the DB
         self.assertIn(self.user.id, Group.objects.get(name=data["name"]).user_set.values_list('id', flat=True))
+
+    def test_only_terrauser_can_create_group(self):
+        self._clean_permissions()
+        data = {
+            "name": "test group 2",
+            "users": [self.user.id],
+        }
+        response = self.client.post(
+            reverse('accounts:group-list'),
+            data,
+        )
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
     def test_partial_update_name_group(self):
         data = {
@@ -92,6 +105,8 @@ class UserViewsetTestCase(TestCase, TestPermissionsMixin):
         self.assertEqual(1, Group.objects.count())
         # but with the new user inside
         self.assertIn(new_user.email, Group.objects.get(name=self.group.name).user_set.values_list('email', flat=True))
+        # and only one user in this group
+        self.assertEqual(1, Group.objects.get(name=self.group.name).user_set.count())
         # and still have the same name
         self.assertEqual(self.group.name, Group.objects.get(pk=self.group.pk).name)
 
