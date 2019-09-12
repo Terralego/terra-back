@@ -3,7 +3,7 @@ import io
 
 from django.test import TestCase
 
-from tropp.renderers import CSVRenderer
+from terracommon.tropp.renderers import CSVRenderer
 
 
 class CSVRendererTestCase(TestCase):

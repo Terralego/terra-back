@@ -16,7 +16,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from terra_utils.filters import DateFilterBackend, SchemaAwareDjangoFilterBackend
-from tropp.renderers import PdfRenderer, ZipRenderer
+from terracommon.tropp.renderers import PdfRenderer, ZipRenderer
 from .filters import CampaignFilterBackend, JsonFilterBackend
 from .serializers import *
 
@@ -50,7 +50,7 @@ class ViewpointZipPictures(RetrieveAPIView):
     @method_decorator(cache_page(60 * 5))
     def get(self, request, *args, **kwargs):
         qs = self.get_object().pictures.filter(
-            state__gte=settings.STATES.ACCEPTED,
+            state__gte=STATES.ACCEPTED,
         ).only('file')
         return Response([p.file for p in qs])
 

@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from geostore.models import Layer
+from terra_utils.settings import STATES
 
 from terracommon.accounts.mixins import ReadableModelMixin
 from terra_utils.mixins import BaseUpdatableModel
@@ -22,7 +23,7 @@ class UserRequest(BaseUpdatableModel, ReadableModelMixin):
                               on_delete=models.PROTECT,
                               related_name='userrequests')
     expiry = models.DateField(default=None, null=True)
-    state = models.IntegerField(default=settings.STATES.DRAFT)
+    state = models.IntegerField(default=STATES.DRAFT)
     reviewers = models.ManyToManyField(settings.AUTH_USER_MODEL,
                                        blank=True,
                                        related_name='to_review')

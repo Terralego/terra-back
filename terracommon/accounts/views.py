@@ -14,6 +14,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+from terra_utils.settings import STATES
 from url_filter.integrations.drf import DjangoFilterBackend
 
 from terra_utils.filters import JSONFieldOrderingFilter
@@ -127,7 +128,7 @@ class SettingsView(APIView):
         terra_settings = {
             'states': {
                 y: x
-                for x, y in settings.STATES.VALUE_TO_CONST.items()
+                for x, y in STATES.VALUE_TO_CONST.items()
                 },
             'jwt_delta': settings.JWT_AUTH['JWT_EXPIRATION_DELTA']
         }

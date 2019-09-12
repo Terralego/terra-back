@@ -1,8 +1,8 @@
-from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
+from terra_utils.settings import STATES
 
 from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.trrequests.models import UserRequest
@@ -143,7 +143,7 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
         self._set_permissions(['can_read_all_requests', ])
 
         # test with a non owner user
-        UserRequestFactory(state=settings.STATES.DRAFT)
+        UserRequestFactory(state=STATES.DRAFT)
         response = self.client.get(reverse('trrequests:request-list'))
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
@@ -152,7 +152,7 @@ class ReadableUserRequestTestCase(TestCase, TestPermissionsMixin):
         self._clean_permissions()
 
         # # test with a owner
-        UserRequestFactory(state=settings.STATES.DRAFT, owner=self.user)
+        UserRequestFactory(state=STATES.DRAFT, owner=self.user)
 
         self._set_permissions(['can_read_self_requests', ])
 
