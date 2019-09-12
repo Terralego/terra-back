@@ -58,7 +58,8 @@ class TerraUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
         ordering = ['id']
         permissions = (
-            ('can_manage_users', 'Is able create, delete, update users'),
+            ('can_manage_users', 'Is able to create, delete, update users'),
+            ('can_manage_groups', 'Is able to create, delete, update groups'),
         )
 
 
