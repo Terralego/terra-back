@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from url_filter.integrations.drf import DjangoFilterBackend
 
-from terracommon.core.filters import JSONFieldOrderingFilter
+from terra_utils.filters import JSONFieldOrderingFilter
 from terracommon.events.signals import event
 
 from .forms import PasswordSetAndResetForm

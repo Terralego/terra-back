@@ -12,7 +12,7 @@ from rest_framework import serializers
 
 from terracommon.accounts.mixins import UserTokenGeneratorMixin
 from terracommon.accounts.serializers import TerraUserSerializer
-from terracommon.core.mixins import SerializerCurrentUserMixin
+from terra_utils.mixins import SerializerCurrentUserMixin
 from terracommon.datastore.models import RelatedDocument
 from terracommon.datastore.serializers import (RelatedDocumentPDFSerializer,
                                                RelatedDocumentSerializer)

@@ -6,8 +6,8 @@ from django.utils.translation import ugettext_lazy as _
 from geostore.models import Feature
 from versatileimagefield.fields import VersatileImageField
 
-from terracommon.core.mixins import BaseUpdatableModel
-from terracommon.core.settings import STATES
+from terra_utils.mixins import BaseUpdatableModel
+from terra_utils.settings import STATES
 
 
 class BaseLabelModel(BaseUpdatableModel):

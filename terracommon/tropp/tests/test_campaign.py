@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from terracommon.accounts.tests.factories import TerraUserFactory
-from terracommon.core.settings import STATES
+from terra_utils.settings import STATES
 from terracommon.tropp.tests.factories import CampaignFactory, ViewpointFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin
 

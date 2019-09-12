@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from url_filter.integrations.drf import DjangoFilterBackend
 
 from terracommon.accounts.permissions import TokenBasedPermission
-from terracommon.core.filters import JSONFieldOrderingFilter
+from terra_utils.filters import JSONFieldOrderingFilter
 from terracommon.document_generator.helpers import get_media_response
 from terracommon.events.signals import event
 

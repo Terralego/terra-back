@@ -15,8 +15,8 @@ from rest_framework.generics import RetrieveAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
-from ..core.filters import DateFilterBackend, SchemaAwareDjangoFilterBackend
-from ..core.renderers import PdfRenderer, ZipRenderer
+from terra_utils.filters import DateFilterBackend, SchemaAwareDjangoFilterBackend
+from tropp.renderers import PdfRenderer, ZipRenderer
 from .filters import CampaignFilterBackend, JsonFilterBackend
 from .serializers import *
 
