@@ -19,8 +19,9 @@ from terracommon.core.filters import JSONFieldOrderingFilter
 from terracommon.events.signals import event
 
 from .forms import PasswordSetAndResetForm
-from .serializers import (GroupSerializer, PasswordChangeSerializer, PasswordResetSerializer,
-                          TerraUserSerializer, UserProfileSerializer)
+from .serializers import (GroupSerializer, PasswordChangeSerializer,
+                          PasswordResetSerializer, TerraUserSerializer,
+                          UserProfileSerializer)
 
 UserModel = get_user_model()
 
