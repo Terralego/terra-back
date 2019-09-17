@@ -2,14 +2,15 @@ from django.conf.urls import url
 from django.urls import path
 from rest_framework import routers
 
-from .views import (SettingsView, UserChangePasswordView, UserInformationsView,
-                    UserProfileView, UserRegisterView, UserSetPasswordView,
-                    UserViewSet)
+from .views import (GroupViewSet, SettingsView, UserChangePasswordView,
+                    UserInformationsView, UserProfileView, UserRegisterView,
+                    UserSetPasswordView, UserViewSet)
 
 app_name = 'accounts'
 
 router = routers.SimpleRouter()
 router.register(r'user', UserViewSet, base_name='user')
+router.register(r'groups', GroupViewSet, base_name='group')
 urlpatterns = router.urls
 
 urlpatterns += [
