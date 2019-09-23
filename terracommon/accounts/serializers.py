@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView
 from rest_framework import serializers
@@ -68,6 +69,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserModel
         fields = ('uuid', 'email', 'properties')
         read_only_fields = ('uuid', UserModel.USERNAME_FIELD, )
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    users = serializers.PrimaryKeyRelatedField(
+        many=True,
+        source='user_set',
+        queryset=UserModel.objects.all(),
+        required=False,
+    )
+
+    class Meta:
+        model = Group
+        ref_name = 'TerraGroupSerializer'
+        fields = ('name', 'users')
 
 
 class TerraUserSerializer(serializers.ModelSerializer):

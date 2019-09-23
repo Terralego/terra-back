@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from django.db import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
@@ -44,25 +43,6 @@ class UserViewsetTestCase(TestCase, TestPermissionsMixin):
 
         user.refresh_from_db()
         self.assertEqual(user.uuid, test_uuid)
-
-    def test_groups(self):
-        group1 = Group.objects.create(name='test group1')
-        user = TerraUserFactory()
-        user.groups.add(group1)
-
-        group2 = Group.objects.create(name='test group2')
-        group3 = Group.objects.create(name='test group3')
-        response = self.client.post(
-            reverse('accounts:user-groups', args=[user.pk]),
-            {
-                'groups': [group2.name, group3.name]
-            })
-
-        # List must contains same as groups in db
-        user.refresh_from_db()
-        self.assertListEqual(
-            [g.name for g in user.groups.all()],
-            response.json())
 
     def test_create_two_user_with_same_email(self):
         with self.assertRaises(IntegrityError):
