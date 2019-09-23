@@ -15,7 +15,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from terra_utils.filters import JSONFieldOrderingFilter
-from terra_utils.settings import STATES
 from url_filter.integrations.drf import DjangoFilterBackend
 
 from terracommon.events.signals import event
@@ -118,24 +117,6 @@ class UserChangePasswordView(APIView):
 
         user_serializer = UserProfileSerializer()
         return Response(user_serializer.to_representation(serializer.user))
-
-
-class SettingsView(APIView):
-    permission_classes = ()
-    authentication_classes = ()
-
-    def get(self, request):
-        terra_settings = {
-            'states': {
-                y: x
-                for x, y in STATES.VALUE_TO_CONST.items()
-                },
-            'jwt_delta': settings.JWT_AUTH['JWT_EXPIRATION_DELTA']
-        }
-
-        terra_settings.update(settings.TERRA_APPLIANCE_SETTINGS)
-
-        return Response(terra_settings)
 
 
 class UserInformationsView(APIView):

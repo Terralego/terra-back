@@ -3,7 +3,7 @@ from django.urls import path
 from rest_framework import routers
 from rest_framework_jwt import views as auth_views
 
-from .views import (SettingsView, UserChangePasswordView, UserInformationsView,
+from .views import (UserChangePasswordView, UserInformationsView,
                     UserProfileView, UserRegisterView, UserSetPasswordView,
                     UserViewSet)
 
@@ -14,7 +14,6 @@ router.register(r'user', UserViewSet, base_name='user')
 urlpatterns = router.urls
 
 urlpatterns += [
-    path('settings/', SettingsView.as_view(), name='settings'),
     path('auth/obtain-token/', auth_views.obtain_jwt_token, name='token-obtain'),
     path('auth/verify-token/', auth_views.verify_jwt_token, name='token-verify'),
     path('auth/refresh-token/', auth_views.refresh_jwt_token, name='token-refresh'),
