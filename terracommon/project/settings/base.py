@@ -121,6 +121,17 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': os.environ.get('POSTGRES_DB'),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'HOST': 'db',
+        'PORT': '',
+    }
+}
+
 FORMAT_MODULE_PATH = [
     PROJECT_NAME + '.formats',
 ]

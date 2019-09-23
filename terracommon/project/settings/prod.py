@@ -13,7 +13,6 @@ CSRF_COOKIE_HTTPONLY = True
 # SESSION_COOKIE_SECURE = True
 # SECURE_SSL_REDIRECT = True # In case, should be done by webserver instead
 
-
 try:
     from .local import *  # noqa
 except ImportError:
