@@ -40,7 +40,7 @@ setup(
         "requests>=2.19,<2.20",
         "mercantile>=1.0,<1.1",
         "django-url-filter>=0.3,<0.4",
-        "Fiona>=1.7,<1.8",
+        "Fiona>=1.8,<1.9",
         "python-magic>=0.4,<0.5",
         "docxtpl>=0.5,<0.6",
         "Pillow>=5.3.0,<6.0.0",

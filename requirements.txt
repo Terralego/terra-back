@@ -21,7 +21,7 @@ weasyprint>=44
 
 # SIG
 mercantile>=1.0,<1.1
-Fiona>=1.7,<1.8
+Fiona>=1.8,<1.9
 
 # production
 gunicorn
