@@ -3,9 +3,9 @@ from django.urls import path
 from rest_framework import routers
 from rest_framework_jwt import views as auth_views
 
-from .views import (GroupViewSet, UserChangePasswordView,
-                    UserInformationsView, UserProfileView, UserRegisterView,
-                    UserSetPasswordView, UserViewSet)
+from .views import (GroupViewSet, UserChangePasswordView, UserInformationsView,
+                    UserProfileView, UserRegisterView, UserSetPasswordView,
+                    UserViewSet)
 
 app_name = 'accounts'
 
