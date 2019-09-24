@@ -82,7 +82,7 @@ class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         ref_name = 'TerraGroupSerializer'
-        fields = ('name', 'users')
+        fields = ('id', 'name', 'users')
 
 
 class TerraUserSerializer(serializers.ModelSerializer):
