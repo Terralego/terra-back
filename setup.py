@@ -29,7 +29,7 @@ setup(
         "License :: OSI Approved :: MIT License",
     ],
     install_requires=[
-        "django-terra-utils",  # old terracommon.core
+        "django-terra-utils==0.3.0",  # old terracommon.core
         "django-geostore==0.3.1",  # old terracommon.terra
         "python-magic>=0.4",
         "djangorestframework-jwt>=1.11,<1.12",
@@ -40,8 +40,5 @@ setup(
         "weasyprint>=44",
         "simpleeval>=0.9",
         "docxtpl>=0.5",
-    ],
-    dependency_links=[
-        'git+https://github.com/Terralego/django-terra-utils.git@master#egg=django-terra-utils'
     ]
 )
