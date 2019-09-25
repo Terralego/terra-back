@@ -87,11 +87,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
 class TerraUserSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField()
-    groups = serializers.SerializerMethodField()
     password = serializers.CharField(write_only=True, required=False)
-
-    def get_groups(self, obj):
-        return [group.name for group in obj.groups.all()]
 
     def get_permissions(self, obj):
         return list(obj.get_all_permissions())
