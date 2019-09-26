@@ -5,7 +5,7 @@ from functools import reduce
 import coreapi
 import coreschema
 from django.contrib.postgres.fields.jsonb import KeyTransform
-from django.db.models import Prefetch
+from django.db.models import Func, Prefetch
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import permissions, viewsets
@@ -161,6 +161,29 @@ class ViewpointViewSet(viewsets.ModelViewSet):
         ).data
 
         return Response(filter_values)
+
+
+class Themes(RetrieveAPIView):
+    """
+    Return all the themes registered on all viewpoints
+    """
+    queryset = Viewpoint.objects.all()
+
+    @method_decorator(cache_page(60 * 5))
+    def get(self, request):
+        themes = (
+            Viewpoint.objects
+            .annotate(
+                themes=Func(
+                    KeyTransform('themes', 'properties'),
+                    function='jsonb_array_elements',
+                ),
+            )
+            .order_by('themes')
+            .values_list('themes', flat=True)
+            .distinct()
+        )
+        return Response(themes)
 
 
 class CampaignViewSet(viewsets.ModelViewSet):
