@@ -24,4 +24,5 @@ urlpatterns += [
         views.ViewpointZipPictures.as_view(),
         name='viewpoint-zip',
     ),
+    path('themes/', views.Themes.as_view(), name='theme'),
 ]
