@@ -106,23 +106,16 @@ class ListCampaignNestedSerializer(CampaignSerializer):
 
 class PictureSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.email')
+    file = VersatileImageFieldSerializer('tropp')
 
     class Meta:
         model = Picture
         fields = '__all__'
 
 
-class SimplePictureSerializer(PictureSerializer):
-    file = VersatileImageFieldSerializer('tropp')
-
-    class Meta:
-        model = Picture
-        fields = ('id', 'date', 'file', 'owner', 'properties')
-
-
 class ViewpointSerializerWithPicture(serializers.ModelSerializer):
-    picture = SimplePictureSerializer(required=False, write_only=True)
-    pictures = SimplePictureSerializer(many=True, read_only=True)
+    picture = PictureSerializer(required=False, write_only=True)
+    pictures = PictureSerializer(many=True, read_only=True)
     related = RelatedDocumentFileSerializer(many=True, read_only=True)
     point = GeometryField(required=True, write_only=True)
     geometry = GeometryField(source='point.geom', read_only=True)
