@@ -25,11 +25,11 @@ class PermissiveImageFieldSerializer(VersatileImageFieldSerializer):
 
 class SimpleViewpointSerializer(serializers.ModelSerializer):
     picture = SerializerMethodField()
-    geometry = GeometryField(source='point.geom', read_only=True)
+    point = GeometryField(source='point.geom')
 
     class Meta:
         model = Viewpoint
-        fields = ('id', 'label', 'picture', 'geometry')
+        fields = ('id', 'label', 'picture', 'point')
 
     def get_picture(self, viewpoint):
         try:
@@ -45,7 +45,7 @@ class SimpleAuthenticatedViewpointSerializer(SimpleViewpointSerializer):
 
     class Meta:
         model = Viewpoint
-        fields = ('id', 'label', 'picture', 'geometry', 'status')
+        fields = ('id', 'label', 'picture', 'point', 'status')
 
     def get_status(self, obj):
         """
@@ -124,12 +124,11 @@ class ViewpointSerializerWithPicture(serializers.ModelSerializer):
     picture = SimplePictureSerializer(required=False, write_only=True)
     pictures = SimplePictureSerializer(many=True, read_only=True)
     related = RelatedDocumentFileSerializer(many=True, read_only=True)
-    point = GeometryField(required=True, write_only=True)
-    geometry = GeometryField(source='point.geom', read_only=True)
+    point = GeometryField(source='point.geom')
 
     class Meta:
         model = Viewpoint
-        fields = ('id', 'label', 'geometry', 'properties', 'point', 'picture',
+        fields = ('id', 'label', 'properties', 'point', 'picture',
                   'pictures', 'related')
 
     def create(self, validated_data):
@@ -138,7 +137,7 @@ class ViewpointSerializerWithPicture(serializers.ModelSerializer):
             name=settings.TROPP_BASE_LAYER_NAME
         )
         feature = Feature.objects.create(
-            geom=point_data,
+            geom=point_data.get('geom'),
             layer=layer,
             properties={},
         )
@@ -167,7 +166,7 @@ class ViewpointSerializerWithPicture(serializers.ModelSerializer):
         point_data = validated_data.pop('point', None)
         if point_data:
             feature = instance.point
-            feature.geom = point_data
+            feature.geom = point_data.get('geom')
             feature.save()
 
         return super().update(instance, validated_data)

@@ -397,7 +397,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
             feature.properties['viewpoint_id']
         )
         self.assertEqual(
-            response.data['geometry']['coordinates'],
+            response.data['point']['coordinates'],
             [feature.geom.coords[0], feature.geom.coords[1]]
         )
 
