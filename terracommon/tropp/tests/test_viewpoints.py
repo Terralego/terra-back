@@ -424,18 +424,18 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         )
         response = self.client.patch(
             reverse('tropp:viewpoint-detail', args=[
-                self.viewpoint_with_accepted_picture.pk]),
+                self.viewpoint_with_accepted_picture.pk,
+            ]),
             {
                 'picture_ids': [picture.id]
             },
-            format='multipart',
         )
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
         viewpoint = Viewpoint.objects.get(
             pk=self.viewpoint_with_accepted_picture.pk
         )
-        self.assertEqual(2, len(viewpoint.pictures.all()))
+        self.assertEqual(1, viewpoint.pictures.count())
         self.assertIn(
             file.name.split('.')[0],
             viewpoint.pictures.latest().file.name

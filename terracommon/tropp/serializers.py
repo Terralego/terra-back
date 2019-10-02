@@ -156,6 +156,11 @@ class ViewpointSerializerWithPicture(serializers.ModelSerializer):
             feature.geom = point_data.get('geom')
             feature.save()
 
+        # Remove pictures no longer associated with viewpoint
+        if 'pictures' in validated_data:
+            picture_ids = [p.pk for p in validated_data['pictures']]
+            instance.pictures.exclude(pk__in=picture_ids).delete()
+
         return super().update(instance, validated_data)
 
 
