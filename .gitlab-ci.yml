@@ -19,16 +19,15 @@ cache:
     - .cache/
     - venv/
 
-before_script:
-    - apt-get update
-    - apt-get install -y python3-pip
-    - apt-get install -y $(grep -vE "^\s*#" apt.txt  | tr "\n" " ")
-    - python3 -m venv venv/
-    - ./venv/bin/pip3 install -r test-requirements.txt
-
 tests:
   stage: tests
   tags: [shared-ci-docker]
+  before_script:
+      - apt-get update
+      - apt-get install -y python3-pip
+      - apt-get install -y $(grep -vE "^\s*#" apt.txt  | tr "\n" " ")
+      - python3 -m venv venv/
+      - ./venv/bin/pip3 install -r test-requirements.txt
   services:
     - makinacorpus/pgrouting:10.1-2.5.4
   script:
