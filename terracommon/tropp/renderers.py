@@ -11,8 +11,7 @@ from django.conf import settings
 from django.contrib.staticfiles.finders import find
 from django.core.files.storage import default_storage
 from rest_framework import renderers
-
-from .helpers import CustomCsvBuilder
+from terra_utils.helpers import CustomCsvBuilder
 
 
 class CSVRenderer(renderers.BaseRenderer):

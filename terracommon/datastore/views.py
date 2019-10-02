@@ -3,7 +3,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.status import HTTP_409_CONFLICT
 
-from terracommon.core.renderers import CSVRenderer
+from terracommon.tropp.renderers import CSVRenderer
 
 from .models import DataStore
 from .permissions import IsAuthenticatedAndDataStoreAllowed

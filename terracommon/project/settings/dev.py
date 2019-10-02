@@ -21,17 +21,6 @@ LOGGING['handlers']['null'] = {  # noqa
     'class': 'logging.NullHandler',
 }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.environ.get('POSTGRES_DB'),
-        'USER': os.environ.get('POSTGRES_USER'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': 'db',
-        'PORT': '',
-    }
-}
-
 # Force every loggers to use console handler only. Note that using 'root'
 # logger is not enough if children don't propage.
 for logger in six.itervalues(LOGGING['loggers']):  # noqa

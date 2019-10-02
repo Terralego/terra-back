@@ -5,6 +5,8 @@ from django.utils import six
 
 from .base import *  # noqa
 
+AUTH_USER_MODEL = 'accounts.TerraUser'
+
 REST_FRAMEWORK['TEST_REQUEST_DEFAULT_FORMAT'] = 'json'
 REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
     'rest_framework.permissions.IsAuthenticatedOrReadOnly'
@@ -32,16 +34,6 @@ CACHES = {
 for logger in six.itervalues(LOGGING['loggers']):  # noqa
     logger['handlers'] = ['console']
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.environ.get('POSTGRES_DB'),
-        'USER': os.environ.get('POSTGRES_USER'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
-        'PORT': '',
-    }
-}
 
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 MEDIA_URL = 'http://testserver/'

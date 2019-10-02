@@ -5,6 +5,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path('api/', include('geostore.urls')),
+    path('api/', include('terra_utils.urls')),
     path('api/', include('terracommon.trrequests.urls')),
     path('api/', include('terracommon.accounts.urls')),
     path('api/', include('terracommon.notifications.urls')),

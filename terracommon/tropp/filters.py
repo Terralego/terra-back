@@ -7,8 +7,7 @@ from django.contrib.postgres.fields.jsonb import KeyTextTransform
 from django.db.models import Q
 from rest_framework import filters
 from rest_framework.exceptions import ValidationError
-
-from terracommon.core.settings import STATES
+from terra_utils.settings import STATES
 
 
 class CampaignFilterBackend(filters.BaseFilterBackend):

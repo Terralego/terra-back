@@ -5,6 +5,7 @@ from geostore.models import Feature, Layer
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework_gis.fields import GeometryField
+from terra_utils.settings import STATES
 from versatileimagefield.serializers import VersatileImageFieldSerializer
 
 from terracommon.datastore.serializers import RelatedDocumentFileSerializer
@@ -55,10 +56,10 @@ class SimpleAuthenticatedViewpointSerializer(SimpleViewpointSerializer):
         try:
             last_pic = obj.ordered_pics[0]
             if last_pic.created_at < obj.created_at:
-                return settings.STATES.CHOICES_DICT[settings.STATES.MISSING]
-            return settings.STATES.CHOICES_DICT[last_pic.state]
+                return STATES.CHOICES_DICT[STATES.MISSING]
+            return STATES.CHOICES_DICT[last_pic.state]
         except IndexError:
-            return settings.STATES.CHOICES_DICT[settings.STATES.MISSING]
+            return STATES.CHOICES_DICT[STATES.MISSING]
 
 
 class CampaignSerializer(serializers.ModelSerializer):

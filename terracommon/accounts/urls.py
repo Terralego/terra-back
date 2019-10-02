@@ -3,9 +3,9 @@ from django.urls import path
 from rest_framework import routers
 from rest_framework_jwt import views as auth_views
 
-from .views import (GroupViewSet, SettingsView, UserChangePasswordView,
-                    UserInformationsView, UserProfileView, UserRegisterView,
-                    UserSetPasswordView, UserViewSet)
+from .views import (GroupViewSet, UserChangePasswordView, UserInformationsView,
+                    UserProfileView, UserRegisterView, UserSetPasswordView,
+                    UserViewSet)
 
 app_name = 'accounts'
 
@@ -15,7 +15,6 @@ router.register(r'groups', GroupViewSet, base_name='group')
 urlpatterns = router.urls
 
 urlpatterns += [
-    path('settings/', SettingsView.as_view(), name='settings'),
     path('auth/obtain-token/', auth_views.obtain_jwt_token, name='token-obtain'),
     path('auth/verify-token/', auth_views.verify_jwt_token, name='token-verify'),
     path('auth/refresh-token/', auth_views.refresh_jwt_token, name='token-refresh'),
