@@ -29,6 +29,7 @@ setup(
         "License :: OSI Approved :: MIT License",
     ],
     install_requires=[
+        "Django==2.2.5",
         "django-terra-utils>=0.3.6",  # old terracommon.core
         "django-geostore>=0.3.4",  # old terracommon.terra
         "python-magic>=0.4",
