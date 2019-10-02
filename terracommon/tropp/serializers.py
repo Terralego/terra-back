@@ -120,14 +120,19 @@ class SimplePictureSerializer(PictureSerializer):
 
 
 class ViewpointSerializerWithPicture(serializers.ModelSerializer):
-    picture = SimplePictureSerializer(required=False, write_only=True)
+    picture_ids = serializers.PrimaryKeyRelatedField(
+        source='pictures',
+        queryset=Picture.objects.all(),
+        required=False,
+        many=True,
+    )
     pictures = SimplePictureSerializer(many=True, read_only=True)
     related = RelatedDocumentFileSerializer(many=True, read_only=True)
     point = GeometryField(source='point.geom')
 
     class Meta:
         model = Viewpoint
-        fields = ('id', 'label', 'properties', 'point', 'picture',
+        fields = ('id', 'label', 'properties', 'point', 'picture_ids',
                   'pictures', 'related')
 
     def create(self, validated_data):
@@ -142,26 +147,9 @@ class ViewpointSerializerWithPicture(serializers.ModelSerializer):
         )
         validated_data.setdefault('point', feature)
 
-        picture_data = validated_data.pop('picture', None)
-        viewpoint = super().create(validated_data)
-        if picture_data:
-            Picture.objects.create(
-                viewpoint=viewpoint,
-                owner=self.context['request'].user,
-                **picture_data,
-            )
-
-        return viewpoint
+        return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        picture_data = validated_data.pop('picture', None)
-        if picture_data:
-            Picture.objects.create(
-                viewpoint=instance,
-                owner=self.context['request'].user,
-                **picture_data,
-            )
-
         point_data = validated_data.pop('point', None)
         if point_data:
             feature = instance.point

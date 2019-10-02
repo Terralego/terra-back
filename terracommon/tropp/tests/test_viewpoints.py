@@ -405,7 +405,7 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
         self.client.force_authenticate(user=self.user)
         self._set_permissions(['change_viewpoint', ])
 
-        # We add a more recent picture to the viewpoint
+        # We create a more recent picture
         date = timezone.datetime(2019, 1, 1, tzinfo=timezone.utc)
         file = SimpleUploadedFile(
             name='test.jpg',
@@ -415,12 +415,18 @@ class ViewpointTestCase(APITestCase, TestPermissionsMixin):
             ).read(),
             content_type='image/jpeg',
         )
+        picture = Picture.objects.create(
+            viewpoint=self.viewpoint_with_accepted_picture,
+            owner=self.user,
+            date=date,
+            file=file,
+            state=STATES.ACCEPTED,
+        )
         response = self.client.patch(
             reverse('tropp:viewpoint-detail', args=[
                 self.viewpoint_with_accepted_picture.pk]),
             {
-                'picture.date': date,
-                'picture.file': file
+                'picture_ids': [picture.id]
             },
             format='multipart',
         )
