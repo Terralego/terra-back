@@ -106,6 +106,7 @@ class ListCampaignNestedSerializer(CampaignSerializer):
 
 class PictureSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.email')
+    file = VersatileImageFieldSerializer('tropp')
 
     class Meta:
         model = Picture
@@ -113,8 +114,6 @@ class PictureSerializer(serializers.ModelSerializer):
 
 
 class SimplePictureSerializer(PictureSerializer):
-    file = VersatileImageFieldSerializer('tropp')
-
     class Meta:
         model = Picture
         fields = ('id', 'date', 'file', 'owner', 'properties')
