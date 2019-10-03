@@ -26,11 +26,11 @@ class PermissiveImageFieldSerializer(VersatileImageFieldSerializer):
 
 class SimpleViewpointSerializer(serializers.ModelSerializer):
     picture = SerializerMethodField()
-    geometry = GeometryField(source='point.geom', read_only=True)
+    point = GeometryField(source='point.geom')
 
     class Meta:
         model = Viewpoint
-        fields = ('id', 'label', 'picture', 'geometry')
+        fields = ('id', 'label', 'picture', 'point')
 
     def get_picture(self, viewpoint):
         try:
@@ -46,7 +46,7 @@ class SimpleAuthenticatedViewpointSerializer(SimpleViewpointSerializer):
 
     class Meta:
         model = Viewpoint
-        fields = ('id', 'label', 'picture', 'geometry', 'status')
+        fields = ('id', 'label', 'picture', 'point', 'status')
 
     def get_status(self, obj):
         """
@@ -107,6 +107,7 @@ class ListCampaignNestedSerializer(CampaignSerializer):
 
 class PictureSerializer(serializers.ModelSerializer):
     owner = UserProfileSerializer(read_only=True)
+    file = VersatileImageFieldSerializer('tropp')
 
     class Meta:
         model = Picture
@@ -114,23 +115,25 @@ class PictureSerializer(serializers.ModelSerializer):
 
 
 class SimplePictureSerializer(PictureSerializer):
-    file = VersatileImageFieldSerializer('tropp')
-
     class Meta:
         model = Picture
         fields = ('id', 'date', 'file', 'owner', 'properties')
 
 
 class ViewpointSerializerWithPicture(serializers.ModelSerializer):
-    picture = SimplePictureSerializer(required=False, write_only=True)
+    picture_ids = serializers.PrimaryKeyRelatedField(
+        source='pictures',
+        queryset=Picture.objects.all(),
+        required=False,
+        many=True,
+    )
     pictures = SimplePictureSerializer(many=True, read_only=True)
     related = RelatedDocumentFileSerializer(many=True, read_only=True)
-    point = GeometryField(required=True, write_only=True)
-    geometry = GeometryField(source='point.geom', read_only=True)
+    point = GeometryField(source='point.geom')
 
     class Meta:
         model = Viewpoint
-        fields = ('id', 'label', 'geometry', 'properties', 'point', 'picture',
+        fields = ('id', 'label', 'properties', 'point', 'picture_ids',
                   'pictures', 'related')
 
     def create(self, validated_data):
@@ -139,37 +142,25 @@ class ViewpointSerializerWithPicture(serializers.ModelSerializer):
             name=settings.TROPP_BASE_LAYER_NAME
         )
         feature = Feature.objects.create(
-            geom=point_data,
+            geom=point_data.get('geom'),
             layer=layer,
             properties={},
         )
         validated_data.setdefault('point', feature)
 
-        picture_data = validated_data.pop('picture', None)
-        viewpoint = super().create(validated_data)
-        if picture_data:
-            Picture.objects.create(
-                viewpoint=viewpoint,
-                owner=self.context['request'].user,
-                **picture_data,
-            )
-
-        return viewpoint
+        return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        picture_data = validated_data.pop('picture', None)
-        if picture_data:
-            Picture.objects.create(
-                viewpoint=instance,
-                owner=self.context['request'].user,
-                **picture_data,
-            )
-
         point_data = validated_data.pop('point', None)
         if point_data:
             feature = instance.point
-            feature.geom = point_data
+            feature.geom = point_data.get('geom')
             feature.save()
+
+        # Remove pictures no longer associated with viewpoint
+        if 'pictures' in validated_data:
+            picture_ids = [p.pk for p in validated_data['pictures']]
+            instance.pictures.exclude(pk__in=picture_ids).delete()
 
         return super().update(instance, validated_data)
 
