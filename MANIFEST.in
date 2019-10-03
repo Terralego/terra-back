@@ -1,2 +1,4 @@
 recursive-include terracommon/accounts/templates/registration/ *
+include terracommon/accounts/tests/factories.py
+include terracommon/accounts/tests/__init__.py
 include LICENSE
