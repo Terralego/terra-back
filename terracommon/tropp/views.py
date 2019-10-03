@@ -155,7 +155,7 @@ class ViewpointViewSet(viewsets.ModelViewSet):
             if data is not None:
                 filter_values[key] = data
 
-        filter_values['photographers'] = PhotographerLabelSerializer(
+        filter_values['photographers'] = UserProfileSerializer(
             get_user_model().objects.filter(pictures__isnull=False).distinct(),
             many=True,
         ).data
