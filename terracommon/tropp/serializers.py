@@ -6,6 +6,7 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework_gis.fields import GeometryField
 from versatileimagefield.serializers import VersatileImageFieldSerializer
 
+from terracommon.accounts.serializers import UserProfileSerializer
 from terracommon.datastore.serializers import RelatedDocumentFileSerializer
 from terracommon.terra.models import Feature, Layer
 
@@ -105,7 +106,7 @@ class ListCampaignNestedSerializer(CampaignSerializer):
 
 
 class PictureSerializer(serializers.ModelSerializer):
-    owner = serializers.ReadOnlyField(source='owner.email')
+    owner = UserProfileSerializer(read_only=True)
 
     class Meta:
         model = Picture
@@ -177,11 +178,3 @@ class ViewpointLabelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Viewpoint
         fields = ('id', 'label')
-
-
-class PhotographerLabelSerializer(serializers.ModelSerializer):
-    label = serializers.CharField(source='__str__')
-
-    class Meta:
-        model = get_user_model()
-        fields = ('uuid', 'label')
