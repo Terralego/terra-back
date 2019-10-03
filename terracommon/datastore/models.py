@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -32,9 +34,10 @@ class DataStorePermission(models.Model):
 
 
 def related_document_path(instance, filename):
+    filename = Path(filename)
     return (f'documents/'
             f'{instance.content_type.app_label}_{instance.content_type.model}'
-            f'/{instance.object_id}/{instance.key}')
+            f'/{instance.object_id}/{instance.key}{filename.suffix}')
 
 
 class RelatedDocument(models.Model):
