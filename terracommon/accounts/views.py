@@ -150,6 +150,7 @@ class UserViewSet(ModelViewSet):
     queryset = UserModel.objects.none()
     filter_backends = (DjangoFilterBackend, JSONFieldOrderingFilter,
                        SearchFilter, )
+    lookup_field = 'uuid'
     search_fields = ('uuid', 'email', 'properties', )
     filter_fields = ('uuid', 'email', 'properties', 'groups', 'is_superuser',
                      'is_active', 'is_staff', 'date_joined')
