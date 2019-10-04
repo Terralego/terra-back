@@ -1,7 +1,6 @@
 from django.urls import reverse
 from rest_framework import serializers
-
-from terracommon.accounts.mixins import UserTokenGeneratorMixin
+from terra_accounts.mixins import UserTokenGeneratorMixin
 
 from .models import DocumentTemplate, DownloadableDocument
 

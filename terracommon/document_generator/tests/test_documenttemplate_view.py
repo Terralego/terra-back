@@ -14,8 +14,8 @@ from jinja2 import TemplateSyntaxError
 from requests import ConnectionError, HTTPError
 from rest_framework import status
 from rest_framework.test import APIClient
+from terra_accounts.tests.factories import TerraUserFactory
 
-from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.document_generator.helpers import DocumentGenerator
 from terracommon.document_generator.models import (DocumentTemplate,
                                                    DownloadableDocument)

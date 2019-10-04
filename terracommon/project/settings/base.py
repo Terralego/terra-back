@@ -88,7 +88,7 @@ REST_FRAMEWORK = {
 JWT_AUTH = {
     'JWT_ENCODE_HANDLER': 'rest_framework_jwt.utils.jwt_encode_handler',
     'JWT_DECODE_HANDLER': 'rest_framework_jwt.utils.jwt_decode_handler',
-    'JWT_PAYLOAD_HANDLER': 'terracommon.accounts.jwt_payload.terra_payload_handler',
+    'JWT_PAYLOAD_HANDLER': 'terra_accounts.jwt_payload.terra_payload_handler',
     'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'rest_framework_jwt.utils.jwt_get_user_id_from_payload_handler',
     'JWT_RESPONSE_PAYLOAD_HANDLER': 'rest_framework_jwt.utils.jwt_response_payload_handler',
     # 'JWT_SECRET_KEY': settings.SECRET_KEY,
@@ -149,7 +149,7 @@ MEDIA_ROOT = os.path.join(PUBLIC_DIR, 'media')
 # Just to be easily override by children conf files.
 LOGGING = copy.deepcopy(DEFAULT_LOGGING)
 
-AUTH_USER_MODEL = 'accounts.TerraUser'
+AUTH_USER_MODEL = 'terra_accounts.TerraUser'
 
 REQUEST_SCHEMA = {}
 
@@ -172,7 +172,6 @@ MEDIA_ACCEL_REDIRECT = False
 
 CUSTOM_APPS = (
     'terracommon.trrequests',
-    'terracommon.accounts',
     'terracommon.notifications',
     'terracommon.data_importers',
     'terracommon.events',
@@ -195,7 +194,8 @@ INSTALLED_APPS = (
     'drf_yasg',
     'corsheaders',
     'geostore',
-    'terra_utils'
+    'terra_utils',
+    'terra_accounts',
 )
 INSTALLED_APPS += CUSTOM_APPS
 

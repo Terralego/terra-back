@@ -8,8 +8,8 @@ from django.template.exceptions import \
     TemplateSyntaxError as DjangoTemplateSyntaxError
 from django.test import TestCase
 from jinja2 import TemplateSyntaxError
+from terra_accounts.tests.factories import TerraUserFactory
 
-from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.document_generator.helpers import DocumentGenerator
 from terracommon.document_generator.models import (DocumentTemplate,
                                                    DownloadableDocument)

@@ -2,8 +2,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.test import APIRequestFactory
+from terra_accounts.tests.factories import TerraUserFactory
 
-from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.trrequests.permissions import IsOwnerOrStaff
 from terracommon.trrequests.tests.factories import UserRequestFactory
 

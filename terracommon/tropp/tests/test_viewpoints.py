@@ -11,8 +11,8 @@ from geostore.tests.factories import FeatureFactory
 from rest_framework import status
 from rest_framework.test import APITestCase
 from terra_utils.settings import STATES
+from terra_accounts.tests.factories import TerraUserFactory
 
-from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.tropp.models import Picture, Viewpoint
 from terracommon.tropp.tests.factories import ViewpointFactory
 from terracommon.trrequests.tests.mixins import TestPermissionsMixin
