@@ -3,7 +3,6 @@ import logging
 import uuid
 
 from django.contrib.contenttypes.models import ContentType
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import transaction
 from django.urls import reverse
 from geostore.models import Layer
@@ -119,14 +118,14 @@ class UserRequestSerializer(serializers.ModelSerializer, SerializerCurrentUserMi
 
     def _update_or_create_documents(self, instance, documents):
         for document in documents:
+            document['document'].name = document['key']
             RelatedDocument.objects.update_or_create(
                 key=document['key'],
                 object_id=instance.pk,
                 content_type=ContentType.objects.get_for_model(
                                                 instance.__class__),
                 defaults={
-                    'document': SimpleUploadedFile(document['key'],
-                                                   document['document']),
+                    'document': document['document'],
                 }
             )
 
