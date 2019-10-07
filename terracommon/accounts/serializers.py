@@ -1,9 +1,12 @@
+import warnings
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView
 from rest_framework import serializers
+from rest_framework.fields import empty
 from rest_framework.serializers import ValidationError
 
 UserModel = get_user_model()
@@ -103,5 +106,18 @@ class TerraUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserModel
-        fields = ('id', 'is_superuser', 'email', 'uuid', 'properties',
+        fields = ('is_superuser', 'email', 'uuid', 'properties',
                   'is_staff', 'is_active', 'permissions', 'groups', 'password')
+
+
+class DeprecatedTerraUserSerializer(TerraUserSerializer):
+    def __init__(self, instance=None, data=empty, **kwargs):
+        warnings.warn(
+            "`DeprecatedTerraUserSerializer` will be removed, along with its "
+            "`id` field, use `TerraUserSerializer` instead.",
+            DeprecationWarning
+        )
+        super().__init__(instance=instance, data=data, **kwargs)
+
+    class Meta(TerraUserSerializer.Meta):
+        fields = ('id',) + TerraUserSerializer.Meta.fields

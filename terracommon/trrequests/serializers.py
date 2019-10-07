@@ -12,7 +12,8 @@ from rest_framework import serializers
 from terra_utils.mixins import SerializerCurrentUserMixin
 
 from terracommon.accounts.mixins import UserTokenGeneratorMixin
-from terracommon.accounts.serializers import TerraUserSerializer
+from terracommon.accounts.serializers import (DeprecatedTerraUserSerializer,
+                                              TerraUserSerializer)
 from terracommon.datastore.models import RelatedDocument
 from terracommon.datastore.serializers import (RelatedDocumentPDFSerializer,
                                                RelatedDocumentSerializer)
@@ -138,7 +139,7 @@ class UserRequestSerializer(serializers.ModelSerializer, SerializerCurrentUserMi
 
 class CommentSerializer(serializers.ModelSerializer,
                         UserTokenGeneratorMixin):
-    owner = TerraUserSerializer(read_only=True)
+    owner = DeprecatedTerraUserSerializer(read_only=True)
     attachment_url = serializers.SerializerMethodField()
     geojson = GeoJSONLayerSerializer(source='layer', required=False)
 

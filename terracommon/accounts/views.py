@@ -16,6 +16,7 @@ from terra_utils.filters import JSONFieldOrderingFilter
 from url_filter.integrations.drf import DjangoFilterBackend
 
 from terracommon.accounts.permissions import GroupAdminPermission
+from terracommon.accounts.serializers import DeprecatedTerraUserSerializer
 from terracommon.events.signals import event
 
 from .forms import PasswordSetAndResetForm
@@ -122,7 +123,7 @@ class UserChangePasswordView(APIView):
 class UserInformationsView(APIView):
     def get(self, request):
         user = self.request.user
-        return Response(TerraUserSerializer(user).data)
+        return Response(DeprecatedTerraUserSerializer(user).data)
 
 
 class UserViewSet(ModelViewSet):
@@ -132,6 +133,8 @@ class UserViewSet(ModelViewSet):
     queryset = UserModel.objects.none()
     filter_backends = (DjangoFilterBackend, JSONFieldOrderingFilter,
                        SearchFilter, )
+    lookup_field = 'uuid'
+    lookup_value_regex = '[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}'
     search_fields = ('uuid', 'email', 'properties', )
     filter_fields = ('uuid', 'email', 'properties', 'groups', 'is_superuser',
                      'is_active', 'is_staff', 'date_joined')
@@ -141,6 +144,20 @@ class UserViewSet(ModelViewSet):
             return UserModel.objects.all()
 
         return self.queryset
+
+
+class DeprecatedUserViewSet(UserViewSet):
+    lookup_field = 'pk'
+    lookup_value_regex = '[0-9]+'
+    serializer_class = DeprecatedTerraUserSerializer
+
+    def dispatch(self, *args, **kwargs):
+        import warnings
+        warnings.warn(
+            "Looking up a user by `id` is deprecated, use `uuid` instead.",
+            DeprecationWarning
+        )
+        return super().dispatch(*args, **kwargs)
 
 
 class GroupViewSet(ModelViewSet):

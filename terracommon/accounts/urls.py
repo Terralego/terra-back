@@ -3,15 +3,17 @@ from django.urls import path
 from rest_framework import routers
 from rest_framework_jwt import views as auth_views
 
-from .views import (GroupViewSet, UserChangePasswordView, UserInformationsView,
+from .views import (DeprecatedUserViewSet, GroupViewSet,
+                    UserChangePasswordView, UserInformationsView,
                     UserProfileView, UserRegisterView, UserSetPasswordView,
                     UserViewSet)
 
 app_name = 'accounts'
 
 router = routers.SimpleRouter()
-router.register(r'user', UserViewSet, base_name='user')
-router.register(r'groups', GroupViewSet, base_name='group')
+router.register(r'user', DeprecatedUserViewSet, basename='old-user')
+router.register(r'user', UserViewSet, basename='user')
+router.register(r'groups', GroupViewSet, basename='group')
 urlpatterns = router.urls
 
 urlpatterns += [
