@@ -3,15 +3,13 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.status import HTTP_409_CONFLICT
 
-from terracommon.tropp.renderers import CSVRenderer
-
 from .models import DataStore
 from .permissions import IsAuthenticatedAndDataStoreAllowed
 from .serializers import DataStoreSerializer
 
 
 class DataStoreViewSet(viewsets.ModelViewSet):
-    renderer_classes = (JSONRenderer, CSVRenderer, )
+    renderer_classes = (JSONRenderer, )
 
     permission_classes = (IsAuthenticatedAndDataStoreAllowed, )
     serializer_class = DataStoreSerializer

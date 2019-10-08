@@ -177,7 +177,6 @@ CUSTOM_APPS = (
     'terracommon.events',
     'terracommon.document_generator',
     'terracommon.datastore',
-    'terracommon.tropp',
 )
 
 INSTALLED_APPS = (

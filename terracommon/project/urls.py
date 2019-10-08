@@ -11,7 +11,6 @@ urlpatterns = [
     path('api/', include('terracommon.notifications.urls')),
     path('api/', include('terracommon.document_generator.urls')),
     path('api/', include('terracommon.datastore.urls')),
-    path('api/', include('terracommon.tropp.urls')),
 ]
 
 if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:
