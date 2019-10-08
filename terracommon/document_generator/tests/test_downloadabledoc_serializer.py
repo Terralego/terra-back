@@ -2,8 +2,8 @@ import os
 
 from django.test import TestCase
 from django.urls import reverse
+from terra_accounts.tests.factories import TerraUserFactory
 
-from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.document_generator.models import (DocumentTemplate,
                                                    DownloadableDocument)
 from terracommon.document_generator.serializers import \

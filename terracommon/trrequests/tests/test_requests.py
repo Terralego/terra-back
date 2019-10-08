@@ -12,9 +12,9 @@ from django.urls import reverse
 from geostore.tests.factories import LayerFactory
 from rest_framework import status
 from rest_framework.test import APIClient
+from terra_accounts.tests.factories import TerraUserFactory
 from terra_utils.settings import STATES
 
-from terracommon.accounts.tests.factories import TerraUserFactory
 from terracommon.datastore.models import RelatedDocument
 from terracommon.events.signals import event
 from terracommon.trrequests.models import UserRequest

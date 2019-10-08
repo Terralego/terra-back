@@ -5,7 +5,7 @@ from django.utils import six
 
 from .base import *  # noqa
 
-AUTH_USER_MODEL = 'accounts.TerraUser'
+AUTH_USER_MODEL = 'terra_accounts.TerraUser'
 
 REST_FRAMEWORK['TEST_REQUEST_DEFAULT_FORMAT'] = 'json'
 REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [

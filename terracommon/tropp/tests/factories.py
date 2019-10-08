@@ -7,10 +7,10 @@ from terracommon.tropp.models import Campaign, Picture, Viewpoint
 
 class CampaignFactory(factory.DjangoModelFactory):
     owner = factory.SubFactory(
-        'terracommon.accounts.tests.factories.TerraUserFactory'
+        'terra_accounts.tests.factories.TerraUserFactory'
     )
     assignee = factory.SubFactory(
-        'terracommon.accounts.tests.factories.TerraUserFactory'
+        'terra_accounts.tests.factories.TerraUserFactory'
     )
 
     class Meta:
@@ -31,7 +31,7 @@ class ViewpointFactory(factory.DjangoModelFactory):
 
 class PictureFactory(factory.DjangoModelFactory):
     owner = factory.SubFactory(
-        'terracommon.accounts.tests.factories.TerraUserFactory'
+        'terra_accounts.tests.factories.TerraUserFactory'
     )
     date = timezone.datetime(2018, 1, 1, tzinfo=timezone.utc)
     file = FileField(from_path='terracommon/tropp/tests/placeholder.jpg')

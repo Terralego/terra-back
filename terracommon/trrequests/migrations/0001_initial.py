@@ -4,8 +4,8 @@ import django.contrib.postgres.fields.jsonb
 import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
+import terra_accounts.mixins
 
-import terracommon.accounts.mixins
 import terracommon.trrequests.helpers
 
 
@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
             options={
                 'permissions': (('can_create_requests', 'Is able to create a new requests'), ('can_read_self_requests', 'Is able to get own requests'), ('can_read_all_requests', 'Is able to get all requests'), ('can_comment_requests', 'Is able to comment an user request'), ('can_internal_comment_requests', 'Is able to add comments not visible by users'), ('can_read_comment_requests', 'Is allowed to read only non-internal comments'), ('can_change_state_requests', 'Is authorized to change the request state')),
             },
-            bases=(models.Model, terracommon.accounts.mixins.ReadableModelMixin),
+            bases=(models.Model, terra_accounts.mixins.ReadableModelMixin),
         ),
         migrations.AddField(
             model_name='comment',
