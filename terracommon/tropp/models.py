@@ -128,9 +128,6 @@ class Picture(BaseUpdatableModel):
     # Different from created_at which is the upload date
     date = models.DateTimeField(_('Date'))
 
-    # TODO maybe move that to another model with GenericFK?
-    remarks = models.TextField(_('Remarks'), max_length=350)
-
     class Meta:
         permissions = (
             ('change_state_picture', 'Is able to change the picture '

@@ -213,3 +213,8 @@ class PictureViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update']:
+            return PictureUpdateSerializer
+        return self.serializer_class

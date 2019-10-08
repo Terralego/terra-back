@@ -120,6 +120,14 @@ class SimplePictureSerializer(PictureSerializer):
         fields = ('id', 'date', 'file', 'owner', 'properties')
 
 
+class PictureUpdateSerializer(PictureSerializer):
+    file = VersatileImageFieldSerializer('tropp', required=False)
+
+    class Meta:
+        model = Picture
+        fields = '__all__'
+
+
 class ViewpointSerializerWithPicture(serializers.ModelSerializer):
     picture_ids = serializers.PrimaryKeyRelatedField(
         source='pictures',
