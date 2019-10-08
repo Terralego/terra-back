@@ -9,7 +9,7 @@ from geostore.models import Layer
 from geostore.serializers import GeoJSONLayerSerializer
 from rest_framework import serializers
 from terra_accounts.mixins import UserTokenGeneratorMixin
-from terra_accounts.serializers import TerraUserSerializer
+from terra_accounts.serializers import DeprecatedTerraUserSerializer
 from terra_utils.mixins import SerializerCurrentUserMixin
 
 from terracommon.datastore.models import RelatedDocument
@@ -25,9 +25,9 @@ logger = logging.getLogger(__name__)
 
 
 class UserRequestSerializer(serializers.ModelSerializer, SerializerCurrentUserMixin):
-    owner = TerraUserSerializer(read_only=True)
+    owner = DeprecatedTerraUserSerializer(read_only=True)
     geojson = GeoJSONLayerSerializer(source='layer')
-    reviewers = TerraUserSerializer(read_only=True, many=True)
+    reviewers = DeprecatedTerraUserSerializer(read_only=True, many=True)
     has_new_comments = serializers.SerializerMethodField()
     has_new_changes = serializers.SerializerMethodField()
     downloadables = DownloadableDocumentSerializer(read_only=True,
@@ -137,7 +137,7 @@ class UserRequestSerializer(serializers.ModelSerializer, SerializerCurrentUserMi
 
 class CommentSerializer(serializers.ModelSerializer,
                         UserTokenGeneratorMixin):
-    owner = TerraUserSerializer(read_only=True)
+    owner = DeprecatedTerraUserSerializer(read_only=True)
     attachment_url = serializers.SerializerMethodField()
     geojson = GeoJSONLayerSerializer(source='layer', required=False)
 
