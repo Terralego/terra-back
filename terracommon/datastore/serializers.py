@@ -20,7 +20,7 @@ class RelatedDocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RelatedDocument
-        fields = ('key', 'document', )
+        fields = ('key', 'document', 'properties')
 
 
 class RelatedDocumentPDFSerializer(RelatedDocumentSerializer):
@@ -29,7 +29,3 @@ class RelatedDocumentPDFSerializer(RelatedDocumentSerializer):
 
 class RelatedDocumentFileSerializer(RelatedDocumentSerializer):
     document = serializers.FileField()
-
-    class Meta:
-        model = RelatedDocument
-        fields = ('key', 'document', 'properties')
