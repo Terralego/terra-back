@@ -16,7 +16,7 @@ setup(
     author=terracommon.__author__,
     author_email=terracommon.__email__,
     description="The Terra API",
-    url="https://gitlab.makina-corpus.net/Terralego/Core/terra-back/",
+    url="https://github.com/Terralego/terra-back/",
     packages=find_packages(
         exclude=["terracommon.project", "terracommon.project.*", "*.tests"]
     ),
