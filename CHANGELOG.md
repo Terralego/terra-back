@@ -1,8 +1,8 @@
 # [Changelog](https://gitlab.makina-corpus.net/Terralego/Core/terra-back/)
 
-## [1.0.0] - 2018-08-17
+## [0.3.5] - XXXX-XX-XX
 
-* First release with major features integrated 
+* Upgrade minimal Django version
 
 ## [0.0.1]
 
