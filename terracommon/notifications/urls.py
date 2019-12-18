@@ -9,6 +9,6 @@ router = routers.SimpleRouter()
 
 router.register(r'notifications',
                 NotificationViewSet,
-                base_name='notifications')
+                basename='notifications')
 
 urlpatterns = router.urls

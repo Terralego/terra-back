@@ -190,7 +190,6 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework_gis',
     'versatileimagefield',
-    'drf_yasg',
     'corsheaders',
     'geostore',
     'terra_utils',

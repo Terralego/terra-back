@@ -8,6 +8,6 @@ router = routers.SimpleRouter()
 
 router.register(r'document-template',
                 DocumentTemplateViewSets,
-                base_name='document')
+                basename='document')
 
 urlpatterns = router.urls
