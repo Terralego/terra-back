@@ -1,10 +1,10 @@
-from datetime import date
 import glob
 import json
 import logging
 import os
 import uuid
 from copy import deepcopy
+from datetime import date
 from functools import reduce
 from tempfile import TemporaryDirectory
 
