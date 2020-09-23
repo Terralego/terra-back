@@ -1,3 +1,6 @@
+import unidecode
+from django.utils.http import urlquote
+
 from django.conf import settings
 from django.db.models import Q
 from django.http.response import Http404, HttpResponseServerError
@@ -126,7 +129,9 @@ class CommentViewSet(mixins.CreateModelMixin,
             headers={
                 'Content-Disposition': (
                     'attachment;'
-                    f' filename={comment.filename}'),
+                    f' filename="{comment.filename}"'
+                    f' filename*=UTF-8\'\'{urlquote(comment.filename)}'
+                ),
             }
         )
 
