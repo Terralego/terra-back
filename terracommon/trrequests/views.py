@@ -129,7 +129,7 @@ class CommentViewSet(mixins.CreateModelMixin,
             headers={
                 'Content-Disposition': (
                     'attachment;'
-                    f' filename="{comment.filename}"'
+                    f' filename="{unidecode.unidecode(comment.filename)}"'
                     f' filename*=UTF-8\'\'{urlquote(comment.filename)}'
                 ),
             }
