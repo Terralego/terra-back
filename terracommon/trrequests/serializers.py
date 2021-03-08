@@ -70,8 +70,16 @@ class UserRequestSerializer(serializers.ModelSerializer, SerializerCurrentUserMi
         old_properties, old_state = instance.properties, instance.state
 
         if 'layer' in validated_data:
+            # Update geometries
             geojson = validated_data.pop('layer')
             instance.layer.from_geojson(json.dumps(geojson), update=True)
+            # To update reviewers or other things related to geometry
+            event.send(
+                self.__class__,
+                action="USERREQUEST_GEOMETRY_CHANGED",
+                user=self.context['request'].user,
+                instance=instance,
+                old_state=old_state)
 
         documents = validated_data.pop('documents', [])
         instance = super().update(instance, validated_data)
