@@ -9,4 +9,4 @@ Sphinx
 sphinx-intl
 sphinx_rtd_theme
 eradicate>=1.0,<1.1
-factory_boy
+factory_boy<2.13.0

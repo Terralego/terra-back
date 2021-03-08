@@ -78,8 +78,7 @@ class UserRequestSerializer(serializers.ModelSerializer, SerializerCurrentUserMi
                 self.__class__,
                 action="USERREQUEST_GEOMETRY_CHANGED",
                 user=self.context['request'].user,
-                instance=instance,
-                old_state=old_state)
+                instance=instance)
 
         documents = validated_data.pop('documents', [])
         instance = super().update(instance, validated_data)

@@ -21,7 +21,7 @@ class LayerProcessingTestCase(TestCase):
         call_command(
             'layer_processing',
             f'--layer-pk-ins={layer.id}',
-            f'--make-valid',
+            '--make-valid',
             verbosity=0)
 
         self.assertEqual(len(Layer.objects.all()), 2)
@@ -45,7 +45,7 @@ class LayerProcessingTestCase(TestCase):
             'layer_processing',
             f'--layer-name-ins={in_layer.name}',
             f'--layer-name-out={out_layer.name}',
-            f'--sql-centroid',
+            '--sql-centroid',
             verbosity=0)
 
         out_layer = Layer.objects.get(name='out')

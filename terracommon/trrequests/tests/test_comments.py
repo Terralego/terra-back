@@ -251,7 +251,7 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         ])
         response = self._get_comment_attachment(pk=comment.pk)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual(f'attachment; filename={tmp_file.name}',
+        self.assertEqual(f"attachment; filename=\"{tmp_file.name}\" filename*=UTF-8''{tmp_file.name}",
                          response.get('Content-Disposition'))
         tmp_file.seek(0)
         self.assertEqual(response.content, tmp_file.read())
@@ -266,7 +266,7 @@ class CommentsTestCase(TestCase, TestPermissionsMixin):
         with self.settings(MEDIA_ACCEL_REDIRECT=True):
             response = self._get_comment_attachment(pk=comment.pk)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual(f'attachment; filename={tmp_file.name}',
+        self.assertEqual(f"attachment; filename=\"{tmp_file.name}\" filename*=UTF-8''{tmp_file.name}",
                          response.get('Content-Disposition'))
         self.assertEqual(response.get('X-Accel-Redirect'),
                          comment.attachment.url)

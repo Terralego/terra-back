@@ -209,18 +209,37 @@ class RequestTestCase(TestCase, TestPermissionsMixin):
             owner=self.user,
             layer__add_features=1)
 
+        self._set_permissions(['can_read_all_requests', ])
+
         self.assertEqual(1, userrequest.layer.features.all().count())
 
-        serializer = UserRequestSerializer()
-        validated_data = {
-            'layer': self.geojson,
-        }
-        serializer.update(userrequest, validated_data)
+        handler = MagicMock()
+        event.connect(handler)
+        # Test with the can_change_state_requests permission
+        # and tests event associated
+        response = self.client.patch(
+            reverse('trrequests:request-detail', args=[userrequest.pk]),
+            {'geojson': self.geojson},
+            format='json'
+        )
+
+        self.assertEqual(200, response.status_code)
+
+        handler.assert_called_once_with(
+            signal=event,
+            action="USERREQUEST_GEOMETRY_CHANGED",
+            sender=UserRequestSerializer,
+            user=self.user,
+            instance=userrequest)
+
         userrequest.refresh_from_db()
+
+        event.disconnect(handler)
+
         self.assertEqual(
             len(self.geojson['features']),
             userrequest.layer.features.all().count()
-            )
+        )
 
     def test_userrequest_patched(self):
         self._set_permissions(['can_read_self_requests', ])
