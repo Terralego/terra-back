@@ -151,7 +151,7 @@ class CachedDocument(File):
     cache_root = 'cache'
 
     def __init__(self, filename):
-        self.pathname = os.path.join(self.cache_root, filename)
+        self.pathname = os.path.join(settings.MEDIA_ROOT, self.cache_root, filename)
 
         if not os.path.isfile(self.pathname):
             self.exist = False

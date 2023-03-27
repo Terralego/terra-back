@@ -188,7 +188,7 @@ class VectorTilesTestCase(TestCase):
             'import_geojson',
             f'-g{chunk_fontainebleau_geojson}',
             f'-s{schema_json}',
-            f'--group=maxzoom_test',
+            '--group=maxzoom_test',
             '-lchunk_fontainebleau',
             verbosity=0)
 

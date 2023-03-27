@@ -16,7 +16,7 @@ class ImportShapefileTest(TestCase):
 
         call_command(
             'import_shapefile',
-            f'-iID_PG',
+            '-iID_PG',
             f'-g{sample_shapefile.name}',
             f'-s{empty_geojson}',
             verbosity=0)
